@@ -1,6 +1,29 @@
 #ifndef SIMPLEFS_API_H
 #define SIMPLEFS_API_H
 
+// Defines of API errors
+
+#define EINVAL -2
+#define ENOTDIR -3
+#define ENAMETOOLONG -4
+#define ENFILE -5
+#define ENOENT -6
+#define EBADF -7
+#define EIO -8
+#define EOVERFLOW -9
+#define EFBIG -10
+#define ENOSPC -11
+#define EBUSY -12
+#define EEXIST -13
+#define EMLINK -14
+#define ENOTEMPTY -15
+#define EMFILE -16
+
+#define ENOTIMPLEMENTED -100
+
+
+// Prototypes of API functions
+
 int simplefs_open(char *name, int mode);
 
 int simplefs_creat(char *name, int mode);
