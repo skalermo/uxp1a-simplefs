@@ -50,7 +50,7 @@ int fs_get_open_file_copy(uint32_t openFileIndex, OpenFile* openFileCopy);
 
 int fs_get_free_open_file(uint32_t* openFileIndex);
 
-
+int fs_occupy_free_open_file(uint32_t* openFileIndex, OpenFile* openFileToSave);
 
 
 ///////////////////////////////////

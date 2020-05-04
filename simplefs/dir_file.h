@@ -36,17 +36,19 @@ int fs_get_data_from_dir_entry_name(uint32_t blockNumber, uint32_t dirEntryIndex
 int fs_get_data_from_dir_entry_inode_number(uint32_t blockNumber, uint32_t dirEntryIndex, uint16_t* inodeNumber);
 
 
-int fs_get_dir_entry_copy(uint32_t blockNumber, uint32_t dirEntryIndex, DirEntry* dirFileCopy);
+int fs_get_dir_entry_copy(uint32_t blockNumber, uint32_t dirEntryIndex, DirEntry* dirEntryCopy);
 
 int fs_get_dir_file_copy(uint32_t blockNumber, DirFile* dirFileCopy);
 
 
 int fs_create_dir_file(uint32_t* blockNumber);
 
+int fs_create_and_save_dir_file(uint32_t* blockNumber, DirEntry* dirEntryToSave);
+
 
 int fs_get_free_dir_entry(uint32_t blockNumber, uint32_t* dirEntryIndex);
 
-
+int fs_occupy_free_dir_entry(uint32_t blockNumber, uint32_t* dirEntryIndex, DirEntry* dirEntryToSave);
 
 
 #endif

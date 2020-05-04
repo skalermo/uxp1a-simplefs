@@ -66,6 +66,8 @@ int fs_get_inode_copy(uint32_t inodeIndex, Inode* inodeCopy);
 
 int fs_get_free_inode(uint32_t* inodeIndex);
 
+int fs_occupy_free_inode(uint32_t* inodeIndex, Inode* inodeToSave);
+
 
 
 ///////////////////////////////////
