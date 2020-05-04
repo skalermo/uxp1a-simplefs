@@ -83,7 +83,8 @@ void find_inode_by_path();
 void find_file_in_dir();
 
 // Split path on strings.
-void parse_path();
+//Return count of subpaths or EINPATH error
+int parse_path(char* path, char*** subpath);
 
 // Same as simplefs_creat without opening it.
 void create_file();
