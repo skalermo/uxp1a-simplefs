@@ -1,10 +1,8 @@
 #include "simplefs_utils.h"
 #include <string.h>
-#include <stdio.h>
 #include <stdlib.h>
 
-//define parse_path error
-#define EINPATH -150
+
 
 int parse_path(char* path, char*** subpath)
 {
@@ -15,12 +13,12 @@ int parse_path(char* path, char*** subpath)
     {
         return EINPATH;
     }
-    //count approximate number of path's components
+    //counts approximate number of path's components
     for (int i = 0; path[i]; ++i)
     {
         dirCount += (path[i] == '/');
     }
-    //allocate space for all names and root dir
+    //allocates space for all names and root dir
     *subpath = (char** ) malloc((dirCount + 1) * sizeof(char*));
 
     int i = 0;

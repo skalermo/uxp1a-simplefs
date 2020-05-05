@@ -3,6 +3,11 @@
 
 #include "simplefs_internals.h"
 
+
+//define parse_path error
+#define EINPATH -150
+
+
 // Initialize filesystem with set parameters.
 void simplefs_init();
 
