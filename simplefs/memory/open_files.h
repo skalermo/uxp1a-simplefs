@@ -1,5 +1,11 @@
-#ifndef OPEN_FILES_H
-#define OPEN_FILES_H
+/*
+ * open_files.h
+ *
+ *      Author: Kordowski Mateusz
+ */
+
+#ifndef SIMPLEFS_OPEN_FILES_H
+#define SIMPLEFS_OPEN_FILES_H
 
 #include <stdint.h>
 #include <stddef.h> // offsetof
@@ -41,7 +47,7 @@ struct OpenFileStat{
 
 
 /**
- * @brief Save some data whith a type uint16_t to the opened file.
+ * @brief Save some data with a type uint16_t to the opened file.
  * 
  * @param openFileIndex - index of an open file structure in open file table.
  * @param index - index within open file structure.
@@ -53,7 +59,7 @@ struct OpenFileStat{
 int8_t fs_save_data_to_open_file_uint16(uint16_t openFileIndex, uint8_t index, uint16_t data, void* addr);
 
 /**
- * @brief Save some data whith a type uint32_t to the opened file.
+ * @brief Save some data with a type uint32_t to the opened file.
  * 
  * @param openFileIndex - index of an open file structure in open file table.
  * @param index - index within open file structure.
@@ -72,10 +78,10 @@ int8_t fs_save_data_to_open_file_uint32(uint16_t openFileIndex, uint8_t index, u
  * @param index - index within open file structure.
  * @param data - pointer where the read data will be saved.
  * @param addr - address of the mapped shared memory.
- * @return uint8_t - - 0 if operation was successful.
+ * @return int8_t - - 0 if operation was successful.
  * Otherwise error code.
  */
-uint8_t fs_get_data_from_open_file_uint16(uint16_t openFileIndex, uint8_t index, uint16_t* data, void* addr);
+int8_t fs_get_data_from_open_file_uint16(uint16_t openFileIndex, uint8_t index, uint16_t* data, void* addr);
 
 /**
  * @brief Get data of type uint32_t from open file structure with specified index.
@@ -84,10 +90,10 @@ uint8_t fs_get_data_from_open_file_uint16(uint16_t openFileIndex, uint8_t index,
  * @param index - index within open file structure.
  * @param data - pointer where the read data will be saved.
  * @param addr - address of the mapped shared memory.
- * @return uint8_t - 0 if operation was successful.
+ * @return int8_t - 0 if operation was successful.
  * Otherwise error code.
  */
-uint8_t fs_get_data_from_open_file_uint32(uint16_t openFileIndex, uint8_t index, uint32_t* data, void* addr);
+int8_t fs_get_data_from_open_file_uint32(uint16_t openFileIndex, uint8_t index, uint32_t* data, void* addr);
 
 
 /**
@@ -124,6 +130,26 @@ int8_t fs_get_free_open_file(uint16_t* openFileIndex, void* addr);
  */
 int8_t fs_occupy_free_open_file(uint32_t* openFileIndex, struct OpenFile* openFileToSave, void* addr);
 
+/**
+ * @brief Mark open file as used in open file bitmap.
+ * 
+ * @param inodeIndex - index of an open file.
+ * @param addr - address of the mapped shared memory.
+ * @return int8_t - 0 if operation was successful.
+ * Otherwise error code.
+ */
+int8_t fs_mark_open_file_as_used(uint32_t openFileIndex, void* addr);
+
+/**
+ * @brief Mark open file as free in open file bitmap.
+ * 
+ * @param inodeIndex - index of an open file.
+ * @param addr - address of the mapped shared memory.
+ * @return int8_t - 0 if operation was successful.
+ * Otherwise error code.
+ */
+int8_t fs_mark_inode_as_free(uint32_t openFileIndex, void* addr);
+
 
 ///////////////////////////////////
 //  Other functions
@@ -139,7 +165,7 @@ int8_t fs_occupy_free_open_file(uint32_t* openFileIndex, struct OpenFile* openFi
  * @return int8_t - 0 if operation was successful.
  * Otherwise error code.
  */
-int8_t fs_create_open_file_table_stuctures_in_shm(uint32_t offsetOpenFileTable, uint32_t offsetBitmap, void* addr);
+int8_t fs_create_open_file_table_stuctures_in_shm(uint32_t offsetOpenFileTable, uint32_t offsetBitmap, void* addr);  // TO_CHECK, TODO
 
 
 

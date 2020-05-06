@@ -1,0 +1,189 @@
+/*
+ * block_links.c
+ *
+ *      Author: Kordowski Mateusz
+ */
+
+#ifndef SIMPLEFS_BLOCK_LINKS_C
+#define SIMPLEFS_BLOCK_LINKS_C
+
+#include "block_links.h"
+#include "utils.c"
+
+
+///////////////////////////////////
+//  Struct functions
+//////////////////////////////////
+
+
+int8_t fs_get_data(uint32_t from, uint32_t to, uint32_t initialBlockNumber, void* receivedData, void* addr){
+    uint32_t nextBlockIndex = initialBlockNumber;
+    
+    uint32_t howManyBlocks = (to - from) / FS_BLOCK_SIZE;
+    uint32_t lastBlockOccupancy = (to - from) % FS_BLOCK_SIZE;
+
+    uint32_t beginBlock = from / FS_BLOCK_SIZE;
+    uint32_t beginBlockOccupancy = from % FS_BLOCK_SIZE;
+
+    uint32_t receivedData_ptr = 0;
+
+    // loop to the block where you start reading
+    for(uint32_t i = 0; i < beginBlock; ++i){
+        if(inner_fs_next_block_with_error(nextBlockIndex, addr) == -1) return -1;
+    }
+
+    // first block
+    void* dataBlockReal_ptr = fs_get_data_blocks_ptr(addr) + (nextBlockIndex * FS_BLOCK_SIZE);
+    if(inner_fs_next_block_with_error(nextBlockIndex, addr) == -1) return -1;
+    uint32_t differenceInBlock = FS_BLOCK_SIZE - beginBlockOccupancy;
+
+    memcpy(receivedData, dataBlockReal_ptr + beginBlockOccupancy, differenceInBlock);
+    receivedData_ptr += differenceInBlock;
+
+    // rest of blocks
+    differenceInBlock = FS_BLOCK_SIZE;
+    for(uint32_t i = 1; i < howManyBlocks; ++i){
+        dataBlockReal_ptr = fs_get_data_blocks_ptr(addr) + (nextBlockIndex * FS_BLOCK_SIZE);
+        if(inner_fs_next_block_with_error(nextBlockIndex, addr) == -1) return -1;
+
+        memcpy(receivedData + receivedData_ptr, dataBlockReal_ptr, differenceInBlock);
+        receivedData_ptr += differenceInBlock;
+    }
+
+    // end of read, possibly last block
+    if(lastBlockOccupancy != 0){
+        differenceInBlock = (to - from) - receivedData_ptr;
+        dataBlockReal_ptr = fs_get_data_blocks_ptr(addr) + (nextBlockIndex * FS_BLOCK_SIZE);
+        memcpy(receivedData + receivedData_ptr, dataBlockReal_ptr, differenceInBlock);
+    }
+
+    return 0;
+}
+
+int8_t fs_save_data(uint32_t from, uint32_t to, uint32_t initialBlockNumber, void* dataToRecord, void* addr){
+    uint32_t nextBlockIndex = initialBlockNumber;
+    
+    uint32_t howManyBlocks = (to - from) / FS_BLOCK_SIZE;
+    uint32_t lastBlockOccupancy = (to - from) % FS_BLOCK_SIZE;
+
+    uint32_t beginBlock = from / FS_BLOCK_SIZE;
+    uint32_t beginBlockOccupancy = from % FS_BLOCK_SIZE;
+
+    uint32_t recordData_ptr = 0;
+
+     // loop to the block where you start reading
+    for(uint32_t i = 0; i < beginBlock; ++i){
+        if(inner_fs_next_block_with_allocate(nextBlockIndex, addr) == -1) return -1;
+    }
+
+    // first block
+    void* dataBlockReal_ptr = fs_get_data_blocks_ptr(addr) + (nextBlockIndex * FS_BLOCK_SIZE);
+    if(inner_fs_next_block_with_allocate(nextBlockIndex, addr) == -1) return -1;
+    uint32_t differenceInBlock = FS_BLOCK_SIZE - beginBlockOccupancy;
+
+    memcpy(dataBlockReal_ptr + beginBlockOccupancy, dataToRecord, differenceInBlock);
+    recordData_ptr += differenceInBlock;
+
+    // rest of blocks
+    differenceInBlock = FS_BLOCK_SIZE;
+    for(uint32_t i = 1; i < howManyBlocks; ++i){
+        dataBlockReal_ptr = fs_get_data_blocks_ptr(addr) + (nextBlockIndex * FS_BLOCK_SIZE);
+        if(inner_fs_next_block_with_allocate(nextBlockIndex, addr) == -1) return -1;
+
+        memcpy(dataBlockReal_ptr, dataToRecord + recordData_ptr, differenceInBlock);
+        recordData_ptr += differenceInBlock;
+    }
+
+    // end of read, possibly last block
+    if(lastBlockOccupancy != 0){
+        differenceInBlock = (to - from) - recordData_ptr;
+        dataBlockReal_ptr = fs_get_data_blocks_ptr(addr) + (nextBlockIndex * FS_BLOCK_SIZE);
+        memcpy(dataBlockReal_ptr, dataToRecord + recordData_ptr, differenceInBlock);
+    }
+
+    return 0;
+}
+
+uint32_t fs_get_next_block_number(uint32_t blockNumber, void* addr){
+    void* block_ptr = fs_get_block_links_ptr(addr);
+    uint32_t nextBlockNumber;
+    memcpy(&nextBlockNumber, block_ptr + (blockNumber * sizeof(uint32_t)));
+
+    return nextBlockNumber;
+}
+
+uint32_t fs_allocate_new_block(uint32_t blockNumerInChain, void* addr){
+    void* block_ptr = fs_get_block_links_ptr(addr);
+    uint32_t nextBlockNumber = blockNumerInChain;
+
+    do{
+        blockNumerInChain = nextBlockNumber;
+        memcpy(&nextBlockNumber, block_ptr + (blockNumerInChain * sizeof(uint32_t)));
+    }
+    while(nextBlockNumber != FS_EMPTY_BLOCK_VALUE);
+
+    uint32_t freeBlockIndex = inner_fs_find_free_index(fs_get_block_bitmap_ptr(addr), FS_NUMBER_OF_BLOCKS);
+
+    if(freeBlockIndex == UINT32_MAX) return FS_EMPTY_BLOCK_VALUE;
+    if(freeBlockIndex == 0) return FS_EMPTY_BLOCK_VALUE;
+
+    inner_fs_mark_bitmap_bit(fs_get_block_bitmap_ptr(addr), freeBlockIndex);
+
+    return freeBlockIndex;
+}
+
+uint32_t fs_allocate_new_chain(void* addr){
+    uint32_t freeBlockIndex = inner_fs_find_free_index(fs_get_block_bitmap_ptr(addr), FS_NUMBER_OF_BLOCKS);
+
+    if(freeBlockIndex == UINT32_MAX) return FS_EMPTY_BLOCK_VALUE;
+    if(freeBlockIndex == 0) return FS_EMPTY_BLOCK_VALUE;
+
+    inner_fs_mark_bitmap_bit(fs_get_block_bitmap_ptr(addr), freeBlockIndex);
+
+    return freeBlockIndex;
+}
+
+uint8_t fs_free_blockchain(uint32_t firstBlockInBlockchain,void* addr){
+    if(firstBlockInBlockchain == FS_EMPTY_BLOCK_VALUE) return 0;
+
+    uint32_t nextBlockIndex;
+    uint32_t reset = FS_EMPTY_BLOCK_VALUE;
+
+    do{
+        nextBlockIndex = fs_get_next_block_number(firstBlockInBlockchain, addr);
+
+        inner_fs_free_bitmap_bit(fs_get_block_bitmap_ptr(addr), firstBlockInBlockchain);
+        memcpy(fs_get_block_links_ptr(addr) + (sizeof(uint32_t) * firstBlockInBlockchain), reset, sizeof(uint32_t));
+
+        firstBlockInBlockchain = nextBlockIndex;
+    }
+    while(firstBlockInBlockchain != FS_EMPTY_BLOCK_VALUE);
+
+    return 0;
+}
+
+int8_t fs_create_blocks_stuctures_in_shm(uint32_t offsetLinks, uint32_t offsetBitmap, void* addr){
+    void* blockLinks_ptr = fs_get_block_links_ptr(addr);
+    void* blockStat_ptr = fs_get_block_bitmap_ptr(addr);
+
+    struct BlockLinks* toSave = malloc(sizeof(struct BlockLinks));
+    struct BlockStat* toSaveStat = malloc(sizeof(struct BlockStat));
+
+    for(unsigned int i = 0; i < FS_NUMBER_OF_BLOCKS; ++i){
+        toSave->block_num[0] = FS_EMPTY_BLOCK_VALUE;
+    }
+
+    for(unsigned int i = 0; i < FS_NUMBER_OF_BLOCKS_BY_8; ++i){
+        toSaveStat->block_bitmap[i] = 0xFF;
+    }
+    toSaveStat->used_data_blocks = 0;
+
+    memcpy(blockLinks_ptr, toSave, sizeof(struct BlockLinks));
+    memcpy(blockStat_ptr, toSaveStat, sizeof(struct BlockStat));
+
+    free(toSaveStat);
+    free(toSave);
+}
+
+
+#endif

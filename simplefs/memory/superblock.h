@@ -1,3 +1,9 @@
+/*
+ * superblock.h
+ *
+ *      Author: Kordowski Mateusz
+ */
+
 #ifndef SIMPLEFS_SUPERBLOCK_H
 #define SIMPLEFS_SUPERBLOCK_H
 
@@ -20,7 +26,7 @@
 //
 // TODO
 //
-#define FS_ENTIRE_SIZE 0 // in bytes
+#define FS_ENTIRE_SIZE 0 // in bytes // TODO
 
 
 ///////////////////////////////////
@@ -30,7 +36,7 @@
 
 
 struct Superblock {
-    uint16_t max_number_of_files;
+    uint16_t max_number_of_inodes;
     uint16_t filesystem_checks;
     uint16_t data_block_size;
     uint32_t fs_size;
@@ -40,6 +46,7 @@ struct Superblock {
 
     uint32_t block_links_pointer;
     uint32_t block_bitmap_pointer;
+    uint32_t data_blocks_pointer;
 
     uint32_t inode_table_pointer;
     uint32_t inode_bitmap_pointer;
@@ -58,7 +65,7 @@ struct Superblock {
  * @param addr - address of the mapped shared memory.
  * @return uint32_t - returned value.
  */
-uint32_t fs_get_from_superblock_uint32(uint8_t index, void* addr);
+int8_t fs_get_from_superblock_uint32(uint8_t index, uint32_t* data, void* addr);
 
 /**
  * @brief Get data from superblock with datatype of uint16_t.
@@ -67,7 +74,7 @@ uint32_t fs_get_from_superblock_uint32(uint8_t index, void* addr);
  * @param addr - address of the mapped shared memory.
  * @return uint16_t returned value.
  */
-uint16_t fs_get_data_from_superblock_uint16(uint8_t index, void* addr);
+int8_t fs_get_data_from_superblock_uint16(uint8_t index, uint16_t* data, void* addr);
 
 
 
@@ -106,9 +113,9 @@ int8_t fs_save_data_to_superblock_uint32(uint8_t index, uint32_t data, void* add
 int8_t fs_get_superblock_copy(struct Superblock* superblockCopy, void* addr);
 
 
-///////////////////////////////////
-//  Pointer getters
-//////////////////////////////////
+////////////////////////////////////////////////
+//  Getters for pointers and constant data
+///////////////////////////////////////////////
 
 void* fs_get_open_file_table_ptr(void* addr);
 
@@ -119,10 +126,17 @@ void* fs_get_block_links_ptr(void* addr);
 
 void* fs_get_block_bitmap_ptr(void* addr);
 
+void* fs_get_data_blocks_ptr(void* addr);
+
 
 void* fs_get_inode_table_ptr(void* addr);
 
 void* fs_get_inode_bitmap_ptr(void* addr);
+
+
+uint16_t fs_get_data_block_size(void* addr);
+
+uint16_t fs_get_max_number_of_inodes(void* addr);
 
 
 ///////////////////////////////////
@@ -136,7 +150,7 @@ void* fs_get_inode_bitmap_ptr(void* addr);
  * @return int8_t - 0 if operation was successful.
  * Otherwise error code.
  */
-int8_t fs_create_superblock_in_shm(void* addr); // TO_CHECK
+int8_t fs_create_superblock_in_shm(void* addr); // TO_CHECK, TODO
 
 
 

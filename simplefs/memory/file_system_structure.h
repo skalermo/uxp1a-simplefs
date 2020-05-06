@@ -1,3 +1,9 @@
+/*
+ * file_system_structure.h
+ *
+ *      Author: Kordowski Mateusz
+ */
+
 #ifndef FILE_SYSTEM_STRUCTURE_H
 #define FILE_SYSTEM_STRUCTURE_H
 

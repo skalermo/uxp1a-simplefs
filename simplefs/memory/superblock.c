@@ -1,9 +1,14 @@
+/*
+ * superblock.c
+ *
+ *      Author: Kordowski Mateusz
+ */
+
 #ifndef SIMPLEFS_SUPERBLOCK_C
 #define SIMPLEFS_SUPERBLOCK_C
 
 #include "superblock.h"
-
-#define member_size(type, member) sizeof(((type *)0)->member)
+#include "utils.c"
 
 ///////////////////////////////////
 //  Hidden functions
@@ -12,7 +17,7 @@
 uint8_t inner_fs_get_superblock_offsetof(uint8_t index){
     switch(index){
         case 0:
-            return offsetof(struct Superblock, max_number_of_files);
+            return offsetof(struct Superblock, max_number_of_inodes);
         case 1:
             return offsetof(struct Superblock, filesystem_checks);
         case 2:
@@ -28,18 +33,20 @@ uint8_t inner_fs_get_superblock_offsetof(uint8_t index){
         case 7:
             return offsetof(struct Superblock, block_bitmap_pointer);
         case 8:
-            return offsetof(struct Superblock, inode_bitmap_pointer);
+            return offsetof(struct Superblock, data_blocks_pointer);
         case 9:
+            return offsetof(struct Superblock, inode_bitmap_pointer);
+        case 10:
             return offsetof(struct Superblock, inode_table_pointer);
         default:
-            return -1;
+            return UINT8_MAX;
     }
 }
 
 uint8_t inner_fs_get_superblock_variable_size(uint8_t index){
     switch(index){
         case 0:
-            return member_size(struct Superblock, max_number_of_files);
+            return member_size(struct Superblock, max_number_of_inodes);
         case 1:
             return member_size(struct Superblock, filesystem_checks);
         case 2:
@@ -55,11 +62,13 @@ uint8_t inner_fs_get_superblock_variable_size(uint8_t index){
         case 7:
             return member_size(struct Superblock, block_bitmap_pointer);
         case 8:
-            return member_size(struct Superblock, inode_bitmap_pointer);
+            return member_size(struct Superblock, data_blocks_pointer);
         case 9:
+            return member_size(struct Superblock, inode_bitmap_pointer);
+        case 10:
             return member_size(struct Superblock, inode_table_pointer);
         default:
-            return -1;
+            return UINT8_MAX;
     }
 }
 
@@ -79,37 +88,35 @@ void* innet_fs_get_superblock_pointers(void* addr, uint8_t index){
 //  Struct functions
 //////////////////////////////////
 
-uint32_t fs_get_from_superblock_uint32(uint8_t index, void* addr){
+int8_t fs_get_from_superblock_uint32(uint8_t index, uint32_t* data, void* addr){
     #ifdef DEBUG
-        if(index <= 2) return 0;
+        if(index <= 2) return INT8_MIN;
     #endif
 
     uint8_t offset = inner_fs_get_superblock_offsetof(index);
     uint8_t size = inner_fs_get_superblock_variable_size(index);
-    uint32_t ret;
 
-    memcpy(&ret, addr + offset, size);
+    memcpy(data, addr + offset, size);
 
-    return ret;
+    return 0;
 }
 
-uint16_t fs_get_data_from_superblock_uint16(uint8_t index, void* addr){
+int8_t fs_get_data_from_superblock_uint16(uint8_t index, uint16_t* data, void* addr){
     #ifdef DEBUG
-        if(index >=3) return 0;
+        if(index >=3) return INT8_MIN;
     #endif
 
     uint8_t offset = inner_fs_get_superblock_offsetof(index);
     uint8_t size = inner_fs_get_superblock_variable_size(index);
-    uint16_t ret;
 
-    memcpy(&ret, addr + offset, size);
+    memcpy(data, addr + offset, size);
 
-    return ret;
+    return 0;
 }
 
 int8_t fs_save_data_to_superblock_uint16(uint8_t index, uint16_t data, void* addr){
     #ifdef DEBUG
-        if(index >=3) return 0;
+        if(index >=3) return INT8_MIN;
     #endif
 
     uint8_t offset = inner_fs_get_superblock_offsetof(index);
@@ -122,7 +129,7 @@ int8_t fs_save_data_to_superblock_uint16(uint8_t index, uint16_t data, void* add
 
 int8_t fs_save_data_to_superblock_uint32(uint8_t index, uint32_t data, void* addr){
     #ifdef DEBUG
-        if(index <= 2) return 0;
+        if(index <= 2) return INT8_MIN;
     #endif
 
     uint8_t offset = inner_fs_get_superblock_offsetof(index);
@@ -154,18 +161,43 @@ void* fs_get_block_bitmap_ptr(void* addr){
     return innet_fs_get_superblock_pointers(addr, 7);
 }
 
-void* fs_get_inode_table_ptr(void* addr){
+void* fs_get_data_blocks_ptr(void* addr){
     return innet_fs_get_superblock_pointers(addr, 8);
 }
 
-void* fs_get_inode_bitmap_ptr(void* addr){
+void* fs_get_inode_table_ptr(void* addr){
     return innet_fs_get_superblock_pointers(addr, 9);
 }
+
+void* fs_get_inode_bitmap_ptr(void* addr){
+    return innet_fs_get_superblock_pointers(addr, 10);
+}
+
+uint16_t fs_get_data_block_size(void* addr){
+    uint32_t ret;
+    uint8_t offset = inner_fs_get_superblock_offsetof(2);
+    uint8_t size = inner_fs_get_superblock_variable_size(2);
+
+    memcpy(&ret, addr + offset, size);
+
+    return ret;
+}
+
+uint16_t fs_get_max_number_of_inodes(void* addr){
+    uint32_t ret;
+    uint8_t offset = inner_fs_get_superblock_offsetof(0);
+    uint8_t size = inner_fs_get_superblock_variable_size(0);
+
+    memcpy(&ret, addr + offset, size);
+
+    return ret;
+}
+
 
 int8_t fs_create_superblock_in_shm(void* addr){
     struct Superblock toSave;
     
-    toSave.max_number_of_files = FS_MAX_NUMBER_OF_INODES;
+    toSave.max_number_of_inodes = FS_MAX_NUMBER_OF_INODES;
     toSave.filesystem_checks = 0;
     toSave.data_block_size = FS_BLOCK_SIZE;
     toSave.fs_size = FS_ENTIRE_SIZE;
