@@ -15,6 +15,7 @@
 
 #include "inode.h"
 #include "block_links.h"
+#include "open_files.h"
 
 
 ///////////////////////////////////
@@ -34,7 +35,20 @@
 //////////////////////////////////
 
 
-
+/**
+ * @brief 
+ * @details For now structures hierarchy is as follow:
+ * - superblock
+ * - open file table
+ * - open file stat
+ * - inode table
+ * - inode stat
+ * - block links
+ * - block stat
+ * - data block
+ * 
+ * The indexes stay in the same order as in the superblock structure.
+ */
 struct Superblock {
     uint16_t max_number_of_inodes;
     uint16_t filesystem_checks;
@@ -68,7 +82,7 @@ struct Superblock {
  * -1 if the index points to the non-existent variable in structue.
  * -2 if the index in relation to data type was wrong.
  */
-int8_t fs_get_from_superblock_uint32(uint8_t index, uint32_t* data, void* addr);
+int8_t fs_get_data_from_superblock_uint32(uint8_t index, uint32_t* data, void* addr);
 
 /**
  * @brief Get data from superblock with datatype of uint16_t.
@@ -158,12 +172,38 @@ uint16_t fs_get_max_number_of_inodes(void* addr);
  * @brief Creates initial superblock structure in shared memory.
  * It must be used before creating other structures.
  * 
+ * @param toCopy - pointer to the struct that will be copied to the shared memory.
  * @param addr - address of the mapped shared memory.
  * @return int8_t - 0 if operation was successful.
  * No other errors.
  */
-int8_t fs_create_superblock_in_shm(void* addr); // TO_CHECK, TODO
+int8_t fs_create_superblock_in_shm(struct Superblock* toCopy, void* addr); // TO_CHECK, TODO
 
+/////////////////////////////////////
+//  Functions to calculate offsets
+////////////////////////////////////
 
+/*
+* These functions have argumets that are not needed because in case of changing place of these structures
+* interface is already provided.
+*/
+
+uint32_t calculate_fs_superblock_end();
+
+uint32_t calculate_fs_open_file_table_end(uint32_t maxOpenFiles, uint32_t maxInodes, uint32_t maxFilesystemSize, uint32_t sizeofOneBlock);
+
+uint32_t calculate_fs_open_file_stat_end(uint32_t maxOpenFiles, uint32_t maxInodes, uint32_t maxFilesystemSize, uint32_t sizeofOneBlock);
+
+uint32_t calculate_fs_inode_table_end(uint32_t maxOpenFiles, uint32_t maxInodes, uint32_t maxFilesystemSize, uint32_t sizeofOneBlock);
+
+uint32_t calculate_fs_inode_stat_end(uint32_t maxOpenFiles, uint32_t maxInodes, uint32_t maxFilesystemSize, uint32_t sizeofOneBlock);
+
+uint32_t calculate_fs_block_links_end(uint32_t maxOpenFiles, uint32_t maxInodes, uint32_t maxFilesystemSize, uint32_t sizeofOneBlock);
+
+uint32_t calculate_fs_block_stat_end(uint32_t maxOpenFiles, uint32_t maxInodes, uint32_t maxFilesystemSize, uint32_t sizeofOneBlock);
+
+uint32_t calculate_fs_data_block_end(uint32_t maxOpenFiles, uint32_t maxInodes, uint32_t maxFilesystemSize, uint32_t sizeofOneBlock);
+
+uint32_t calculate_fs_needed_blocks(uint32_t maxOpenFiles, uint32_t maxInodes, uint32_t maxFilesystemSize, uint32_t sizeofOneBlock);
 
 #endif

@@ -239,6 +239,35 @@ int8_t fs_create_and_save_dir_file(uint32_t* blockNumber, struct FS_create_dir_d
     return 0;
 }
 
+int8_t fs_create_main_folder(void* addr){
+    const uint32_t blockindex = 0;
+    struct DirEntry* toSave = malloc(sizeof(struct DirEntry));
+    void* block_ptr = fs_get_data_blocks_ptr(addr) + (blockindex * fs_get_data_block_size(addr));
+
+    // directory '.'
+    *toSave->name = FS_MAIN_DIRECTORY_NAME;
+    toSave->name_len = FS_MAIN_DIRECTORY_NAME_SIZE;
+    toSave->inode_number = 1;
+
+    memcpy(block_ptr, toSave, sizeof(struct DirEntry));
+
+    // directory '.' again, for compatibility
+    memcpy(block_ptr + sizeof(struct DirEntry), toSave, sizeof(struct DirEntry));
+
+    toSave->inode_number = 0;
+    for(unsigned int i = 0; i < FS_NAME_SIZE; ++i){
+        toSave->name[i] = 0;
+    }
+    toSave->name_len = 0;
+
+    for(uint16_t i = sizeof(struct DirEntry) * 2; i < fs_get_data_block_size(addr) / sizeof(struct DirEntry); i += sizeof(struct DirEntry)) {
+        memcpy(block_ptr + i, toSave, sizeof(struct DirEntry));
+    }
+
+    free(toSave);
+    return 0;
+}
+
 int8_t fs_get_free_dir_entry(uint32_t blockNumber, uint32_t* dirEntryIndex, void* addr){
     void* block_ptr = fs_get_data_blocks_ptr(addr) + (blockNumber * sizeof(struct DirEntry));
     struct DirEntry toRead;

@@ -175,7 +175,10 @@ int8_t fs_create_blocks_stuctures_in_shm(void* addr){
         toSave->block_num[0] = FS_EMPTY_BLOCK_VALUE;
     }
 
-    for(unsigned int i = 0; i < FS_NUMBER_OF_BLOCKS_BY_8; ++i){
+    // first block is for main directory
+    toSaveStat->block_bitmap[0] = 0x7F;
+
+    for(unsigned int i = 1; i < FS_NUMBER_OF_BLOCKS_BY_8; ++i){
         toSaveStat->block_bitmap[i] = 0xFF;
     }
     toSaveStat->used_data_blocks = 0;

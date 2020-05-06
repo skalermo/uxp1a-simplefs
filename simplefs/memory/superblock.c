@@ -88,7 +88,7 @@ void* innet_fs_get_superblock_pointers(void* addr, uint8_t index){
 //  Struct functions
 //////////////////////////////////
 
-int8_t fs_get_from_superblock_uint32(uint8_t index, uint32_t* data, void* addr){
+int8_t fs_get_data_from_superblock_uint32(uint8_t index, uint32_t* data, void* addr){
     if(index <= 2) return -2;
 
     uint8_t offset = inner_fs_get_superblock_offsetof(index);
@@ -194,26 +194,64 @@ uint16_t fs_get_max_number_of_inodes(void* addr){
 }
 
 
-int8_t fs_create_superblock_in_shm(void* addr){
-    struct Superblock toSave;
-    
-    toSave.max_number_of_inodes = FS_MAX_NUMBER_OF_INODES;
-    toSave.filesystem_checks = 0;
-    toSave.data_block_size = FS_BLOCK_SIZE;
-    toSave.fs_size = FS_ENTIRE_SIZE;
-
-    toSave.open_file_table_pointer = 44;
-    toSave.open_file_bitmap_pointer;
-
-    toSave.block_links_pointer = 798752;
-    toSave.block_bitmap_pointer;
-
-    toSave.inode_table_pointer = 12332;
-    toSave.inode_bitmap_pointer;
-
-    memcpy(addr, &toSave, sizeof(struct Superblock));
+int8_t fs_create_superblock_in_shm(struct Superblock* toCopy, void* addr){
+    memcpy(addr, toCopy, sizeof(struct Superblock));
 
     return 0;
 }
+
+/////////////////////////////////////
+//  Functions to calculate offsets
+////////////////////////////////////
+
+uint32_t calculate_fs_superblock_end(){
+    return sizeof(struct Superblock);
+}
+
+uint32_t calculate_fs_open_file_table_end(uint32_t maxOpenFiles, uint32_t maxInodes, uint32_t maxFilesystemSize, uint32_t sizeofOneBlock){
+    return sizeof(struct OpenFile) * maxOpenFiles + calculate_fs_superblock_end();
+}
+
+uint32_t calculate_fs_open_file_stat_end(uint32_t maxOpenFiles, uint32_t maxInodes, uint32_t maxFilesystemSize, uint32_t sizeofOneBlock){
+    uint32_t fun = calculate_fs_open_file_table_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock);
+    uint32_t sizeOfStat = (maxOpenFiles / 8) + 1 + 2;
+    return fun + sizeOfStat;
+}
+
+uint32_t calculate_fs_inode_table_end(uint32_t maxOpenFiles, uint32_t maxInodes, uint32_t maxFilesystemSize, uint32_t sizeofOneBlock){
+    uint32_t fun = calculate_fs_open_file_stat_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock);
+    return sizeof(struct Inode) * maxInodes + fun;
+}
+
+uint32_t calculate_fs_inode_stat_end(uint32_t maxOpenFiles, uint32_t maxInodes, uint32_t maxFilesystemSize, uint32_t sizeofOneBlock){
+    uint32_t fun = calculate_fs_inode_table_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock);
+    uint32_t sizeOfStat = (maxInodes / 8) + 1 + 2;
+    return fun + sizeOfStat;
+}
+
+uint32_t calculate_fs_block_links_end(uint32_t maxOpenFiles, uint32_t maxInodes, uint32_t maxFilesystemSize, uint32_t sizeofOneBlock){
+    uint32_t fun = calculate_fs_inode_stat_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock);
+    uint32_t neededBlocks = calculate_fs_needed_blocks(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock);
+    return neededBlocks * sizeof(uint32_t) + fun;
+}
+
+uint32_t calculate_fs_block_stat_end(uint32_t maxOpenFiles, uint32_t maxInodes, uint32_t maxFilesystemSize, uint32_t sizeofOneBlock){
+    uint32_t fun = calculate_fs_block_links_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock);
+    uint32_t neededBlocks = calculate_fs_needed_blocks(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock);
+    uint32_t sizeOfStat = (neededBlocks / 8) + 1 + 4;
+    return fun + sizeOfStat;
+}
+
+uint32_t calculate_fs_data_block_end(uint32_t maxOpenFiles, uint32_t maxInodes, uint32_t maxFilesystemSize, uint32_t sizeofOneBlock){
+    uint32_t fun = calculate_fs_block_stat_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock);
+    uint32_t neededBlocks = calculate_fs_needed_blocks(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock);
+    return neededBlocks * sizeofOneBlock + fun;
+}
+
+uint32_t calculate_fs_needed_blocks(uint32_t maxOpenFiles, uint32_t maxInodes, uint32_t maxFilesystemSize, uint32_t sizeofOneBlock){
+    uint32_t fun = calculate_fs_inode_stat_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock);
+    return (maxFilesystemSize - 1 - fun) * 8 / ((8 * (sizeof(uint32_t) + sizeofOneBlock)) + 1);  // floor
+}
+
 
 #endif

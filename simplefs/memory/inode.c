@@ -191,9 +191,9 @@ int8_t fs_create_inode_structures_in_shm(void* addr){
     // save inode table
 
     // main directory
-    toSave.block_index;
-    toSave.file_size;
-    toSave.mode;
+    toSave.block_index = 0;
+    toSave.file_size = fs_get_data_block_size(addr);
+    toSave.mode = ;
     toSave.ref_count = 0;
     toSave.readers = 0;
     toSave.padding[0] = 0;
@@ -204,9 +204,9 @@ int8_t fs_create_inode_structures_in_shm(void* addr){
     offset += sizeof(struct Inode);
 
     // rest of inodes
-    toSave.block_index;
-    toSave.file_size;
-    toSave.mode;
+    toSave.block_index = ;
+    toSave.file_size = ;
+    toSave.mode = ;
     
     for(unsigned int i = 1; i < FS_MAX_NUMBER_OF_INODES; ++i, offset += sizeof(struct Inode)){
         memcpy(inodeTable_ptr + offset, &toSave, sizeof(struct Inode));
@@ -214,6 +214,7 @@ int8_t fs_create_inode_structures_in_shm(void* addr){
 
     struct InodeStat* toSaveStat = malloc(sizeof(struct InodeStat));
 
+    // for main directory
     toSaveStat->inode_used = 1;
     toSaveStat->inode_bitmap[0] = 0x7F;
 

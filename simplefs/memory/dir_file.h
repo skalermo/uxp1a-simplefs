@@ -18,6 +18,7 @@
 
 #define FS_NAME_SIZE 61
 #define FS_MAIN_DIRECTORY_NAME "/"
+#define FS_MAIN_DIRECTORY_NAME_SIZE 2
 
 ///////////////////////////////////
 //  Structs
@@ -163,6 +164,15 @@ int8_t fs_create_dir_file(uint32_t* blockNumber, struct FS_create_dir_data* inod
  */
 int8_t fs_create_and_save_dir_file(uint32_t* blockNumber, struct FS_create_dir_data* inodesData, struct DirEntry* dirEntryToSave, void* addr);
 
+/**
+ * @brief Creates a main directory.
+ * It must be used only at initialization of the file system before any other folder or file is created.
+ * 
+ * @param addr - address of the mapped shared memory.
+ * @return int8_t - 0 if operation was successful.
+ * No other errors.
+ */
+int8_t fs_create_main_folder(void* addr); // TODO
 
 /**
  * @brief Get an index of a free directory entry in folder's file.
