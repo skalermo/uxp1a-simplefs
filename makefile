@@ -5,7 +5,7 @@
 CC := gcc
 CCFLAGS := -Wall -g  # More flags to be added...
 INCLUDE_FS = -I $(FS_DIR)
-
+VALGRIND = 
 
 
 #############################
@@ -87,12 +87,15 @@ TEST_TARGETS := $(patsubst $(TEST_SRC_DIR)/test_%.c,$(TEST_BIN_DIR)/test_%.out,$
 
 test: build_tests run_tests
 
+valgrind:
+	$(eval VALGRIND := valgrind --leak-check=full)
+
 build_tests: $(TEST_BUILD_PATHS) $(TEST_TARGETS)
 
 run_tests: build_tests
 	@echo >> $(TEST_LOG)
 	@date "+%Y-%m-%d[%H:%M:%S]" >> $(TEST_LOG)
-	@for test_exec in $(TEST_TARGETS); do ./$$test_exec 2>&1 | tee -a $(TEST_LOG); done
+	@for test_exec in $(TEST_TARGETS); do { $(VALGRIND) ./$$test_exec; } 2>&1 | tee -a $(TEST_LOG); done
 
 $(TEST_BIN_DIR)/test_%.out: $(TEST_OBJ_DIR)/test_%.o $(TEST_OBJ_DIR)/unity.o $(LIB_DIR)/$(LIB_TARGET)
 	$(CC) $(CCFLAGS) $^ -o $@ -L$(LIB_DIR)
@@ -141,4 +144,4 @@ distclean:
 
 .SECONDARY:
 .PHONY: all lib clean distclean
-.PHONY: test build_tests run_tests print_last_run_results
+.PHONY: test build_tests run_tests print_last_run_results valgrind
