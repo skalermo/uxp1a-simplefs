@@ -2,6 +2,8 @@
 #define SIMPLEFS_UTILS_H
 
 #include "simplefs_internals.h"
+#include <stdint.h>
+
 
 // Initialize filesystem with set parameters.
 void simplefs_init();
@@ -31,7 +33,7 @@ void find_free_row();
 
 // Generic function to find first unset bit
 // in provided array.
-void find_free_bit();
+int find_free_bit(uint8_t *bitmap, int size);
 
 // Set bit in inode_bitmap and
 // increment by 1 used inodes count.
