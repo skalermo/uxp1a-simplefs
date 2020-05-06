@@ -15,6 +15,14 @@
 //  Hidden functions
 //////////////////////////////////
 
+/**
+ * @brief Creates in this block an table of DirEntry structures with default values
+ * 
+ * @param blockNumber - index of a block where the structures will be created
+ * @param addr - address of the mapped shared memory.
+ * @return int8_t - 0 if operation was successful
+ * No other errors.
+ */
 int8_t inner_fs_create_empty_dir_file_struct_in_block(uint32_t* blockNumber, void* addr){
 
     struct DirEntry* toSave = malloc(sizeof(struct DirEntry));
@@ -34,6 +42,20 @@ int8_t inner_fs_create_empty_dir_file_struct_in_block(uint32_t* blockNumber, voi
     return 0;
 }
 
+/**
+ * @brief 
+ * 
+ * @param blockNumber - pointer that stores value of the first block in blockchain.
+ * At return it stores the index of a block where the search index is found.
+ * It does not allocate any more blocks. It only search through already allocated blocks.
+ * 
+ * @param dirEntryIndex - pointer that stores value of the directory entry index.
+ * At return it stores the index of an entry directory in relation to returned block index.
+ *  
+ * @param addr - address of the mapped shared memory.
+ * @return int8_t - 0 if operation was successful.
+ * -1 if the directory entry index goes beyond allocated memmory (blocks).
+ */
 int8_t inner_fs_find_block_through_index_with_error(uint32_t* blockNumber, uint32_t* dirEntryIndex, void* addr){
     uint32_t freeEntryIndexInBlock = *dirEntryIndex;
     uint32_t realBlockNumber = *blockNumber;

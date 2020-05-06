@@ -61,7 +61,8 @@ struct InodeStat {
  * @param data - data to save.
  * @param addr - address of the mapped shared memory.
  * @return int8_t - 0 if operation was successful.
- * Otherwise error code.
+ * -1 if the index points to the non-existent variable in structue.
+ * -2 if the index in relation to data type was wrong.
  */
 int8_t fs_save_data_to_inode_uint8(uint16_t inodeIndex, uint8_t index, uint8_t data, void* addr);
 
@@ -73,7 +74,8 @@ int8_t fs_save_data_to_inode_uint8(uint16_t inodeIndex, uint8_t index, uint8_t d
  * @param data - data to save.
  * @param addr - address of the mapped shared memory.
  * @return int8_t - 0 if operation was successful.
- * Otherwise error code.
+ * -1 if the index points to the non-existent variable in structue.
+ * -2 if the index in relation to data type was wrong.
  */
 int8_t fs_save_data_to_inode_uint16(uint16_t inodeIndex, uint8_t index, uint16_t data, void* addr);
 
@@ -85,7 +87,8 @@ int8_t fs_save_data_to_inode_uint16(uint16_t inodeIndex, uint8_t index, uint16_t
  * @param data - data to save.
  * @param addr - address of the mapped shared memory.
  * @return int8_t - 0 if operation was successful.
- * Otherwise error code.
+ * -1 if the index points to the non-existent variable in structue.
+ * -2 if the index in relation to data type was wrong.
  */
 int8_t fs_save_data_to_inode_uint32(uint16_t inodeIndex, uint8_t index, uint32_t data, void* addr);
 
@@ -98,7 +101,8 @@ int8_t fs_save_data_to_inode_uint32(uint16_t inodeIndex, uint8_t index, uint32_t
  * @param data - pointer where data will be saved.
  * @param addr - address of the mapped shared memory.
  * @return int8_t - 0 if operation was successful.
- * Otherwise error code.
+ * -1 if the index points to the non-existent variable in structue.
+ * -2 if the index in relation to data type was wrong.
  */
 int8_t fs_get_data_from_inode_uint8(uint16_t inodeIndex, uint8_t index, uint8_t* data, void* addr);
 
@@ -111,7 +115,8 @@ int8_t fs_get_data_from_inode_uint8(uint16_t inodeIndex, uint8_t index, uint8_t*
  * @param data - pointer where data will be saved.
  * @param addr - address of the mapped shared memory.
  * @return int8_t - 0 if operation was successful.
- * Otherwise error code.
+ * -1 if the index points to the non-existent variable in structue.
+ * -2 if the index in relation to data type was wrong.
  */
 int8_t fs_get_data_from_inode_uint16(uint16_t inodeIndex, uint16_t index, uint16_t* data, void* addr);
 
@@ -123,7 +128,8 @@ int8_t fs_get_data_from_inode_uint16(uint16_t inodeIndex, uint16_t index, uint16
  * @param data - pointer where data will be saved.
  * @param addr - address of the mapped shared memory.
  * @return int8_t - 0 if operation was successful.
- * Otherwise error code.
+ * -1 if the index points to the non-existent variable in structue.
+ * -2 if the index in relation to data type was wrong.
  */
 int8_t fs_get_data_from_inode_uint32(uint16_t inodeIndex, uint32_t index, uint32_t* data, void* addr);
 
@@ -135,7 +141,7 @@ int8_t fs_get_data_from_inode_uint32(uint16_t inodeIndex, uint32_t index, uint32
  * @param inodeCopy - pointer where inode will be saved.
  * @param addr - address of the mapped shared memory.
  * @return int8_t - 0 if operation was successful.
- * Otherwise error code.
+ * No other errors.
  */
 int8_t fs_get_inode_copy(uint32_t inodeIndex, struct Inode* inodeCopy, void* addr);
 
@@ -143,18 +149,20 @@ int8_t fs_get_inode_copy(uint32_t inodeIndex, struct Inode* inodeCopy, void* add
 /**
  * @brief Get an free inode index.
  * There is no rule which free inode will be chosen.
+ * It does not mark this inode in bitmap.
  * 
  * @param inodeIndex - pointer where the free inode index will be saved.
  * @param addr - address of the mapped shared memory.
  * @return int8_t - 0 if operation was successful or
- * -1 if there was some error or
+ * -1 if there was some error.
  * -2 if there was no more free inode available.
- * In case of negative values the inodeIndex will be intact.
  */
 int8_t fs_get_free_inode(uint32_t* inodeIndex, void* addr);
 
 /**
  * @brief Get an free inode index and save the inode structure.
+ * There is no rule which free inode will be chosen.
+ * It does mark this inode in bitmap as used.
  * 
  * @param inodeIndex - pointer where the free inode index will be saved.
  * @param inodeToSave - inode that will be saved in inode table.
@@ -172,7 +180,7 @@ int8_t fs_occupy_free_inode(uint32_t* inodeIndex, struct Inode* inodeToSave, voi
  * @param inodeIndex - index of an inode.
  * @param addr - address of the mapped shared memory.
  * @return int8_t - 0 if operation was successful.
- * Otherwise error code.
+ * No other errors.
  */
 int8_t fs_mark_inode_as_used(uint32_t inodeIndex, void* addr);
 
@@ -182,7 +190,7 @@ int8_t fs_mark_inode_as_used(uint32_t inodeIndex, void* addr);
  * @param inodeIndex - index of an inode.
  * @param addr - address of the mapped shared memory.
  * @return int8_t - 0 if operation was successful.
- * Otherwise error code.
+ * No other errors.
  */
 int8_t fs_mark_inode_as_free(uint32_t inodeIndex,void* addr);
 
@@ -192,15 +200,14 @@ int8_t fs_mark_inode_as_free(uint32_t inodeIndex,void* addr);
 //////////////////////////////////
 
 /**
- * @brief Creates a initial inode structures in shared memory.
+ * @brief Creates an initial inode structures in shared memory.
+ * Superblock must be already created.
  * 
- * @param offsetTable - offset of a inode table counted from where the superblock is.
- * @param offsetBitmap - offset of a inode bitmap structure counted from where the superblock is.
  * @param addr - address of the mapped shared memory.
  * @return int8_t - 0 if operation was successful.
- * Otherwise error code.
+ * No other errors.
  */
-int8_t fs_create_inode_structures_in_shm(uint32_t offsetTable, uint32_t offsetBitmap, void* addr); // TO_CHECK, TODO
+int8_t fs_create_inode_structures_in_shm(void* addr); // TO_CHECK, TODO
 
 
 #endif

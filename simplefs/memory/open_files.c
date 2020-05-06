@@ -47,9 +47,7 @@ uint8_t inner_fs_get_open_file_variable_size(uint8_t index){
 
 
 int8_t fs_save_data_to_open_file_uint16(uint16_t openFileIndex, uint8_t index, uint16_t data, void* addr){
-    #ifdef DEBUG
-        if(index >= 2) return INT8_MIN;
-    #endif
+    if(index >= 2) return -2;
 
     uint32_t openFileOffset = sizeof(struct OpenFile) * openFileIndex;
     void* openFileTable_ptr = fs_get_open_file_table_ptr(addr);
@@ -63,9 +61,7 @@ int8_t fs_save_data_to_open_file_uint16(uint16_t openFileIndex, uint8_t index, u
 }
 
 int8_t fs_save_data_to_open_file_uint32(uint16_t openFileIndex, uint8_t index, uint32_t data, void* addr){
-    #ifdef DEBUG
-        if(index <= 1) return INT8_MIN;
-    #endif
+    if(index <= 1) return -2;
 
     uint32_t openFileOffset = sizeof(struct OpenFile) * openFileIndex;
     void* openFileTable_ptr = fs_get_open_file_table_ptr(addr);
@@ -78,9 +74,7 @@ int8_t fs_save_data_to_open_file_uint32(uint16_t openFileIndex, uint8_t index, u
 }
 
 int8_t fs_get_data_from_open_file_uint16(uint16_t openFileIndex, uint8_t index, uint16_t* data, void* addr){
-    #ifdef DEBUG
-        if(index >= 2) return INT8_MIN;
-    #endif
+    if(index >= 2) return -2;
 
     uint32_t openFileOffset = sizeof(struct OpenFile) * openFileIndex;
     void* openFileTable_ptr = fs_get_open_file_table_ptr(addr);
@@ -95,9 +89,7 @@ int8_t fs_get_data_from_open_file_uint16(uint16_t openFileIndex, uint8_t index, 
 }
 
 int8_t fs_get_data_from_open_file_uint32(uint16_t openFileIndex, uint8_t index, uint32_t* data, void* addr){
-    #ifdef DEBUG
-        if(index <= 1) return INT8_MIN;
-    #endif
+    if(index <= 1) return -2;
 
     uint32_t openFileOffset = sizeof(struct OpenFile) * openFileIndex;
     void* openFileTable_ptr = fs_get_open_file_table_ptr(addr);
@@ -136,10 +128,12 @@ int8_t fs_occupy_free_open_file(uint32_t* openFileIndex, struct OpenFile* openFi
 
     *openFileIndex = ret;
     memcpy(openFileTable_ptr + (ret * sizeof(struct OpenFile)), openFileToSave, sizeof(struct OpenFile));
+    fs_mark_open_file_as_used(ret, addr);
+
     return 0;
 }
 
-int8_t fs_create_open_file_table_stuctures_in_shm(uint32_t offsetOpenFileTable, uint32_t offsetBitmap, void* addr){
+int8_t fs_create_open_file_table_stuctures_in_shm(void* addr){
     struct OpenFile toSave;
     uint32_t offset = 0;
     void* openFileTable_ptr = fs_get_open_file_table_ptr(addr);
@@ -165,6 +159,7 @@ int8_t fs_create_open_file_table_stuctures_in_shm(uint32_t offsetOpenFileTable, 
     memcpy(OpenFileStat_ptr, toSaveStat, sizeof(struct OpenFileStat));
 
     free(toSaveStat);
+    return 0;
 }
 
 int8_t fs_mark_open_file_as_used(uint32_t openFileIndex, void* addr){

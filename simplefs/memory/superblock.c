@@ -89,12 +89,12 @@ void* innet_fs_get_superblock_pointers(void* addr, uint8_t index){
 //////////////////////////////////
 
 int8_t fs_get_from_superblock_uint32(uint8_t index, uint32_t* data, void* addr){
-    #ifdef DEBUG
-        if(index <= 2) return INT8_MIN;
-    #endif
+    if(index <= 2) return -2;
 
     uint8_t offset = inner_fs_get_superblock_offsetof(index);
     uint8_t size = inner_fs_get_superblock_variable_size(index);
+
+    if(offset == UINT8_MAX) return -1;
 
     memcpy(data, addr + offset, size);
 
@@ -102,12 +102,12 @@ int8_t fs_get_from_superblock_uint32(uint8_t index, uint32_t* data, void* addr){
 }
 
 int8_t fs_get_data_from_superblock_uint16(uint8_t index, uint16_t* data, void* addr){
-    #ifdef DEBUG
-        if(index >=3) return INT8_MIN;
-    #endif
+        if(index >=3) return -2;
 
     uint8_t offset = inner_fs_get_superblock_offsetof(index);
     uint8_t size = inner_fs_get_superblock_variable_size(index);
+
+    if(offset == UINT8_MAX) return -1;
 
     memcpy(data, addr + offset, size);
 
@@ -115,12 +115,12 @@ int8_t fs_get_data_from_superblock_uint16(uint8_t index, uint16_t* data, void* a
 }
 
 int8_t fs_save_data_to_superblock_uint16(uint8_t index, uint16_t data, void* addr){
-    #ifdef DEBUG
-        if(index >=3) return INT8_MIN;
-    #endif
+    if(index >=3) return -2;
 
     uint8_t offset = inner_fs_get_superblock_offsetof(index);
     uint8_t size = inner_fs_get_superblock_variable_size(index);
+
+    if(offset == UINT8_MAX) return -1;
 
     memcpy(addr + offset, &data, size);
 
@@ -128,12 +128,12 @@ int8_t fs_save_data_to_superblock_uint16(uint8_t index, uint16_t data, void* add
 }
 
 int8_t fs_save_data_to_superblock_uint32(uint8_t index, uint32_t data, void* addr){
-    #ifdef DEBUG
-        if(index <= 2) return INT8_MIN;
-    #endif
+    if(index <= 2) return -2;
 
     uint8_t offset = inner_fs_get_superblock_offsetof(index);
     uint8_t size = inner_fs_get_superblock_variable_size(index);
+
+    if(offset == UINT8_MAX) return -1;
 
     memcpy(addr + offset, &data, size);
 

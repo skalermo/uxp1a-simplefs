@@ -38,8 +38,8 @@
 struct Superblock {
     uint16_t max_number_of_inodes;
     uint16_t filesystem_checks;
-    uint16_t data_block_size;
-    uint32_t fs_size;
+    uint16_t data_block_size; // this is a size of a 1 block of data in bytes
+    uint32_t fs_size;   // this is a size of entire file system in bytes
 
     uint32_t open_file_table_pointer;
     uint32_t open_file_bitmap_pointer;
@@ -62,8 +62,11 @@ struct Superblock {
  * @brief Get data from superblock with datatype of uint32_t.
  * 
  * @param index - index of the variable form superblock.
+ * @param data - pointer where the received data will be saved.
  * @param addr - address of the mapped shared memory.
- * @return uint32_t - returned value.
+ * @return int8_t - 0 if operation was successful.
+ * -1 if the index points to the non-existent variable in structue.
+ * -2 if the index in relation to data type was wrong.
  */
 int8_t fs_get_from_superblock_uint32(uint8_t index, uint32_t* data, void* addr);
 
@@ -71,8 +74,11 @@ int8_t fs_get_from_superblock_uint32(uint8_t index, uint32_t* data, void* addr);
  * @brief Get data from superblock with datatype of uint16_t.
  * 
  * @param index - index of the variable form superblock.
+ * @param data - pointer where the received data will be saved.
  * @param addr - address of the mapped shared memory.
- * @return uint16_t returned value.
+ * @return int8_t - 0 if operation was successful.
+ * -1 if the index points to the non-existent variable in structue.
+ * -2 if the index in relation to data type was wrong.
  */
 int8_t fs_get_data_from_superblock_uint16(uint8_t index, uint16_t* data, void* addr);
 
@@ -85,7 +91,8 @@ int8_t fs_get_data_from_superblock_uint16(uint8_t index, uint16_t* data, void* a
  * @param data - the data to be saved in superblock. It is a uint16_t type.
  * @param addr - address of the mapped shared memory.
  * @return int8_t - 0 if operation was successful.
- * Otherwise error code.
+ * -1 if the index points to the non-existent variable in structue.
+ * -2 if the index in relation to data type was wrong.
  */
 int8_t fs_save_data_to_superblock_uint16(uint8_t index, uint16_t data, void* addr);
 
@@ -96,7 +103,8 @@ int8_t fs_save_data_to_superblock_uint16(uint8_t index, uint16_t data, void* add
  * @param data - the data to be saved in superblock. It is a uint32_t type.
  * @param addr - address of the mapped shared memory.
  * @return int8_t - 0 if operation was successful.
- * Otherwise error code.
+ * -1 if the index points to the non-existent variable in structue.
+ * -2 if the index in relation to data type was wrong.
  */
 int8_t fs_save_data_to_superblock_uint32(uint8_t index, uint32_t data, void* addr);
 
@@ -108,13 +116,16 @@ int8_t fs_save_data_to_superblock_uint32(uint8_t index, uint32_t data, void* add
  * @param superblockCopy - pointer where the copy will be stored
  * @param addr - address of the mapped shared memory.
  * @return int8_t - 0 if operation was successful.
- * Otherwise error code.
+ * No other errors.
  */
 int8_t fs_get_superblock_copy(struct Superblock* superblockCopy, void* addr);
 
 
 ////////////////////////////////////////////////
 //  Getters for pointers and constant data
+//
+//  Pointers are already within program memory 
+//  The have added addr.
 ///////////////////////////////////////////////
 
 void* fs_get_open_file_table_ptr(void* addr);
@@ -145,10 +156,11 @@ uint16_t fs_get_max_number_of_inodes(void* addr);
 
 /**
  * @brief Creates initial superblock structure in shared memory.
+ * It must be used before creating other structures.
  * 
  * @param addr - address of the mapped shared memory.
  * @return int8_t - 0 if operation was successful.
- * Otherwise error code.
+ * No other errors.
  */
 int8_t fs_create_superblock_in_shm(void* addr); // TO_CHECK, TODO
 

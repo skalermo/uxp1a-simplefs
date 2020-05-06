@@ -55,9 +55,7 @@ uint8_t inner_fs_get_inode_variable_size(uint8_t index){
 
 
 int8_t fs_save_data_to_inode_uint8(uint16_t inodeIndex, uint8_t index, uint8_t data, void* addr){
-    #ifdef DEBUG
-        if(index <= 1) return INT8_MIN;
-    #endif
+    if(index <= 1) return -2;
 
     uint32_t inodeOffset = sizeof(struct Inode) * inodeIndex;
     void* inodeTable_ptr = fs_get_inode_table_ptr(addr);
@@ -72,9 +70,7 @@ int8_t fs_save_data_to_inode_uint8(uint16_t inodeIndex, uint8_t index, uint8_t d
 }
 
 int8_t fs_save_data_to_inode_uint16(uint16_t inodeIndex, uint8_t index, uint16_t data, void* addr){
-    #ifdef DEBUG
-        if(index != 1) return INT8_MIN;
-    #endif
+    if(index != 1) return -2;
 
     uint32_t inodeOffset = sizeof(struct Inode) * inodeIndex;
     void* inodeTable_ptr = fs_get_inode_table_ptr(addr);
@@ -89,9 +85,7 @@ int8_t fs_save_data_to_inode_uint16(uint16_t inodeIndex, uint8_t index, uint16_t
 }
 
 int8_t fs_save_data_to_inode_uint32(uint16_t inodeIndex, uint8_t index, uint32_t data, void* addr){
-    #ifdef DEBUG
-        if(index != 0) return INT8_MIN;
-    #endif
+    if(index != 0) return -2;
 
     uint32_t inodeOffset = sizeof(struct Inode) * inodeIndex;
     void* inodeTable_ptr = fs_get_inode_table_ptr(addr);
@@ -106,9 +100,7 @@ int8_t fs_save_data_to_inode_uint32(uint16_t inodeIndex, uint8_t index, uint32_t
 }
 
 int8_t fs_get_data_from_inode_uint8(uint16_t inodeIndex, uint8_t index, uint8_t* data, void* addr){
-    #ifdef DEBUG
-        if(index <= 1) return INT8_MIN;
-    #endif
+    if(index <= 1) return -2;
 
     uint32_t inodeOffset = sizeof(struct Inode) * inodeIndex;
     void* inodeTable_ptr = fs_get_inode_table_ptr(addr);
@@ -123,9 +115,7 @@ int8_t fs_get_data_from_inode_uint8(uint16_t inodeIndex, uint8_t index, uint8_t*
 }
 
 int8_t fs_get_data_from_inode_uint16(uint16_t inodeIndex, uint16_t index, uint16_t* data, void* addr){
-    #ifdef DEBUG
-        if(index != 1) return INT8_MIN;
-    #endif
+    if(index != 1) return -2;
 
     uint32_t inodeOffset = sizeof(struct Inode) * inodeIndex;
     void* inodeTable_ptr = fs_get_inode_table_ptr(addr);
@@ -140,9 +130,7 @@ int8_t fs_get_data_from_inode_uint16(uint16_t inodeIndex, uint16_t index, uint16
 }
 
 int8_t fs_get_data_from_inode_uint32(uint16_t inodeIndex, uint32_t index, uint32_t* data, void* addr){
-    #ifdef DEBUG
-        if(index != 0) return INT8_MIN;
-    #endif
+    if(index != 0) return -2;
 
     uint32_t inodeOffset = sizeof(struct Inode) * inodeIndex;
     void* inodeTable_ptr = fs_get_inode_table_ptr(addr);
@@ -194,7 +182,7 @@ int8_t fs_mark_inode_as_free(uint32_t inodeIndex, void* addr){
     return inner_fs_free_bitmap_bit(fs_get_inode_bitmap_ptr(addr), inodeIndex);
 }
 
-int8_t fs_create_inode_structures_in_shm(uint32_t offsetTable, uint32_t offsetBitmap, void* addr){
+int8_t fs_create_inode_structures_in_shm(void* addr){
     struct Inode toSave;
     void* inodeTable_ptr = fs_get_inode_table_ptr(addr);
     void* inoteStat_ptr = fs_get_inode_bitmap_ptr(addr);
@@ -236,6 +224,7 @@ int8_t fs_create_inode_structures_in_shm(uint32_t offsetTable, uint32_t offsetBi
     memcpy(inoteStat_ptr, toSaveStat, sizeof(struct InodeStat));
 
     free(toSaveStat);
+    return 0;
 }
 
 #endif

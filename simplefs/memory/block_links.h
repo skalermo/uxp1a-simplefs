@@ -45,6 +45,7 @@ struct BlockStat{
 
 /**
  * @brief Get data that was saved in the file system.
+ * It does not allocate any more memory.
  * 
  * @param from - starting place in blockchain in bytes.
  * @param to - ending place in blockchain in bytes.
@@ -52,24 +53,24 @@ struct BlockStat{
  * @param receivedData - pointer where the read data was saved. The allocated memory should be big enough to store read data.
  * @param addr - address of the mapped shared memory.
  * @return int8_t - 0 if operation was successful.
- * Otherwise error code.
+ * -1 if you went beyond the allocated memory.
  */
 int8_t fs_get_data(uint32_t from, uint32_t to, uint32_t initialBlockNumber, void* receivedData, void* addr);
 
 /**
  * @brief Save data to the file.
- * @details The data in pointer will be read form the beginning and if the data size is bigger than difference 
- * of the pointers in blockchain then only a part of data equal of this difference will be saved.
+ * @details The data in dataToRecord pointer will be read form the beginning and if the data size is bigger than difference 
+ * of the pointers in blockchain then the next blocks will be allocated.
  * 
  * @param from - starting place in blockchain.
  * @param to - ending place in blockchain.
  * @param initialBlockNumber - initial block number where the file's data is stored.
- * @param dataToRecord - pointer where the data to save is stored. 
+ * @param dataToSave - pointer where the data to save is stored. 
  * @param addr - address of the mapped shared memory.
  * @return int8_t - 0 if operation was successful.
- * Otherwise error code.
+ * -1 if it failed to allocate the next block in blockchain.
  */
-int8_t fs_save_data(uint32_t from, uint32_t to, uint32_t initialBlockNumber, void* dataToRecord, void* addr);
+int8_t fs_save_data(uint32_t from, uint32_t to, uint32_t initialBlockNumber, void* dataToSave, void* addr);
 
 /**
  * @brief Get the index of the next block in blockchain.
@@ -83,32 +84,34 @@ uint32_t fs_get_next_block_number(uint32_t blockNumber, void* addr);
 
 /**
  * @brief Allocates the new block in given blockchain.
+ * The block is marked in bitmap as used.
  * 
  * @param blockNumerInChain - block index where the chain is. It is possible to give a non-initial index of blockchain.
  * @param addr - address of the mapped shared memory.
- * @return uint32_t - FS_EMPTY_BLOCK_VALUE if failed to allocate new block or
- * index of a new alocated block.
+ * @return uint32_t -index of a new alocated block. 
+ * FS_EMPTY_BLOCK_VALUE if failed to allocate new block.
  */
 uint32_t fs_allocate_new_block(uint32_t blockNumerInChain, void* addr);
 
 /**
- * @brief Allocates the new blockchain. The returned block is marked in bitmap as used.
+ * @brief Allocates the new blockchain. 
+ * The returned block is marked in bitmap as used.
  * 
  * @param addr - address of the mapped shared memory.
- * @return uint32_t - FS_EMPTY_BLOCK_VALUE if failed to allocate new block or
- * index of a new alocated block.
+ * @return uint32_t - index of a new alocated block.
+ * FS_EMPTY_BLOCK_VALUE if failed to allocate new block.
  */
 uint32_t fs_allocate_new_chain(void* addr);
 
 /**
  * @brief Frees alocated memory in this blockchain.
- * It must be given 
  * 
+ * @param firstBlockInBlockchain - the first block in blockchain that will be freed
  * @param addr - address of the mapped shared memory.
  * @return uint8_t - 0 if operation was successful.
- * Otherwise error code.
+ * No other errors.
  */
-uint8_t fs_free_blockchain(uint32_t firstBlockInBlockchain,void* addr);
+uint8_t fs_free_blockchain(uint32_t firstBlockInBlockchain, void* addr);
 
 
 
@@ -118,40 +121,39 @@ uint8_t fs_free_blockchain(uint32_t firstBlockInBlockchain,void* addr);
 
 /**
  * @brief Creates a initial block links structures in shared memory.
+ * Superblock must be already created.
  * 
- * @param offsetTable - offset of a block links table counted from where the superblock is.
- * @param offsetBitmap - offset of a block bitmap structure counted from where the superblock is.
  * @param addr - address of the mapped shared memory.
  * @return int8_t - 0 if operation was successful.
- * Otherwise error code.
+ * No other errors.
  */
-int8_t fs_create_blocks_stuctures_in_shm(uint32_t offsetLinks, uint32_t offsetBitmap, void* addr); // TO_CHECK, TODO
+int8_t fs_create_blocks_stuctures_in_shm(void* addr); // TO_CHECK, TODO
 
 
 
-///////////////////////////////////
+///////////////////////////////////////////////
 //  Private functions (used in dir_file too)
-//////////////////////////////////
+//////////////////////////////////////////////
 
-int8_t inner_fs_next_block_with_allocate(uint32_t* blockIndex, void* addr){
-    uint32_t previousBlockIndex = *blockIndex;
-    *blockIndex = fs_get_next_block_number(previousBlockIndex, addr);
-    if(*blockIndex == FS_EMPTY_BLOCK_VALUE) {
-        *blockIndex = fs_allocate_new_block(previousBlockIndex, addr);
-        if(*blockIndex == FS_EMPTY_BLOCK_VALUE) return -1;
-        return 1;
-    }
+/**
+ * @brief Get next block in blockchain and if there is no next block then allocate it.
+ * 
+ * @param blockIndex - checks if this block points to the next block.
+ * @param addr - address of the mapped shared memory.
+ * @return int8_t - 0 if there was next block.
+ * 1 if the next block was allocated.
+ * -1 if allocation of the next block failed. blockIndex is set to FS_EMPTY_BLOCK_VALUE
+ */
+int8_t inner_fs_next_block_with_allocate(uint32_t* blockIndex, void* addr);
 
-    return 0;
-}
-
-int8_t inner_fs_next_block_with_error(uint32_t* blockIndex, void* addr){
-    *blockIndex = fs_get_next_block_number(*blockIndex, addr);
-    if(*blockIndex == FS_EMPTY_BLOCK_VALUE) {
-        return -1;
-    }
-
-    return 0;
-}
+/**
+ * @brief Get next block in blockchain and if there is no next block then return error.
+ * 
+ * @param blockIndex - checks if this block points to the next block.
+ * @param addr - address of the mapped shared memory.
+ * @return int8_t - 0 if there was next block
+ * -1 if there was no next block. blockIndex is set to FS_EMPTY_BLOCK_VALUE
+ */
+int8_t inner_fs_next_block_with_error(uint32_t* blockIndex, void* addr);
 
 #endif
