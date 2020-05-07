@@ -110,7 +110,7 @@ int8_t fs_get_open_file_copy(uint16_t openFileIndex, struct OpenFile* openFileCo
 }
 
 int8_t fs_get_free_open_file(uint16_t* openFileIndex, void* addr){
-    uint32_t ret = inner_fs_find_free_index(fs_get_open_file_bitmap_ptr(addr), FS_MAX_NUMBER_OF_OPEN_FILES);
+    uint32_t ret = inner_fs_find_free_index(fs_get_open_file_bitmap_ptr(addr), fs_get_max_number_of_open_files(addr));
 
     if(ret == UINT32_MAX) return -1;
     if(ret == 0) return -2;
@@ -121,7 +121,7 @@ int8_t fs_get_free_open_file(uint16_t* openFileIndex, void* addr){
 
 int8_t fs_occupy_free_open_file(uint32_t* openFileIndex, struct OpenFile* openFileToSave, void* addr){
     void* openFileTable_ptr = fs_get_inode_table_ptr(addr);
-    uint32_t ret = inner_fs_find_free_index(fs_get_open_file_bitmap_ptr(addr), FS_MAX_NUMBER_OF_OPEN_FILES);
+    uint32_t ret = inner_fs_find_free_index(fs_get_open_file_bitmap_ptr(addr), fs_get_max_number_of_open_files(addr));
 
     if(ret == UINT32_MAX) return -1;
     if(ret == 0) return -2;
@@ -138,25 +138,35 @@ int8_t fs_create_open_file_table_stuctures_in_shm(void* addr){
     uint32_t offset = 0;
     void* openFileTable_ptr = fs_get_open_file_table_ptr(addr);
     void* OpenFileStat_ptr = fs_get_inode_bitmap_ptr(addr);
+    uint32_t maxNumberOfOpenFiles = fs_get_max_number_of_open_files(addr);
+    uint32_t sizeofBitmapAlone = (maxNumberOfOpenFiles / 8) + 1;
 
     toSave.mode;
     toSave.inode_num;
     toSave.offset;
 
-    for(unsigned int i = 0; i < FS_MAX_NUMBER_OF_INODES; ++i, offset += sizeof(struct OpenFile)){
+    for(unsigned int i = 0; i < maxNumberOfOpenFiles; ++i, offset += sizeof(struct OpenFile)){
         memcpy(openFileTable_ptr + offset, &toSave, sizeof(struct OpenFile));
     }
 
 
-    struct OpenFileStat* toSaveStat = malloc(sizeof(struct OpenFileStat));
+    struct OpenFileStat toSaveStat;
+    toSaveStat.open_file_bitmap = malloc(sizeofBitmapAlone);
 
-    toSaveStat->opened_files = 0;
+    toSaveStat.opened_files = 0;
 
-    for(unsigned int i = 0; i < FS_MAX_NUMBER_OF_INODES_BY_8; ++i){
-        toSaveStat->open_file_bitmap[i] = 1;
+    for(unsigned int i = 0; i < sizeofBitmapAlone; ++i){
+        toSaveStat.open_file_bitmap[i] = 0xFF;
     }
 
-    memcpy(OpenFileStat_ptr, toSaveStat, sizeof(struct OpenFileStat));
+    // last 8 bits
+    int32_t modulo = maxNumberOfOpenFiles % 8;
+    uint8_t lastBits = 0xFF;
+    lastBits = lastBits << (8 - modulo);
+    toSaveStat.open_file_bitmap[sizeofBitmapAlone - 1] = lastBits;
+
+    memcpy(OpenFileStat_ptr, toSaveStat.open_file_bitmap, sizeofBitmapAlone);
+    memcpy(OpenFileStat_ptr + sizeofBitmapAlone, &toSaveStat.opened_files, sizeof(uint16_t));
 
     free(toSaveStat);
     return 0;

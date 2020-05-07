@@ -17,10 +17,10 @@
 //  Defines
 //////////////////////////////////
 
-
+/*
 #define FS_NUMBER_OF_BLOCKS 65536
 #define FS_NUMBER_OF_BLOCKS_BY_8 ((FS_NUMBER_OF_BLOCKS / 8) + 1)
-#define FS_BLOCK_SIZE 1024 // in bytes
+#define FS_BLOCK_SIZE 1024 // in bytes*/
 #define FS_EMPTY_BLOCK_VALUE UINT32_MAX
 
 
@@ -29,11 +29,11 @@
 //////////////////////////////////
 
 struct BlockLinks{
-    uint32_t block_num[FS_NUMBER_OF_BLOCKS];
+    uint32_t* block_num; //[FS_NUMBER_OF_BLOCKS];
 };
 
 struct BlockStat{
-    uint8_t block_bitmap[FS_NUMBER_OF_BLOCKS_BY_8];
+    uint8_t* block_bitmap; //[(FS_NUMBER_OF_BLOCKS / 8) + 1];
     uint32_t used_data_blocks;
 };
 

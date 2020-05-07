@@ -51,26 +51,27 @@
  */
 struct Superblock {
     uint16_t max_number_of_inodes;
+    uint16_t max_number_of_open_files;
     uint16_t filesystem_checks;
     uint16_t data_block_size; // this is a size of a 1 block of data in bytes
+    uint32_t number_of_data_blocks;
     uint32_t fs_size;   // this is a size of entire file system in bytes
 
     uint32_t open_file_table_pointer;
     uint32_t open_file_bitmap_pointer;
 
+    uint32_t inode_table_pointer;
+    uint32_t inode_bitmap_pointer;
+
     uint32_t block_links_pointer;
     uint32_t block_bitmap_pointer;
     uint32_t data_blocks_pointer;
-
-    uint32_t inode_table_pointer;
-    uint32_t inode_bitmap_pointer;
 };
 
 
 ///////////////////////////////////
 //  Struct functions
 //////////////////////////////////
-
 
 /**
  * @brief Get data from superblock with datatype of uint32_t.
@@ -163,6 +164,9 @@ uint16_t fs_get_data_block_size(void* addr);
 
 uint16_t fs_get_max_number_of_inodes(void* addr);
 
+uint16_t fs_get_max_number_of_open_files(void* addr);
+
+uint32_t fs_get_max_number_data_blocks(void* addr);
 
 ///////////////////////////////////
 //  Other functions

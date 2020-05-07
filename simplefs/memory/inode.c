@@ -151,7 +151,7 @@ int8_t fs_get_inode_copy(uint32_t inodeIndex, struct Inode* inodeCopy, void* add
 }
 
 int8_t fs_get_free_inode(uint32_t* inodeIndex, void* addr){
-    uint32_t ret = inner_fs_find_free_index(fs_get_inode_bitmap_ptr(addr), FS_MAX_NUMBER_OF_INODES);
+    uint32_t ret = inner_fs_find_free_index(fs_get_inode_bitmap_ptr(addr), fs_get_max_number_of_inodes(addr));
 
     if(ret == UINT32_MAX) return -1;
     if(ret == 0) return -2;
@@ -162,7 +162,7 @@ int8_t fs_get_free_inode(uint32_t* inodeIndex, void* addr){
 
 int8_t fs_occupy_free_inode(uint32_t* inodeIndex, struct Inode* inodeToSave, void* addr){
     void* inodeTable_ptr = fs_get_inode_table_ptr(addr);
-    uint32_t ret = inner_fs_find_free_index(fs_get_inode_bitmap_ptr(addr), FS_MAX_NUMBER_OF_INODES);
+    uint32_t ret = inner_fs_find_free_index(fs_get_inode_bitmap_ptr(addr), fs_get_max_number_of_inodes(addr));
 
     if(ret == UINT32_MAX) return -1;
     if(ret == 0) return -2;
@@ -187,13 +187,15 @@ int8_t fs_create_inode_structures_in_shm(void* addr){
     void* inodeTable_ptr = fs_get_inode_table_ptr(addr);
     void* inoteStat_ptr = fs_get_inode_bitmap_ptr(addr);
     uint32_t offset = 0;
+    uint32_t maxNumberOfInodes = fs_get_max_number_of_inodes(addr);
+    uint32_t sizeofBitmapAlone = (maxNumberOfInodes / 8) + 1;
 
     // save inode table
 
     // main directory
     toSave.block_index = 0;
     toSave.file_size = fs_get_data_block_size(addr);
-    toSave.mode = ;
+    toSave.mode = 0;
     toSave.ref_count = 0;
     toSave.readers = 0;
     toSave.padding[0] = 0;
@@ -204,27 +206,35 @@ int8_t fs_create_inode_structures_in_shm(void* addr){
     offset += sizeof(struct Inode);
 
     // rest of inodes
-    toSave.block_index = ;
-    toSave.file_size = ;
-    toSave.mode = ;
+    toSave.block_index = UINT32_MAX;
+    toSave.file_size = 0;
+    toSave.mode = 0;
     
-    for(unsigned int i = 1; i < FS_MAX_NUMBER_OF_INODES; ++i, offset += sizeof(struct Inode)){
+    for(unsigned int i = 1; i < maxNumberOfInodes; ++i, offset += sizeof(struct Inode)){
         memcpy(inodeTable_ptr + offset, &toSave, sizeof(struct Inode));
     }
 
-    struct InodeStat* toSaveStat = malloc(sizeof(struct InodeStat));
+    struct InodeStat toSaveStat;
+    toSaveStat.inode_bitmap = malloc(sizeofBitmapAlone);
 
     // for main directory
-    toSaveStat->inode_used = 1;
-    toSaveStat->inode_bitmap[0] = 0x7F;
+    toSaveStat.inode_used = 1;
+    toSaveStat.inode_bitmap[0] = 0x7F;
 
-    for(unsigned int i = 1; i < FS_MAX_NUMBER_OF_INODES_BY_8; ++i){
-        toSaveStat->inode_bitmap[i] = 1;
+    for(unsigned int i = 1; i < sizeofBitmapAlone; ++i){
+        toSaveStat.inode_bitmap[i] = 1;
     }
 
-    memcpy(inoteStat_ptr, toSaveStat, sizeof(struct InodeStat));
+    // last 8 bits
+    int32_t modulo = maxNumberOfInodes % 8;
+    uint8_t lastBits = 0xFF;
+    lastBits = lastBits << (8 - modulo);
+    toSaveStat.inode_bitmap[sizeofBitmapAlone - 1] = lastBits;
 
-    free(toSaveStat);
+    memcpy(inoteStat_ptr, toSaveStat.inode_bitmap, sizeofBitmapAlone);
+    memcpy(inoteStat_ptr + sizeofBitmapAlone, &toSaveStat.inode_used, sizeof(uint16_t));
+
+    free(toSaveStat.inode_bitmap);
     return 0;
 }
 

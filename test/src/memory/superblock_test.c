@@ -83,7 +83,7 @@ void calculate_fs_offset_test(void){
 void superblock_copy_test(void)
 {
     struct Superblock superblockCopy;
-    sizeof(struct BlockStat);
+    //sizeof(struct BlockStat);
 
     uint8_t ret = fs_get_superblock_copy(&superblockCopy, shm_addr);
     

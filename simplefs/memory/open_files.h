@@ -15,7 +15,7 @@
 //  Defines
 //////////////////////////////////
 
-#define FS_MAX_NUMBER_OF_OPEN_FILES 1024
+//#define FS_MAX_NUMBER_OF_OPEN_FILES 1024
 
 
 ///////////////////////////////////
@@ -31,11 +31,11 @@ struct OpenFile{
 
 
 struct OpenFileTable {
-    struct OpenFile file[FS_MAX_NUMBER_OF_OPEN_FILES];
+    struct OpenFile* file; //[FS_MAX_NUMBER_OF_OPEN_FILES];
 };
 
 struct OpenFileStat{
-    uint8_t open_file_bitmap[(FS_MAX_NUMBER_OF_OPEN_FILES / 8) + 1];
+    uint8_t* open_file_bitmap; //[(FS_MAX_NUMBER_OF_OPEN_FILES / 8) + 1];
     uint16_t opened_files;
 };
 

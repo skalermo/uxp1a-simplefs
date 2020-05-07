@@ -18,9 +18,9 @@
 //  Defines
 //////////////////////////////////
 
-
+/*
 #define FS_MAX_NUMBER_OF_INODES UINT16_MAX
-#define FS_MAX_NUMBER_OF_INODES_BY_8 ((FS_MAX_NUMBER_OF_INODES / 8) + 1)
+#define FS_MAX_NUMBER_OF_INODES_BY_8 ((FS_MAX_NUMBER_OF_INODES / 8) + 1)*/
 
 
 ///////////////////////////////////
@@ -40,11 +40,11 @@ struct Inode {
 
 
 struct InodeTable {
-    struct Inode inode[FS_MAX_NUMBER_OF_INODES];
+    struct Inode* inode; //[FS_MAX_NUMBER_OF_INODES];
 };
 
 struct InodeStat {
-    uint8_t inode_bitmap[FS_MAX_NUMBER_OF_INODES_BY_8];
+    uint8_t* inode_bitmap; //[FS_MAX_NUMBER_OF_INODES_BY_8];
     uint16_t inode_used;
 };
 

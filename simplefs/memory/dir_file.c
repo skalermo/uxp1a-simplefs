@@ -63,7 +63,7 @@ int8_t inner_fs_find_block_through_index_with_error(uint32_t* blockNumber, uint3
     if(freeEntryIndexInBlock * sizeof(struct DirEntry) > fs_get_data_block_size(addr)){
         // find block where this entry index is
         uint32_t howManyBlocks = (freeEntryIndexInBlock * sizeof(struct DirEntry)) / fs_get_data_block_size(addr);
-        uint32_t indexDifference = FS_BLOCK_SIZE / sizeof(struct DirEntry);
+        uint32_t indexDifference = fs_get_data_block_size(addr) / sizeof(struct DirEntry);
 
         for(uint32_t i = 0; i < howManyBlocks; ++i){
             uint8_t ret = inner_fs_next_block_with_error(&realBlockNumber, addr);

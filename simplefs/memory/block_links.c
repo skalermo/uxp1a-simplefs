@@ -124,7 +124,7 @@ uint32_t fs_allocate_new_block(uint32_t blockNumerInChain, void* addr){
     }
     while(nextBlockNumber != FS_EMPTY_BLOCK_VALUE);
 
-    uint32_t freeBlockIndex = inner_fs_find_free_index(fs_get_block_bitmap_ptr(addr), FS_NUMBER_OF_BLOCKS);
+    uint32_t freeBlockIndex = inner_fs_find_free_index(fs_get_block_bitmap_ptr(addr), fs_get_max_number_data_blocks(addr));
 
     if(freeBlockIndex == UINT32_MAX) return FS_EMPTY_BLOCK_VALUE;
     if(freeBlockIndex == 0) return FS_EMPTY_BLOCK_VALUE;
@@ -135,7 +135,7 @@ uint32_t fs_allocate_new_block(uint32_t blockNumerInChain, void* addr){
 }
 
 uint32_t fs_allocate_new_chain(void* addr){
-    uint32_t freeBlockIndex = inner_fs_find_free_index(fs_get_block_bitmap_ptr(addr), FS_NUMBER_OF_BLOCKS);
+    uint32_t freeBlockIndex = inner_fs_find_free_index(fs_get_block_bitmap_ptr(addr), fs_get_max_number_data_blocks(addr));
 
     if(freeBlockIndex == UINT32_MAX) return FS_EMPTY_BLOCK_VALUE;
     if(freeBlockIndex == 0) return FS_EMPTY_BLOCK_VALUE;
@@ -155,7 +155,7 @@ uint8_t fs_free_blockchain(uint32_t firstBlockInBlockchain, void* addr){
         nextBlockIndex = fs_get_next_block_number(firstBlockInBlockchain, addr);
 
         inner_fs_free_bitmap_bit(fs_get_block_bitmap_ptr(addr), firstBlockInBlockchain);
-        memcpy(fs_get_block_links_ptr(addr) + (sizeof(uint32_t) * firstBlockInBlockchain), reset, sizeof(uint32_t));
+        memcpy(fs_get_block_links_ptr(addr) + (sizeof(uint32_t) * firstBlockInBlockchain), &reset, sizeof(uint32_t));
 
         firstBlockInBlockchain = nextBlockIndex;
     }
@@ -168,26 +168,41 @@ int8_t fs_create_blocks_stuctures_in_shm(void* addr){
     void* blockLinks_ptr = fs_get_block_links_ptr(addr);
     void* blockStat_ptr = fs_get_block_bitmap_ptr(addr);
 
-    struct BlockLinks* toSave = malloc(sizeof(struct BlockLinks));
-    struct BlockStat* toSaveStat = malloc(sizeof(struct BlockStat));
+    uint32_t numberOfBlocks = fs_get_max_number_data_blocks(addr);
+    uint32_t sizeofBitmapAlone = (sizeof(uint8_t) * numberOfBlocks / 8) + 1;
+    uint32_t sizeofBlockLinks = sizeof(uint32_t) * numberOfBlocks;
+    uint32_t sizeofBlockStat = sizeofBitmapAlone + sizeof(uint32_t);
 
-    for(unsigned int i = 0; i < FS_NUMBER_OF_BLOCKS; ++i){
-        toSave->block_num[0] = FS_EMPTY_BLOCK_VALUE;
+    struct BlockLinks toSave;
+    struct BlockStat toSaveStat;
+
+    toSave.block_num = malloc(sizeofBlockLinks);
+    toSaveStat.block_bitmap = malloc(sizeofBitmapAlone);
+
+    for(unsigned int i = 0; i < numberOfBlocks; ++i){
+        toSave.block_num[0] = FS_EMPTY_BLOCK_VALUE;
     }
 
     // first block is for main directory
-    toSaveStat->block_bitmap[0] = 0x7F;
+    toSaveStat.block_bitmap[0] = 0x7F;
 
-    for(unsigned int i = 1; i < FS_NUMBER_OF_BLOCKS_BY_8; ++i){
-        toSaveStat->block_bitmap[i] = 0xFF;
+    for(unsigned int i = 1; i < sizeofBitmapAlone; ++i){
+        toSaveStat.block_bitmap[i] = 0xFF;
     }
-    toSaveStat->used_data_blocks = 0;
+    toSaveStat.used_data_blocks = 0;
 
-    memcpy(blockLinks_ptr, toSave, sizeof(struct BlockLinks));
-    memcpy(blockStat_ptr, toSaveStat, sizeof(struct BlockStat));
+    // last 8 bit 
+    int32_t modulo = numberOfBlocks % 8;
+    uint8_t lastBits = 0xFF;
+    lastBits = lastBits << (8 - modulo);
+    toSaveStat.block_bitmap[sizeofBitmapAlone - 1] = lastBits;
 
-    free(toSaveStat);
-    free(toSave);
+    memcpy(blockLinks_ptr, toSave.block_num, sizeofBlockLinks);
+    memcpy(blockStat_ptr, toSaveStat.block_bitmap, sizeofBitmapAlone);
+    memcpy(blockStat_ptr + sizeofBitmapAlone, &toSaveStat.used_data_blocks, sizeof(uint32_t));
+
+    free(toSaveStat.block_bitmap);
+    free(toSave.block_num);
     return 0;
 }
 
