@@ -7,11 +7,14 @@
 #ifndef SIMPLEFS_BLOCK_LINKS_H
 #define SIMPLEFS_BLOCK_LINKS_H
 
+#include <string.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <stddef.h> // offsetof function to use with structs.
 #include <limits.h>
 
 #include "superblock.h"
+#include "utils.h"
 
 ///////////////////////////////////
 //  Defines

@@ -7,9 +7,12 @@
 #ifndef SIMPLEFS_OPEN_FILES_H
 #define SIMPLEFS_OPEN_FILES_H
 
+#include <string.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include <stddef.h> // offsetof
 #include "inode.h"
+#include "utils.h"
 
 ///////////////////////////////////
 //  Defines

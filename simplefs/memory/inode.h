@@ -7,10 +7,13 @@
 #ifndef SIMPLEFS_INODE_H
 #define SIMPLEFS_INODE_H
 
+#include <string.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include <stddef.h> // offsetof function to use with structs.
 
 #include "superblock.h"
+#include "utils.h"
 
 
 
@@ -157,7 +160,7 @@ int8_t fs_get_inode_copy(uint32_t inodeIndex, struct Inode* inodeCopy, void* add
  * -1 if there was some error.
  * -2 if there was no more free inode available.
  */
-int8_t fs_get_free_inode(uint32_t* inodeIndex, void* addr);
+int8_t fs_get_free_inode(uint16_t* inodeIndex, void* addr);
 
 /**
  * @brief Get an free inode index and save the inode structure.

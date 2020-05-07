@@ -11,6 +11,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+
 #include <sys/mman.h>
 #include <sys/stat.h> 
 #include <fcntl.h> 
@@ -30,6 +31,14 @@ uint32_t maxOpenFiles = 1024;
 uint32_t maxInodes = UINT16_MAX;
 uint32_t maxFilesystemSize = 33554432; //(32 MB);
 uint32_t sizeofOneBlock = 1024;
+
+void setUp(void){
+
+}
+
+void tearDown(void){
+
+}
 
 void setUp_dir_file(void){
     // get shm fd

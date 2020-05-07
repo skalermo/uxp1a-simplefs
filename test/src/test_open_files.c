@@ -8,6 +8,10 @@
 #ifndef SIMPLEFS_SUPERBLOCK_TEST_C
 #define SIMPLEFS_SUPERBLOCK_TEST_C
 
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+
 #include <sys/mman.h>
 #include <sys/stat.h> 
 #include <fcntl.h> 
@@ -22,20 +26,28 @@ const char* shm_name = "shm_test_open_files";
 
 uint32_t maxOpenFiles = 1024;
 uint32_t maxInodes = UINT16_MAX;
-uint32_t maxFilesystemSize = sizeof_shm;
+uint32_t maxFilesystemSize = 33554432; //(32 MB);
 uint32_t sizeofOneBlock = 1024;
+
+void setUp(void){
+
+}
+
+void tearDown(void){
+
+}
 
 void setUp_open_files(void){
     // get shm fd
     int fd = shm_open(shm_name, O_CREAT | O_EXCL | O_RDWR, S_IRUSR | S_IWUSR);
-    if (fd == -1) errExit(shm_name);
+    if (fd == -1) exit(EXIT_FAILURE);
 
     // allocate memory in shm 
-    if (ftruncate(fd, sizeof_shm) == -1) errExit("ftruncate");
+    if (ftruncate(fd, sizeof_shm) == -1) exit(EXIT_FAILURE);
 
     // map the object into the caller's address space
     shm_addr = mmap(NULL, sizeof_shm, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    if (shm_addr == MAP_FAILED) errExit("mmap");
+    if (shm_addr == MAP_FAILED) exit(EXIT_FAILURE);
 
     struct Superblock toSet;
 
@@ -148,7 +160,7 @@ void open_files_getters_test(void){
     TEST_ASSERT_TRUE(fs_get_data_from_open_file_uint32(openFile6, 2, &data32, shm_addr) == 0);
     TEST_ASSERT_TRUE(data32 == 73);
 
-    uint32_t index, index2;
+    uint16_t index, index2;
     TEST_ASSERT_TRUE(fs_get_free_open_file(&index, shm_addr) == 0);
     TEST_ASSERT_TRUE(fs_get_free_open_file(&index2, shm_addr) == 0);
     TEST_ASSERT_TRUE(index == index2); // this may change too as below described
@@ -255,6 +267,19 @@ void open_files_setters_test(void){
     TEST_ASSERT_TRUE(fs_save_data_to_open_file_uint16(openFile7, 0, data16, shm_addr) == 0);
     TEST_ASSERT_TRUE(fs_get_data_from_open_file_uint16(openFile7, 0, &data16R, shm_addr) == 0);
     TEST_ASSERT_TRUE(data16R == data16);
+
+    // 32 bit
+    TEST_ASSERT_TRUE(fs_save_data_to_open_file_uint32(openFile9, 3, data32, shm_addr) == 0);
+    TEST_ASSERT_TRUE(fs_get_data_from_open_file_uint32(openFile9, 3, &data32R, shm_addr) == 0);
+    TEST_ASSERT_TRUE(data16R == data16);
+
+    TEST_ASSERT_TRUE(fs_save_data_to_open_file_uint32(openFile1, 3, data32, shm_addr) == 0);
+    TEST_ASSERT_TRUE(fs_get_data_from_open_file_uint32(openFile1, 3, &data32R, shm_addr) == 0);
+    TEST_ASSERT_TRUE(data16R == data16);
+    
+    TEST_ASSERT_TRUE(fs_save_data_to_open_file_uint32(openFile3, 3, data32, shm_addr) == 0);
+    TEST_ASSERT_TRUE(fs_get_data_from_open_file_uint32(openFile3, 3, &data32R, shm_addr) == 0);
+    TEST_ASSERT_TRUE(data16R == data16);
 }
 
 void open_files_bitmap_test(void){
@@ -318,7 +343,7 @@ void open_files_bitmap_test(void){
 
     // bitmap
 
-    uint32_t freeIndex;
+    uint16_t freeIndex;
 
     TEST_ASSERT_TRUE(fs_mark_open_file_as_free(openFile6, shm_addr) == 0);
     TEST_ASSERT_TRUE(fs_mark_open_file_as_free(openFile2, shm_addr) == 0);
@@ -342,12 +367,16 @@ void open_files_bitmap_test(void){
 
 }
 
-void open_files_all_tests(void){
+int main(void){
+    UNITY_BEGIN();
+
     setUp_open_files();
     open_files_getters_test();
     open_files_setters_test();
     open_files_bitmap_test();
     tearDown_open_files();
+    
+    return UNITY_END();
 }
 
 #endif

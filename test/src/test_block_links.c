@@ -8,6 +8,10 @@
 #ifndef SIMPLEFS_BLOCK_LINKS_TEST_C
 #define SIMPLEFS_BLOCK_LINKS_TEST_C
 
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+
 #include <sys/mman.h>
 #include <sys/stat.h> 
 #include <fcntl.h> 
@@ -22,20 +26,28 @@ const char* shm_name = "shm_test_block_links";
 
 uint32_t maxOpenFiles = 1024;
 uint32_t maxInodes = UINT16_MAX;
-uint32_t maxFilesystemSize = sizeof_shm;
+uint32_t maxFilesystemSize = 33554432; //(32 MB);
 uint32_t sizeofOneBlock = 1024;
+
+void setUp(void){
+
+}
+
+void tearDown(void){
+
+}
 
 void setUp_block_links(void){
     // get shm fd
     int fd = shm_open(shm_name, O_CREAT | O_EXCL | O_RDWR, S_IRUSR | S_IWUSR);
-    if (fd == -1) errExit(shm_name);
+    if (fd == -1) exit(EXIT_FAILURE);
 
     // allocate memory in shm 
-    if (ftruncate(fd, sizeof_shm) == -1) errExit("ftruncate");
+    if (ftruncate(fd, sizeof_shm) == -1) exit(EXIT_FAILURE);
 
     // map the object into the caller's address space
     shm_addr = mmap(NULL, sizeof_shm, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    if (shm_addr == MAP_FAILED) errExit("mmap");
+    if (shm_addr == MAP_FAILED) exit(EXIT_FAILURE);
 
     struct Superblock toSet;
 
@@ -197,11 +209,15 @@ void block_links_allocation_test(void){
 
 }
 
-void block_links_all_test(void){
+int main(void){
+    UNITY_BEGIN();
+
     setUp_block_links();
     block_links_allocation_test();
     block_links_getters_setters_test();
     tearDown_block_links();
+
+    return UNITY_END();
 }
 
 #endif

@@ -7,6 +7,10 @@
 #ifndef SIMPLEFS_SUPERBLOCK_TEST_C
 #define SIMPLEFS_SUPERBLOCK_TEST_C
 
+#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+
 #include <sys/mman.h>
 #include <sys/stat.h> 
 #include <fcntl.h> 
@@ -24,20 +28,28 @@ const char* shm_name = "shm_test_superblock";
 
 uint32_t maxOpenFiles = 1024;
 uint32_t maxInodes = UINT16_MAX;
-uint32_t maxFilesystemSize = sizeof_shm;
+uint32_t maxFilesystemSize = 33554432; //(32 MB);
 uint32_t sizeofOneBlock = 1024;
+
+void setUp(void){
+
+}
+
+void tearDown(void){
+
+}
 
 void setUp_superblock(void) {
     // get shm fd
     int fd = shm_open(shm_name, O_CREAT | O_EXCL | O_RDWR, S_IRUSR | S_IWUSR);
-    if (fd == -1) errExit(shm_name);
+    if (fd == -1) exit(EXIT_FAILURE);
 
     // allocate memory in shm 
-    if (ftruncate(fd, sizeof_shm) == -1) errExit("ftruncate");
+    if (ftruncate(fd, sizeof_shm) == -1) exit(EXIT_FAILURE);
 
     // map the object into the caller's address space
     shm_addr = mmap(NULL, sizeof_shm, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    if (shm_addr == MAP_FAILED) errExit("mmap");
+    if (shm_addr == MAP_FAILED) exit(EXIT_FAILURE);
 
     struct Superblock toSet;
 
@@ -110,7 +122,7 @@ void superblock_copy_test(void)
     TEST_ASSERT_TRUE(superblockCopy.inode_bitmap_pointer == calculate_fs_inode_table_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock));
 
     TEST_ASSERT_TRUE(superblockCopy.block_links_pointer == calculate_fs_inode_stat_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock));
-    TEST_ASSERT_TRUE(superblockCopy.block_bitmap_pointer) == calculate_fs_block_links_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock);
+    TEST_ASSERT_TRUE(superblockCopy.block_bitmap_pointer == calculate_fs_block_links_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock));
     TEST_ASSERT_TRUE(superblockCopy.data_blocks_pointer == calculate_fs_block_stat_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock));
 }
 
@@ -147,7 +159,7 @@ void superblock_getters_test(void){
     TEST_ASSERT_TRUE(fs_get_data_from_superblock_uint32(11, &data32, shm_addr) == 0);
     TEST_ASSERT_TRUE(data32 == calculate_fs_open_file_stat_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock));
     TEST_ASSERT_TRUE(fs_get_data_from_superblock_uint32(12, &data32, shm_addr) == 0);
-    TEST_ASSERT_TRUE(TEST_ASSERT_TRUE(data32 == calculate_fs_inode_table_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock)));
+    TEST_ASSERT_TRUE(data32 == calculate_fs_inode_table_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock));
 }
 
 /**
@@ -223,17 +235,21 @@ void superblock_setters_test(void){
 
     TEST_ASSERT_TRUE(fs_save_data_to_superblock_uint32(12, data32Save, shm_addr) == 0);
     TEST_ASSERT_TRUE(fs_get_data_from_superblock_uint32(12, &data32, shm_addr) == 0);
-    TEST_ASSERT_TRUE(TEST_ASSERT_TRUE(data32 == calculate_fs_inode_table_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock)));
+    TEST_ASSERT_TRUE(data32 == calculate_fs_inode_table_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock));
     ++data32Save;
 }
 
-void setUp_superblock(void){
+int main(void){
+    UNITY_BEGIN();
+
     setUp_superblock();
     calculate_fs_offset_test();
     superblock_copy_test();
     superblock_getters_test();
     superblock_setters_test();
     tearDown_superblock();
+
+    return UNITY_END();
 }
 
 #endif

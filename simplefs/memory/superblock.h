@@ -7,6 +7,8 @@
 #ifndef SIMPLEFS_SUPERBLOCK_H
 #define SIMPLEFS_SUPERBLOCK_H
 
+#include <string.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include <stddef.h> // offsetof function to use with structs.
 #include <sys/mman.h>
@@ -16,18 +18,14 @@
 #include "inode.h"
 #include "block_links.h"
 #include "open_files.h"
+#include "utils.h"
 
 
 ///////////////////////////////////
 //  Defines
 //////////////////////////////////
 
-#define FS_SHM_NAME "Simple_fs_shm"
-
-//
-// TODO
-//
-#define FS_ENTIRE_SIZE 0 // in bytes // TODO
+#define FS_SHM_NAME "Simple_fs_shm"s
 
 
 ///////////////////////////////////

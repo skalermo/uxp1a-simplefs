@@ -8,7 +8,6 @@
 #define SIMPLEFS_OPEN_FILES_C
 
 #include "open_files.h"
-#include "utils.c"
 
 ///////////////////////////////////
 //  Hidden functions
@@ -168,7 +167,7 @@ int8_t fs_create_open_file_table_stuctures_in_shm(void* addr){
     memcpy(OpenFileStat_ptr, toSaveStat.open_file_bitmap, sizeofBitmapAlone);
     memcpy(OpenFileStat_ptr + sizeofBitmapAlone, &toSaveStat.opened_files, sizeof(uint16_t));
 
-    free(toSaveStat);
+    free(toSaveStat.open_file_bitmap);
     return 0;
 }
 

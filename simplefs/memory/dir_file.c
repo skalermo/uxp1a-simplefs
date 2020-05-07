@@ -8,7 +8,6 @@
 #define SIMPLEFS_DIR_FILE_C
 
 #include "dir_file.h"
-#include "utils.c"
 
 
 ///////////////////////////////////
@@ -94,7 +93,7 @@ int8_t fs_save_data_to_dir_entry_name(uint32_t blockNumber, uint32_t dirEntryInd
     block_ptr = fs_get_data_blocks_ptr(addr) + (realBlockNumber * fs_get_data_block_size(addr));
     uint32_t offsetInBlock = freeEntryIndexInBlock * sizeof(struct DirEntry);
     memcpy(block_ptr + offsetInBlock, name, nameSize);
-    memcpy(block_ptr + offsetInBlock + (FS_NAME_SIZE * sizeof(uint8_t)), nameSize, sizeof(uint8_t));
+    memcpy(block_ptr + offsetInBlock + (FS_NAME_SIZE * sizeof(uint8_t)), &nameSize, sizeof(uint8_t));
 
     return 0;
 }
@@ -245,7 +244,7 @@ int8_t fs_create_main_folder(void* addr){
     void* block_ptr = fs_get_data_blocks_ptr(addr) + (blockindex * fs_get_data_block_size(addr));
 
     // directory '.'
-    *toSave->name = FS_MAIN_DIRECTORY_NAME;
+    strcpy(toSave->name, FS_MAIN_DIRECTORY_NAME);
     toSave->name_len = FS_MAIN_DIRECTORY_NAME_SIZE;
     toSave->inode_number = 1;
 

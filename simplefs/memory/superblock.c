@@ -8,7 +8,6 @@
 #define SIMPLEFS_SUPERBLOCK_C
 
 #include "superblock.h"
-#include "utils.c"
 
 ///////////////////////////////////
 //  Hidden functions

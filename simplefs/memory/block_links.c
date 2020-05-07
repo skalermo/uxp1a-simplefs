@@ -8,7 +8,6 @@
 #define SIMPLEFS_BLOCK_LINKS_C
 
 #include "block_links.h"
-#include "utils.c"
 
 
 ///////////////////////////////////
@@ -30,12 +29,12 @@ int8_t fs_get_data(uint32_t from, uint32_t to, uint32_t initialBlockNumber, void
 
     // loop to the block where you start reading
     for(uint32_t i = 0; i < beginBlock; ++i){
-        if(inner_fs_next_block_with_error(nextBlockIndex, addr) == -1) return -1;
+        if(inner_fs_next_block_with_error(&nextBlockIndex, addr) == -1) return -1;
     }
 
     // first block
     void* dataBlockReal_ptr = fs_get_data_blocks_ptr(addr) + (nextBlockIndex * blockSize);
-    if(inner_fs_next_block_with_error(nextBlockIndex, addr) == -1) return -1;
+    if(inner_fs_next_block_with_error(&nextBlockIndex, addr) == -1) return -1;
     uint32_t differenceInBlock = blockSize - beginBlockOccupancy;
 
     memcpy(receivedData, dataBlockReal_ptr + beginBlockOccupancy, differenceInBlock);
@@ -45,7 +44,7 @@ int8_t fs_get_data(uint32_t from, uint32_t to, uint32_t initialBlockNumber, void
     differenceInBlock = blockSize;
     for(uint32_t i = 1; i < howManyBlocks; ++i){
         dataBlockReal_ptr = fs_get_data_blocks_ptr(addr) + (nextBlockIndex * blockSize);
-        if(inner_fs_next_block_with_error(nextBlockIndex, addr) == -1) return -1;
+        if(inner_fs_next_block_with_error(&nextBlockIndex, addr) == -1) return -1;
 
         memcpy(receivedData + receivedData_ptr, dataBlockReal_ptr, differenceInBlock);
         receivedData_ptr += differenceInBlock;
@@ -75,12 +74,12 @@ int8_t fs_save_data(uint32_t from, uint32_t to, uint32_t initialBlockNumber, voi
 
      // loop to the block where you start reading
     for(uint32_t i = 0; i < beginBlock; ++i){
-        if(inner_fs_next_block_with_allocate(nextBlockIndex, addr) == -1) return -1;
+        if(inner_fs_next_block_with_allocate(&nextBlockIndex, addr) == -1) return -1;
     }
 
     // first block
     void* dataBlockReal_ptr = fs_get_data_blocks_ptr(addr) + (nextBlockIndex * blockSize);
-    if(inner_fs_next_block_with_allocate(nextBlockIndex, addr) == -1) return -1;
+    if(inner_fs_next_block_with_allocate(&nextBlockIndex, addr) == -1) return -1;
     uint32_t differenceInBlock = blockSize - beginBlockOccupancy;
 
     memcpy(dataBlockReal_ptr + beginBlockOccupancy, dataToSave, differenceInBlock);
@@ -90,7 +89,7 @@ int8_t fs_save_data(uint32_t from, uint32_t to, uint32_t initialBlockNumber, voi
     differenceInBlock = blockSize;
     for(uint32_t i = 1; i < howManyBlocks; ++i){
         dataBlockReal_ptr = fs_get_data_blocks_ptr(addr) + (nextBlockIndex * blockSize);
-        if(inner_fs_next_block_with_allocate(nextBlockIndex, addr) == -1) return -1;
+        if(inner_fs_next_block_with_allocate(&nextBlockIndex, addr) == -1) return -1;
 
         memcpy(dataBlockReal_ptr, dataToSave + recordData_ptr, differenceInBlock);
         recordData_ptr += differenceInBlock;
@@ -109,7 +108,7 @@ int8_t fs_save_data(uint32_t from, uint32_t to, uint32_t initialBlockNumber, voi
 uint32_t fs_get_next_block_number(uint32_t blockNumber, void* addr){
     void* block_ptr = fs_get_block_links_ptr(addr);
     uint32_t nextBlockNumber;
-    memcpy(&nextBlockNumber, block_ptr + (blockNumber * sizeof(uint32_t)));
+    memcpy(&nextBlockNumber, block_ptr + (blockNumber * sizeof(uint32_t)), sizeof(uint32_t));
 
     return nextBlockNumber;
 }
@@ -121,7 +120,7 @@ uint32_t fs_allocate_new_block(uint32_t blockNumerInChain, void* addr){
 
     do{
         blockNumerInChain = nextBlockNumber;
-        memcpy(&nextBlockNumber, block_ptr + (blockNumerInChain * sizeof(uint32_t)));
+        memcpy(&nextBlockNumber, block_ptr + (blockNumerInChain * sizeof(uint32_t)), sizeof(uint32_t));
     }
     while(nextBlockNumber != FS_EMPTY_BLOCK_VALUE);
 

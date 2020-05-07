@@ -8,7 +8,6 @@
 #define SIMPLEFS_INODE_C
 
 #include "inode.h"
-#include "utils.c"
 
 ///////////////////////////////////
 //  Hidden functions
@@ -104,8 +103,8 @@ int8_t fs_get_data_from_inode_uint8(uint16_t inodeIndex, uint8_t index, uint8_t*
 
     uint32_t inodeOffset = sizeof(struct Inode) * inodeIndex;
     void* inodeTable_ptr = fs_get_inode_table_ptr(addr);
-    uint8_t offset = inner_fs_get_superblock_offsetof(index);
-    uint8_t size = inner_fs_get_superblock_variable_size(index);
+    uint8_t offset = inner_fs_get_inode_offsetof(index);
+    uint8_t size = inner_fs_get_inode_variable_size(index);
 
     if(offset == UINT8_MAX) return -1;
 
@@ -119,8 +118,8 @@ int8_t fs_get_data_from_inode_uint16(uint16_t inodeIndex, uint16_t index, uint16
 
     uint32_t inodeOffset = sizeof(struct Inode) * inodeIndex;
     void* inodeTable_ptr = fs_get_inode_table_ptr(addr);
-    uint8_t offset = inner_fs_get_superblock_offsetof(index);
-    uint8_t size = inner_fs_get_superblock_variable_size(index);
+    uint8_t offset = inner_fs_get_inode_offsetof(index);
+    uint8_t size = inner_fs_get_inode_variable_size(index);
 
     if(offset == UINT8_MAX) return -1;
 
@@ -134,8 +133,8 @@ int8_t fs_get_data_from_inode_uint32(uint16_t inodeIndex, uint32_t index, uint32
 
     uint32_t inodeOffset = sizeof(struct Inode) * inodeIndex;
     void* inodeTable_ptr = fs_get_inode_table_ptr(addr);
-    uint8_t offset = inner_fs_get_superblock_offsetof(index);
-    uint8_t size = inner_fs_get_superblock_variable_size(index);
+    uint8_t offset = inner_fs_get_inode_offsetof(index);
+    uint8_t size = inner_fs_get_inode_variable_size(index);
 
     if(offset == UINT8_MAX) return -1;
 
@@ -150,8 +149,8 @@ int8_t fs_get_inode_copy(uint32_t inodeIndex, struct Inode* inodeCopy, void* add
     return 0;
 }
 
-int8_t fs_get_free_inode(uint32_t* inodeIndex, void* addr){
-    uint32_t ret = inner_fs_find_free_index(fs_get_inode_bitmap_ptr(addr), fs_get_max_number_of_inodes(addr));
+int8_t fs_get_free_inode(uint16_t* inodeIndex, void* addr){
+    uint16_t ret = inner_fs_find_free_index(fs_get_inode_bitmap_ptr(addr), fs_get_max_number_of_inodes(addr));
 
     if(ret == UINT32_MAX) return -1;
     if(ret == 0) return -2;

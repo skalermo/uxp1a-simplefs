@@ -7,10 +7,13 @@
 #ifndef SIMPLEFS_DIR_FILE_H
 #define SIMPLEFS_DIR_FILE_H
 
+#include <string.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <stddef.h> // offsetof
 #include "inode.h"
 #include "block_links.h"
+#include "utils.h"
 
 ///////////////////////////////////
 //  Defines
