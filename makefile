@@ -76,6 +76,9 @@ $(BIN_DIR):
 $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)
 
+$(LIB_DIR):
+	mkdir -p $(LIB_DIR)
+
 
 
 #############################
@@ -136,7 +139,7 @@ clean:
 	rm -f $(wildcard $(TEST_OBJ_DIR)/*)
 
 distclean:
-	rm -f $(LIB_DIR)/$(LIB_TARGET)
+	rm -rf $(LIB_DIR)
 	rm -rf $(BUILD_PATHS)
 	rm -rf $(TEST_BUILD_PATHS)
 	rm -f $(TEST_LOG)
