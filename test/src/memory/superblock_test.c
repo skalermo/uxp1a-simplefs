@@ -41,8 +41,10 @@ void setUp(void) {
     struct Superblock toSet;
 
     toSet.max_number_of_inodes = maxInodes;
+    toSet.max_number_of_open_files = maxOpenFiles;
     toSet.filesystem_checks = 0;
     toSet.data_block_size = sizeofOneBlock; 
+    toSet.number_of_data_blocks = calculate_fs_needed_blocks(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock);
     toSet.fs_size = maxFilesystemSize; 
 
     toSet.open_file_table_pointer = calculate_fs_superblock_end();
@@ -83,15 +85,16 @@ void calculate_fs_offset_test(void){
 void superblock_copy_test(void)
 {
     struct Superblock superblockCopy;
-    //sizeof(struct BlockStat);
 
     uint8_t ret = fs_get_superblock_copy(&superblockCopy, shm_addr);
     
     TEST_ASSERT_TRUE(ret == 0);
 
     TEST_ASSERT_TRUE(superblockCopy.max_number_of_inodes == maxInodes);
+    TEST_ASSERT_TRUE(superblockCopy.max_number_of_open_files == maxOpenFiles);
     TEST_ASSERT_TRUE(superblockCopy.filesystem_checks == 0);
     TEST_ASSERT_TRUE(superblockCopy.data_block_size == sizeofOneBlock);
+    TEST_ASSERT_TRUE(superblockCopy.number_of_data_blocks == calculate_fs_needed_blocks(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock));
     TEST_ASSERT_TRUE(superblockCopy.fs_size == maxFilesystemSize);
 
     TEST_ASSERT_TRUE(superblockCopy.open_file_table_pointer == calculate_fs_superblock_end());
@@ -115,25 +118,29 @@ void superblock_getters_test(void){
     TEST_ASSERT_TRUE(fs_get_data_from_superblock_uint16(0, &data16, shm_addr) == 0);
     TEST_ASSERT_TRUE(data16 == maxInodes);
     TEST_ASSERT_TRUE(fs_get_data_from_superblock_uint16(1, &data16, shm_addr) == 0);
-    TEST_ASSERT_TRUE(data16 == 0);
+    TEST_ASSERT_TRUE(data16 == maxOpenFiles);
     TEST_ASSERT_TRUE(fs_get_data_from_superblock_uint16(2, &data16, shm_addr) == 0);
+    TEST_ASSERT_TRUE(data16 == 0);
+    TEST_ASSERT_TRUE(fs_get_data_from_superblock_uint16(3, &data16, shm_addr) == 0);
     TEST_ASSERT_TRUE(data16 == sizeofOneBlock);
 
-    TEST_ASSERT_TRUE(fs_get_data_from_superblock_uint32(3, &data32, shm_addr) == 0);
-    TEST_ASSERT_TRUE(data32 == maxFilesystemSize);
     TEST_ASSERT_TRUE(fs_get_data_from_superblock_uint32(4, &data32, shm_addr) == 0);
-    TEST_ASSERT_TRUE(data32 == calculate_fs_superblock_end());
+    TEST_ASSERT_TRUE(data32 == calculate_fs_needed_blocks(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock)));
     TEST_ASSERT_TRUE(fs_get_data_from_superblock_uint32(5, &data32, shm_addr) == 0);
-    TEST_ASSERT_TRUE(data32 == calculate_fs_open_file_table_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock));
+    TEST_ASSERT_TRUE(data32 == maxFilesystemSize);
     TEST_ASSERT_TRUE(fs_get_data_from_superblock_uint32(6, &data32, shm_addr) == 0);
-    TEST_ASSERT_TRUE(data32 == calculate_fs_inode_stat_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock));
+    TEST_ASSERT_TRUE(data32 == calculate_fs_superblock_end());
     TEST_ASSERT_TRUE(fs_get_data_from_superblock_uint32(7, &data32, shm_addr) == 0);
-    TEST_ASSERT_TRUE(data32 == calculate_fs_block_links_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock));
+    TEST_ASSERT_TRUE(data32 == calculate_fs_open_file_table_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock));
     TEST_ASSERT_TRUE(fs_get_data_from_superblock_uint32(8, &data32, shm_addr) == 0);
-    TEST_ASSERT_TRUE(data32 == calculate_fs_block_stat_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock));
+    TEST_ASSERT_TRUE(data32 == calculate_fs_inode_stat_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock));
     TEST_ASSERT_TRUE(fs_get_data_from_superblock_uint32(9, &data32, shm_addr) == 0);
-    TEST_ASSERT_TRUE(data32 == calculate_fs_open_file_stat_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock));
+    TEST_ASSERT_TRUE(data32 == calculate_fs_block_links_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock));
     TEST_ASSERT_TRUE(fs_get_data_from_superblock_uint32(10, &data32, shm_addr) == 0);
+    TEST_ASSERT_TRUE(data32 == calculate_fs_block_stat_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock));
+    TEST_ASSERT_TRUE(fs_get_data_from_superblock_uint32(11, &data32, shm_addr) == 0);
+    TEST_ASSERT_TRUE(data32 == calculate_fs_open_file_stat_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock));
+    TEST_ASSERT_TRUE(fs_get_data_from_superblock_uint32(12, &data32, shm_addr) == 0);
     TEST_ASSERT_TRUE(TEST_ASSERT_TRUE(data32 == calculate_fs_inode_table_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock)));
 }
 
@@ -163,43 +170,53 @@ void superblock_setters_test(void){
     TEST_ASSERT_TRUE(data16 == data16Save);
     ++data16Save;
 
-    TEST_ASSERT_TRUE(fs_save_data_to_superblock_uint32(3, data32Save, shm_addr) == 0);
-    TEST_ASSERT_TRUE(fs_get_data_from_superblock_uint32(3, &data32, shm_addr) == 0);
-    TEST_ASSERT_TRUE(data32 == maxFilesystemSize);
-    ++data32Save;
+    TEST_ASSERT_TRUE(fs_save_data_to_superblock_uint16(3, data16Save, shm_addr) == 0);
+    TEST_ASSERT_TRUE(fs_get_data_from_superblock_uint16(3, &data16, shm_addr) == 0);
+    TEST_ASSERT_TRUE(data16 == data16Save);
+    ++data16Save;
 
     TEST_ASSERT_TRUE(fs_save_data_to_superblock_uint32(4, data32Save, shm_addr) == 0);
     TEST_ASSERT_TRUE(fs_get_data_from_superblock_uint32(4, &data32, shm_addr) == 0);
-    TEST_ASSERT_TRUE(data32 == calculate_fs_superblock_end());
+    TEST_ASSERT_TRUE(data32 == maxFilesystemSize);
     ++data32Save;
 
     TEST_ASSERT_TRUE(fs_save_data_to_superblock_uint32(5, data32Save, shm_addr) == 0);
     TEST_ASSERT_TRUE(fs_get_data_from_superblock_uint32(5, &data32, shm_addr) == 0);
-    TEST_ASSERT_TRUE(data32 == calculate_fs_open_file_table_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock));
+    TEST_ASSERT_TRUE(data32 == maxFilesystemSize);
     ++data32Save;
 
     TEST_ASSERT_TRUE(fs_save_data_to_superblock_uint32(6, data32Save, shm_addr) == 0);
     TEST_ASSERT_TRUE(fs_get_data_from_superblock_uint32(6, &data32, shm_addr) == 0);
-    TEST_ASSERT_TRUE(data32 == calculate_fs_inode_stat_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock));
+    TEST_ASSERT_TRUE(data32 == calculate_fs_superblock_end());
     ++data32Save;
 
     TEST_ASSERT_TRUE(fs_save_data_to_superblock_uint32(7, data32Save, shm_addr) == 0);
     TEST_ASSERT_TRUE(fs_get_data_from_superblock_uint32(7, &data32, shm_addr) == 0);
-    TEST_ASSERT_TRUE(data32 == calculate_fs_block_links_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock));
+    TEST_ASSERT_TRUE(data32 == calculate_fs_open_file_table_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock));
     ++data32Save;
 
     TEST_ASSERT_TRUE(fs_save_data_to_superblock_uint32(8, data32Save, shm_addr) == 0);
     TEST_ASSERT_TRUE(fs_get_data_from_superblock_uint32(8, &data32, shm_addr) == 0);
-    TEST_ASSERT_TRUE(data32 == calculate_fs_block_stat_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock));
+    TEST_ASSERT_TRUE(data32 == calculate_fs_inode_stat_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock));
     ++data32Save;
 
     TEST_ASSERT_TRUE(fs_save_data_to_superblock_uint32(9, data32Save, shm_addr) == 0);
     TEST_ASSERT_TRUE(fs_get_data_from_superblock_uint32(9, &data32, shm_addr) == 0);
-    TEST_ASSERT_TRUE(data32 == calculate_fs_open_file_stat_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock));
+    TEST_ASSERT_TRUE(data32 == calculate_fs_block_links_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock));
     ++data32Save;
 
     TEST_ASSERT_TRUE(fs_save_data_to_superblock_uint32(10, data32Save, shm_addr) == 0);
     TEST_ASSERT_TRUE(fs_get_data_from_superblock_uint32(10, &data32, shm_addr) == 0);
+    TEST_ASSERT_TRUE(data32 == calculate_fs_block_stat_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock));
+    ++data32Save;
+
+    TEST_ASSERT_TRUE(fs_save_data_to_superblock_uint32(11, data32Save, shm_addr) == 0);
+    TEST_ASSERT_TRUE(fs_get_data_from_superblock_uint32(11, &data32, shm_addr) == 0);
+    TEST_ASSERT_TRUE(data32 == calculate_fs_open_file_stat_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock));
+    ++data32Save;
+
+    TEST_ASSERT_TRUE(fs_save_data_to_superblock_uint32(12, data32Save, shm_addr) == 0);
+    TEST_ASSERT_TRUE(fs_get_data_from_superblock_uint32(12, &data32, shm_addr) == 0);
     TEST_ASSERT_TRUE(TEST_ASSERT_TRUE(data32 == calculate_fs_inode_table_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock)));
     ++data32Save;
 }
