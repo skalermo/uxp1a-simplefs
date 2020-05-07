@@ -1,5 +1,5 @@
 /*
- * inode_test.c
+ * test_inode.c
  *
  *      Author: Kordowski Mateusz
  */
@@ -12,7 +12,7 @@
 #include <sys/stat.h> 
 #include <fcntl.h> 
 
-//#include "unity.h"
+#include "unity.h"
 #include "superblock.h"
 #include "open_files.h"
 

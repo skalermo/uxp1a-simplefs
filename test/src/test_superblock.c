@@ -1,5 +1,5 @@
 /*
- * superblock_test.c
+ * test_superblock.c
  *
  *      Author: Kordowski Mateusz
  */
@@ -11,7 +11,7 @@
 #include <sys/stat.h> 
 #include <fcntl.h> 
 
-//#include "unity.h"
+#include "unity.h"
 #include "superblock.h"
 #include "open_files.h"
 #include "block_links.h"
@@ -131,7 +131,7 @@ void superblock_getters_test(void){
     TEST_ASSERT_TRUE(data16 == sizeofOneBlock);
 
     TEST_ASSERT_TRUE(fs_get_data_from_superblock_uint32(4, &data32, shm_addr) == 0);
-    TEST_ASSERT_TRUE(data32 == calculate_fs_needed_blocks(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock)));
+    TEST_ASSERT_TRUE(data32 == calculate_fs_needed_blocks(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock));
     TEST_ASSERT_TRUE(fs_get_data_from_superblock_uint32(5, &data32, shm_addr) == 0);
     TEST_ASSERT_TRUE(data32 == maxFilesystemSize);
     TEST_ASSERT_TRUE(fs_get_data_from_superblock_uint32(6, &data32, shm_addr) == 0);
