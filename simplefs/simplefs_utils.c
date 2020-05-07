@@ -4,17 +4,19 @@
  * @brief Find free bit
  * @param bitmap
  * @param size
- * @return index or 0 if not found
+ * @return index or -1 if not found
  */
 int find_free_bit(uint8_t *bitmap, int size){
     // skip all zeros
-    int i = 0;
-    for(; i < size && bitmap[i] == 0x0; ++i);
+    for(int i = 0; i < size; ++i){
+        if(bitmap[i] != 0){
+            // count leading zeros + 1
+            int first_bit = __builtin_clz(bitmap[i]) - 23; // 23 = 16 + 8 - 1
 
-    // count leading zeros + 1
-    int first_bit = __builtin_clz(bitmap[i]) - 23; // 23 = 16 + 8 - 1
-
-    return first_bit < 8 ? 8 * i + first_bit - 1 : -1; // 8 = uint8_t
+            return 8 * i + first_bit - 1; // 8 = uint8_t
+        }
+    }
+    return -1;
 }
 
 void set_bit(uint8_t *bitmap, int index){
