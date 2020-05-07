@@ -26,6 +26,23 @@ void test_find_generic(void) {
 
     bitmap[0] = 0b01110110;
     TEST_ASSERT_EQUAL(1, find_free_bit(bitmap, 2));
+
+    // test big bitmap
+    uint8_t big_bitmap[100];
+
+    // full bitmap
+    int i = 0;
+    for (; i<100; i++)
+    {
+        big_bitmap[i]=0b00000000;
+    }
+
+    // test full bitmap
+    TEST_ASSERT_EQUAL(-1, find_free_bit(big_bitmap, 100));
+
+    // test bitmap with one empty space
+    big_bitmap[99] = 0b00000001;
+    TEST_ASSERT_EQUAL(799, find_free_bit(big_bitmap, 100));
 }
 
 void test_bit_flip(void) {
