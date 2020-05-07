@@ -40,17 +40,33 @@ void tearDown(void){
 
 }
 
+void tearDown_dir_file(void) {
+    munmap(shm_addr, sizeof_shm);
+    shm_unlink(shm_name);
+}
+
 void setUp_dir_file(void){
+    tearDown_dir_file();
+
     // get shm fd
     int fd = shm_open(shm_name, O_CREAT | O_EXCL | O_RDWR, S_IRUSR | S_IWUSR);
-    if (fd == -1) exit(EXIT_FAILURE);
+    if (fd == -1) {
+        puts("shm failed");
+        exit(EXIT_FAILURE);
+    }
 
     // allocate memory in shm 
-    if (ftruncate(fd, sizeof_shm) == -1) exit(EXIT_FAILURE);
+    if (ftruncate(fd, sizeof_shm) == -1) {
+        puts("ftruncate failed");
+        exit(EXIT_FAILURE);
+    }
 
     // map the object into the caller's address space
     shm_addr = mmap(NULL, sizeof_shm, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    if (shm_addr == MAP_FAILED) exit(EXIT_FAILURE);
+    if (shm_addr == MAP_FAILED) {
+        puts("mmap failed");
+        exit(EXIT_FAILURE);
+    }
 
     struct Superblock toSet;
 
@@ -78,11 +94,6 @@ void setUp_dir_file(void){
     fs_create_blocks_stuctures_in_shm(shm_addr);
 
     fs_create_main_folder(shm_addr);
-}
-
-void tearDown_dir_file(void) {
-    munmap(shm_addr, sizeof_shm);
-    shm_unlink(shm_name);
 }
 
 void dir_file_only_test(void){

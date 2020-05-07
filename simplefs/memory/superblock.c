@@ -32,9 +32,9 @@ uint8_t inner_fs_get_superblock_offsetof(uint8_t index){
         case 7:
             return offsetof(struct Superblock, open_file_bitmap_pointer);
         case 8:
-            return offsetof(struct Superblock, inode_bitmap_pointer);
-        case 9:
             return offsetof(struct Superblock, inode_table_pointer);
+        case 9:
+            return offsetof(struct Superblock, inode_bitmap_pointer);
         case 10:
             return offsetof(struct Superblock, block_links_pointer);
         case 11:
@@ -65,9 +65,9 @@ uint8_t inner_fs_get_superblock_variable_size(uint8_t index){
         case 7:
             return member_size(struct Superblock, open_file_bitmap_pointer);
         case 8:
-            return member_size(struct Superblock, inode_bitmap_pointer);
-        case 9:
             return member_size(struct Superblock, inode_table_pointer);
+        case 9:
+            return member_size(struct Superblock, inode_bitmap_pointer);
         case 10:
             return member_size(struct Superblock, block_links_pointer);
         case 11:
