@@ -48,7 +48,7 @@ void use_block();
 void use_row();
 
 // Generic function to set bit in provided array.
-void set_bit();
+void set_bit(uint8_t *bitmap, int index);
 
 // Unset bit in inode_bitmap and
 // decrement by 1 used inodes count.
@@ -63,7 +63,7 @@ void free_block();
 void free_row();
 
 // Generic function to unset bit in provided array.
-void unset_bit();
+void unset_bit(uint8_t *bitmap, int index);
 
 // Test if provided path matches 
 // a file in filesystem.
