@@ -5,7 +5,6 @@ test/Unity/
 test/test_log.txt
 <<<<<<< HEAD
 .idea
-=======
 *.xml
 *.xls#
->>>>>>> Corrected tests.
+.vscode/
