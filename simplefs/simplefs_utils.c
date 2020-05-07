@@ -14,7 +14,7 @@ int find_free_bit(uint8_t *bitmap, int size){
     // count leading zeros + 1
     int first_bit = __builtin_clz(bitmap[i]) - 23; // 23 = 16 + 8 - 1
 
-    return first_bit < 8 ? 8 * i + first_bit : 0; // 8 = uint8_t
+    return first_bit < 8 ? 8 * i + first_bit - 1 : -1; // 8 = uint8_t
 }
 
 void set_bit(uint8_t *bitmap, int index){
