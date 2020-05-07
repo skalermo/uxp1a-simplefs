@@ -5,7 +5,7 @@
 CC := gcc
 CCFLAGS := -Wall -g  # More flags to be added...
 INCLUDE_FS = -I $(FS_DIR)
-
+VALGRIND = 
 
 
 #############################
@@ -65,7 +65,9 @@ $(OBJ_DIR)/%.o: $(USR_SRC_DIR)/%.c
 	$(CC) $(CCFLAGS) $(INCLUDE_FS) -c $< -o $@
 
 $(LIB_DIR)/$(LIB_TARGET): $(FS_SRCS)
-	$(CC) -g -fPIC $^ -shared -o $@
+	$(CC) -g -fPIC $^ -shared -o $(LIB_TARGET)
+	mkdir -p $(LIB_DIR)
+	mv $(LIB_TARGET) $(LIB_DIR)
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
@@ -75,6 +77,9 @@ $(BIN_DIR):
 
 $(OBJ_DIR):
 	mkdir -p $(OBJ_DIR)
+
+$(LIB_DIR):
+	mkdir -p $(LIB_DIR)
 
 
 
@@ -87,12 +92,15 @@ TEST_TARGETS := $(patsubst $(TEST_SRC_DIR)/test_%.c,$(TEST_BIN_DIR)/test_%.out,$
 
 test: build_tests run_tests
 
+valgrind:
+	$(eval VALGRIND := valgrind --leak-check=full)
+
 build_tests: $(TEST_BUILD_PATHS) $(TEST_TARGETS)
 
 run_tests: build_tests
 	@echo >> $(TEST_LOG)
 	@date "+%Y-%m-%d[%H:%M:%S]" >> $(TEST_LOG)
-	@for test_exec in $(TEST_TARGETS); do ./$$test_exec 2>&1 | tee -a $(TEST_LOG); done
+	@for test_exec in $(TEST_TARGETS); do { $(VALGRIND) ./$$test_exec; } 2>&1 | tee -a $(TEST_LOG); done
 
 $(TEST_BIN_DIR)/test_%.out: $(TEST_OBJ_DIR)/test_%.o $(TEST_OBJ_DIR)/unity.o $(LIB_DIR)/$(LIB_TARGET)
 	$(CC) $(CCFLAGS) $^ -o $@ -L$(LIB_DIR)
@@ -133,7 +141,7 @@ clean:
 	rm -f $(wildcard $(TEST_OBJ_DIR)/*)
 
 distclean:
-	rm -f $(LIB_DIR)/$(LIB_TARGET)
+	rm -rf $(LIB_DIR)
 	rm -rf $(BUILD_PATHS)
 	rm -rf $(TEST_BUILD_PATHS)
 	rm -f $(TEST_LOG)
@@ -141,4 +149,4 @@ distclean:
 
 .SECONDARY:
 .PHONY: all lib clean distclean
-.PHONY: test build_tests run_tests print_last_run_results
+.PHONY: test build_tests run_tests print_last_run_results valgrind
