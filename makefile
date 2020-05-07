@@ -65,7 +65,9 @@ $(OBJ_DIR)/%.o: $(USR_SRC_DIR)/%.c
 	$(CC) $(CCFLAGS) $(INCLUDE_FS) -c $< -o $@
 
 $(LIB_DIR)/$(LIB_TARGET): $(FS_SRCS)
-	$(CC) -g -fPIC $^ -shared -o $@
+	$(CC) -g -fPIC $^ -shared -o $(LIB_TARGET)
+	mkdir -p $(LIB_DIR)
+	mv $(LIB_TARGET) $(LIB_DIR)
 
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
