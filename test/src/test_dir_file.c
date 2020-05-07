@@ -110,10 +110,14 @@ void dir_file_only_test(void){
     free(inodeInfo.thisDirName);
 }
 
-void dir_file_all_tests(void){
+int main(void){
+    UNITY_BEGIN();
+
     setUp_dir_file();
     dir_file_only_test();
     tearDown_dir_file();
+
+    return UNITY_END();
 }
 
 
