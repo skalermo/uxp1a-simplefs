@@ -103,8 +103,9 @@ run_tests: build_tests
 	@date "+%Y-%m-%d[%H:%M:%S]" >> $(TEST_LOG)
 	@for test_exec in $(TEST_TARGETS); do { $(VALGRIND) ./$$test_exec; } 2>&1 | tee -a $(TEST_LOG); done
 
+# added here -lrt
 $(TEST_BIN_DIR)/test_%.out: $(TEST_OBJ_DIR)/test_%.o $(TEST_OBJ_DIR)/unity.o $(LIB_DIR)/$(LIB_TARGET)
-	$(CC) $(CCFLAGS) $^ -o $@ -L$(LIB_DIR)
+	$(CC) $(CCFLAGS) $^ -o $@ -L$(LIB_DIR) -lrt 
 
 $(TEST_OBJ_DIR)/test_%.o: $(TEST_SRC_DIR)/test_%.c
 	$(CC) $(CCFLAGS) $(INCLUDE_FS) -I $(UNITY_SRC_DIR) -c $< -o $@
