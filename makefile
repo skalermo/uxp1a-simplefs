@@ -4,7 +4,7 @@
 
 CC := gcc
 CCFLAGS := -Wall -g  # More flags to be added...
-INCLUDE_FS = -I $(FS_DIR)
+INCLUDE_FS = -I $(FS_DIR) -I $(FS_MEM_DIR)
 VALGRIND = 
 
 
@@ -13,11 +13,12 @@ VALGRIND =
 #############################
 
 FS_DIR := simplefs
+FS_MEM_DIR := $(FS_DIR)/memory
 LIB_DIR := lib
 USR_SRC_DIR := usr_src
 TEST_DIR := test
 TEST_SRC_DIR := $(TEST_DIR)/src
-FS_SRCS := $(wildcard $(FS_DIR)/*.c)
+FS_SRCS := $(wildcard $(FS_DIR)/*.c $(FS_MEM_DIR)/*.c)
 USR_SRCS := $(wildcard $(USR_SRC_DIR)/*.c)
 TEST_SRCS := $(wildcard $(TEST_SRC_DIR)/test_*.c)
 
