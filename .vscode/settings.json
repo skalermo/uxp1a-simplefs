@@ -2,6 +2,7 @@
     "files.associations": {
         "SConscript": "python",
         "SConstruct": "python",
-        "mman.h": "c"
+        "mman.h": "c",
+        "open_files.h": "c"
     }
 }

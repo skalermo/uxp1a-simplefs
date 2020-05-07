@@ -11,7 +11,7 @@
 #include <sys/stat.h> 
 #include <fcntl.h> 
 
-#include "unity.h"
+//#include "unity.h"
 #include "superblock.h"
 #include "open_files.h"
 #include "block_links.h"
@@ -20,6 +20,7 @@
 
 void* shm_addr = NULL;
 const uint32_t sizeof_shm = 33554432; //(32 MB)
+const char* shm_name = "shm_test_superblock";
 
 uint32_t maxOpenFiles = 1024;
 uint32_t maxInodes = UINT16_MAX;
@@ -28,8 +29,8 @@ uint32_t sizeofOneBlock = 1024;
 
 void setUp_superblock(void) {
     // get shm fd
-    int fd = shm_open("shm_test", O_CREAT | O_EXCL | O_RDWR, S_IRUSR | S_IWUSR);
-    if (fd == -1) errExit("shm_open");
+    int fd = shm_open(shm_name, O_CREAT | O_EXCL | O_RDWR, S_IRUSR | S_IWUSR);
+    if (fd == -1) errExit(shm_name);
 
     // allocate memory in shm 
     if (ftruncate(fd, sizeof_shm) == -1) errExit("ftruncate");
@@ -58,6 +59,11 @@ void setUp_superblock(void) {
     toSet.data_blocks_pointer = calculate_fs_block_stat_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock);
 
     fs_create_superblock_in_shm(&toSet, shm_addr);
+}
+
+void tearDown_superblock(void) {
+    munmap(shm_addr, sizeof_shm);
+    shm_unlink(shm_name);
 }
 
 void calculate_fs_offset_test(void){
@@ -222,11 +228,12 @@ void superblock_setters_test(void){
 }
 
 void setUp_superblock(void){
-    setUp();
+    setUp_superblock();
     calculate_fs_offset_test();
     superblock_copy_test();
     superblock_getters_test();
     superblock_setters_test();
+    tearDown_superblock();
 }
 
 #endif

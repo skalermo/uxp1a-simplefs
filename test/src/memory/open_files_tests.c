@@ -1,5 +1,5 @@
 /*
- * superblock_test.c
+ * open_files_test.c
  *
  *      Author: Kordowski Mateusz
  */
@@ -12,12 +12,13 @@
 #include <sys/stat.h> 
 #include <fcntl.h> 
 
-#include "unity.h"
+//#include "unity.h"
 #include "superblock.h"
 #include "open_files.h"
 
 void* shm_addr = NULL;
 const uint32_t sizeof_shm = 33554432; //(32 MB)
+const char* shm_name = "shm_test_open_files";
 
 uint32_t maxOpenFiles = 1024;
 uint32_t maxInodes = UINT16_MAX;
@@ -26,8 +27,8 @@ uint32_t sizeofOneBlock = 1024;
 
 void setUp_open_files(void){
     // get shm fd
-    int fd = shm_open("shm_test", O_CREAT | O_EXCL | O_RDWR, S_IRUSR | S_IWUSR);
-    if (fd == -1) errExit("shm_open");
+    int fd = shm_open(shm_name, O_CREAT | O_EXCL | O_RDWR, S_IRUSR | S_IWUSR);
+    if (fd == -1) errExit(shm_name);
 
     // allocate memory in shm 
     if (ftruncate(fd, sizeof_shm) == -1) errExit("ftruncate");
@@ -59,6 +60,11 @@ void setUp_open_files(void){
 
     // create open files structures
     fs_create_open_file_table_stuctures_in_shm(shm_addr);
+}
+
+void tearDown_open_files(void) {
+    munmap(shm_addr, sizeof_shm);
+    shm_unlink(shm_name);
 }
 
 void open_files_getters_test(void){
@@ -143,8 +149,8 @@ void open_files_getters_test(void){
     TEST_ASSERT_TRUE(data32 == 73);
 
     uint32_t index, index2;
-    TEST_ASSERT_TRUE(fs_get_free_open_file(&index, shm_addr) == 0)
-    TEST_ASSERT_TRUE(fs_get_free_open_file(&index2, shm_addr) == 0)
+    TEST_ASSERT_TRUE(fs_get_free_open_file(&index, shm_addr) == 0);
+    TEST_ASSERT_TRUE(fs_get_free_open_file(&index2, shm_addr) == 0);
     TEST_ASSERT_TRUE(index == index2); // this may change too as below described
     TEST_ASSERT_TRUE(index != openFile0 && index != openFile1 && index != openFile2 && index != openFile3 && index != openFile4);
     TEST_ASSERT_TRUE(index != openFile5 && index != openFile6 && index != openFile7 && index != openFile8 && index != openFile9);
@@ -155,9 +161,9 @@ void open_files_getters_test(void){
     TEST_ASSERT_TRUE(fs_get_free_open_file(&index, shm_addr) == 0);
 
     // later this may change output if it changes how free open files are selected.
-    TEST_ASSERT_TRUE(fs_get_free_open_file(&index, shm_addr) == 0)
+    TEST_ASSERT_TRUE(fs_get_free_open_file(&index, shm_addr) == 0);
     TEST_ASSERT_TRUE(index == openFile3);
-    TEST_ASSERT_TRUE(fs_get_free_open_file(&index, shm_addr) == 0)
+    TEST_ASSERT_TRUE(fs_get_free_open_file(&index, shm_addr) == 0);
     TEST_ASSERT_TRUE(index == openFile3);
 
     TEST_ASSERT_TRUE(fs_mark_open_file_as_used(openFile3, shm_addr) == 0);
@@ -341,6 +347,7 @@ void open_files_all_tests(void){
     open_files_getters_test();
     open_files_setters_test();
     open_files_bitmap_test();
+    tearDown_open_files();
 }
 
 #endif
