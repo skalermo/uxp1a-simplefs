@@ -19,6 +19,11 @@ int find_free_bit(uint8_t *bitmap, int size){
     return -1;
 }
 
+/**
+ * @brief Set bit in bitmap
+ * @param bitmap
+ * @param index
+ */
 void set_bit(uint8_t *bitmap, int index){
     int bitmap_idx = index / 8; // 8 = uint8_t
     int idx = index % 8;
@@ -29,6 +34,11 @@ void set_bit(uint8_t *bitmap, int index){
     bitmap[bitmap_idx] |= one_hot;
 }
 
+/**
+ * @brief Unset bit in bitmap
+ * @param bitmap
+ * @param index
+ */
 void unset_bit(uint8_t *bitmap, int index){
     int bitmap_idx = index / 8; // 8 = uint8_t
     int idx = index % 8;
