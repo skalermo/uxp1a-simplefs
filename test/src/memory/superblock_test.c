@@ -26,7 +26,7 @@ uint32_t maxInodes = UINT16_MAX;
 uint32_t maxFilesystemSize = sizeof_shm;
 uint32_t sizeofOneBlock = 1024;
 
-void setUp(void) {
+void setUp_superblock(void) {
     // get shm fd
     int fd = shm_open("shm_test", O_CREAT | O_EXCL | O_RDWR, S_IRUSR | S_IWUSR);
     if (fd == -1) errExit("shm_open");
@@ -221,7 +221,7 @@ void superblock_setters_test(void){
     ++data32Save;
 }
 
-void superblock_all_tests(void){
+void setUp_superblock(void){
     setUp();
     calculate_fs_offset_test();
     superblock_copy_test();

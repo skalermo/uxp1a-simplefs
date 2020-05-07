@@ -175,6 +175,7 @@ uint32_t fs_get_max_number_data_blocks(void* addr);
 /**
  * @brief Creates initial superblock structure in shared memory.
  * It must be used before creating other structures.
+ * Here are defined the properties of an file system.
  * 
  * @param toCopy - pointer to the struct that will be copied to the shared memory.
  * @param addr - address of the mapped shared memory.

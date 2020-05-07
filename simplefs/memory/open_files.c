@@ -176,7 +176,7 @@ int8_t fs_mark_open_file_as_used(uint32_t openFileIndex, void* addr){
     return inner_fs_mark_bitmap_bit(fs_get_open_file_bitmap_ptr(addr), openFileIndex);
 }
 
-int8_t fs_mark_inode_as_free(uint32_t openFileIndex, void* addr){
+int8_t fs_mark_open_file_as_free(uint32_t openFileIndex, void* addr){
     return inner_fs_free_bitmap_bit(fs_get_open_file_bitmap_ptr(addr), openFileIndex);
 }
 

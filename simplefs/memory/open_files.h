@@ -157,7 +157,7 @@ int8_t fs_mark_open_file_as_used(uint32_t openFileIndex, void* addr);
  * @return int8_t - 0 if operation was successful.
  * No other errors.
  */
-int8_t fs_mark_inode_as_free(uint32_t openFileIndex, void* addr);
+int8_t fs_mark_open_file_as_free(uint32_t openFileIndex, void* addr);
 
 
 ///////////////////////////////////
