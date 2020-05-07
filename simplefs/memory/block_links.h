@@ -21,6 +21,7 @@
 #define FS_NUMBER_OF_BLOCKS 65536
 #define FS_NUMBER_OF_BLOCKS_BY_8 ((FS_NUMBER_OF_BLOCKS / 8) + 1)
 #define FS_BLOCK_SIZE 1024 // in bytes*/
+
 #define FS_EMPTY_BLOCK_VALUE UINT32_MAX
 
 
@@ -61,6 +62,7 @@ int8_t fs_get_data(uint32_t from, uint32_t to, uint32_t initialBlockNumber, void
  * @brief Save data to the file.
  * @details The data in dataToRecord pointer will be read form the beginning and if the data size is bigger than difference 
  * of the pointers in blockchain then the next blocks will be allocated.
+ * The first block must be already allocated.
  * 
  * @param from - starting place in blockchain.
  * @param to - ending place in blockchain.
@@ -83,8 +85,9 @@ int8_t fs_save_data(uint32_t from, uint32_t to, uint32_t initialBlockNumber, voi
 uint32_t fs_get_next_block_number(uint32_t blockNumber, void* addr);
 
 /**
- * @brief Allocates the new block in given blockchain.
+ * @brief Allocates the new block in given blockchain and links it to the blockchain.
  * The block is marked in bitmap as used.
+ * The allocated block have the next block value set as FS_EMPTY_BLOCK_VALUE.
  * 
  * @param blockNumerInChain - block index where the chain is. It is possible to give a non-initial index of blockchain.
  * @param addr - address of the mapped shared memory.

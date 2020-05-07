@@ -117,6 +117,7 @@ uint32_t fs_get_next_block_number(uint32_t blockNumber, void* addr){
 uint32_t fs_allocate_new_block(uint32_t blockNumerInChain, void* addr){
     void* block_ptr = fs_get_block_links_ptr(addr);
     uint32_t nextBlockNumber = blockNumerInChain;
+    uint32_t emptyValue = FS_EMPTY_BLOCK_VALUE;
 
     do{
         blockNumerInChain = nextBlockNumber;
@@ -130,6 +131,12 @@ uint32_t fs_allocate_new_block(uint32_t blockNumerInChain, void* addr){
     if(freeBlockIndex == 0) return FS_EMPTY_BLOCK_VALUE;
 
     inner_fs_mark_bitmap_bit(fs_get_block_bitmap_ptr(addr), freeBlockIndex);
+
+    // link to the next block
+    memcpy(block_ptr + (blockNumerInChain * sizeof(uint32_t)), &freeBlockIndex, sizeof(uint32_t));
+
+    // close chain
+    memcpy(block_ptr + (freeBlockIndex * sizeof(uint32_t)), &emptyValue, sizeof(uint32_t));
 
     return freeBlockIndex;
 }

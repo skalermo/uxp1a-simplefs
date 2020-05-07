@@ -167,12 +167,13 @@ int8_t fs_create_and_save_dir_file(uint32_t* blockNumber, struct FS_create_dir_d
 /**
  * @brief Creates a main directory.
  * It must be used only at initialization of the file system before any other folder or file is created.
+ * The first two entries are the same and have information about main folder.
  * 
  * @param addr - address of the mapped shared memory.
  * @return int8_t - 0 if operation was successful.
  * No other errors.
  */
-int8_t fs_create_main_folder(void* addr); // TODO
+int8_t fs_create_main_folder(void* addr);
 
 /**
  * @brief Get an index of a free directory entry in folder's file.
