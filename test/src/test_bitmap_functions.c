@@ -16,16 +16,16 @@ void test_find_generic(void) {
     bitmap[1] = 0b00000000;
 
     // test full bitmap
-    TEST_ASSERT_EQUAL(0, find_free_bit(bitmap, 2));
+    TEST_ASSERT_EQUAL(-1, find_free_bit(bitmap, 2));
 
     // set empty spaces as 1
     bitmap[1] = 0b01110110;
 
     // test with empty spaces
-    TEST_ASSERT_EQUAL(10, find_free_bit(bitmap, 2));
+    TEST_ASSERT_EQUAL(9, find_free_bit(bitmap, 2));
 
     bitmap[0] = 0b01110110;
-    TEST_ASSERT_EQUAL(2, find_free_bit(bitmap, 2));
+    TEST_ASSERT_EQUAL(1, find_free_bit(bitmap, 2));
 }
 
 void test_bit_flip(void) {
