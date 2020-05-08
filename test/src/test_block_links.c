@@ -94,7 +94,7 @@ void setUp_block_links(void){
 void block_links_getters_setters_test(void){
     uint32_t sizeofData1 = 5000;
     uint32_t sizeofData2 = 10000;
-    uint32_t sizeofData3 = 1024*1024;
+    uint32_t sizeofData3 = 1024;
     uint32_t sizeofData4 = 62;
 
     srand(time(NULL));
@@ -115,7 +115,7 @@ void block_links_getters_setters_test(void){
         memcpy(dataToSave2 + i, &rad, 1);
     }
 
-    for(uint32_t i = 0; i < sizeofData2; ++i){
+    for(uint32_t i = 0; i < sizeofData3; ++i){
         uint8_t rad = rand() % UINT8_MAX;
         memcpy(dataToSave3 + i, &rad, 1);
     }
@@ -145,13 +145,21 @@ void block_links_getters_setters_test(void){
     TEST_ASSERT_TRUE(fs_get_data(0, sizeofData1, freeBlock1, dataToReceived1, shm_addr) == 0);
     TEST_ASSERT_TRUE(memcmp(dataToSave1, dataToReceived1, sizeofData1) == 0);
 
-    TEST_ASSERT_TRUE(fs_save_data(57, 57 + sizeofData2, freeBlock2, dataToSave2, shm_addr) == 0);
-    TEST_ASSERT_TRUE(fs_get_data(57, 57 + sizeofData2, freeBlock2, dataToReceived2, shm_addr) == 0);
+    uint32_t off1 = 0;
+    TEST_ASSERT_TRUE(fs_save_data(off1, off1 + sizeofData2, freeBlock2, dataToSave2, shm_addr) == 0);
+    TEST_ASSERT_TRUE(fs_get_data(off1, off1 + sizeofData2, freeBlock2, dataToReceived2, shm_addr) == 0);
     TEST_ASSERT_TRUE(memcmp(dataToSave2, dataToReceived2, sizeofData2) == 0);
 
+    uint32_t off2 = 3569;
+    TEST_ASSERT_TRUE(fs_save_data(off2, off2 + sizeofData3, freeBlock3, dataToSave3, shm_addr) == 0);
+    TEST_ASSERT_TRUE(fs_get_data(off2, off2 + sizeofData3, freeBlock3, dataToReceived3, shm_addr) == 0);
 
-    TEST_ASSERT_TRUE(fs_save_data(3569, 3569 + sizeofData3, freeBlock3, dataToSave3, shm_addr) == 0);
-    TEST_ASSERT_TRUE(fs_get_data(3569, 3569 + sizeofData3, freeBlock3, dataToReceived3, shm_addr) == 0);
+    uint32_t nextBlock = freeBlock3;
+    printf("    %d\n", nextBlock);
+    for(uint32_t i = 0; (nextBlock = fs_get_next_block_number(nextBlock, shm_addr)) != FS_EMPTY_BLOCK_VALUE; ++i){
+        //printf("%d\n", nextBlock);
+    }
+
     TEST_ASSERT_TRUE(memcmp(dataToSave3, dataToReceived3, sizeofData3) == 0);
 
     TEST_ASSERT_TRUE(fs_save_data(12000, 12000 + sizeofData4, freeBlock4, dataToSave4, shm_addr) == 0);
