@@ -130,7 +130,7 @@ int main(void){
     UNITY_BEGIN();
 
     setUp_dir_file();
-    dir_file_only_test();
+    RUN_TEST(dir_file_only_test);
     tearDown_dir_file();
 
     return UNITY_END();
