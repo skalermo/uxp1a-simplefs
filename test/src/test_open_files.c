@@ -277,16 +277,16 @@ void open_files_setters_test(void){
     TEST_ASSERT_TRUE(data16R == data16);
 
     // 32 bit
-    TEST_ASSERT_TRUE(fs_save_data_to_open_file_uint32(openFile9, 3, data32, shm_addr) == 0);
-    TEST_ASSERT_TRUE(fs_get_data_from_open_file_uint32(openFile9, 3, &data32R, shm_addr) == 0);
+    TEST_ASSERT_TRUE(fs_save_data_to_open_file_uint32(openFile9, 2, data32, shm_addr) == 0);
+    TEST_ASSERT_TRUE(fs_get_data_from_open_file_uint32(openFile9, 2, &data32R, shm_addr) == 0);
     TEST_ASSERT_TRUE(data16R == data16);
 
-    TEST_ASSERT_TRUE(fs_save_data_to_open_file_uint32(openFile1, 3, data32, shm_addr) == 0);
-    TEST_ASSERT_TRUE(fs_get_data_from_open_file_uint32(openFile1, 3, &data32R, shm_addr) == 0);
+    TEST_ASSERT_TRUE(fs_save_data_to_open_file_uint32(openFile1, 2, data32, shm_addr) == 0);
+    TEST_ASSERT_TRUE(fs_get_data_from_open_file_uint32(openFile1, 2, &data32R, shm_addr) == 0);
     TEST_ASSERT_TRUE(data16R == data16);
     
-    TEST_ASSERT_TRUE(fs_save_data_to_open_file_uint32(openFile3, 3, data32, shm_addr) == 0);
-    TEST_ASSERT_TRUE(fs_get_data_from_open_file_uint32(openFile3, 3, &data32R, shm_addr) == 0);
+    TEST_ASSERT_TRUE(fs_save_data_to_open_file_uint32(openFile3, 2, data32, shm_addr) == 0);
+    TEST_ASSERT_TRUE(fs_get_data_from_open_file_uint32(openFile3, 2, &data32R, shm_addr) == 0);
     TEST_ASSERT_TRUE(data16R == data16);
 }
 
@@ -379,9 +379,9 @@ int main(void){
     UNITY_BEGIN();
 
     setUp_open_files();
-    open_files_getters_test();
-    open_files_setters_test();
-    open_files_bitmap_test();
+    RUN_TEST(open_files_getters_test);
+    RUN_TEST(open_files_setters_test);
+    RUN_TEST(open_files_bitmap_test);
     tearDown_open_files();
     
     return UNITY_END();

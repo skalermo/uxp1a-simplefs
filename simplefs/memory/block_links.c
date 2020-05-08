@@ -5,7 +5,6 @@
  */
 
 #include "block_links.h"
-#include <stdio.h>
 
 ///////////////////////////////////
 //  Struct functions

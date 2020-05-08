@@ -6,6 +6,7 @@
 
 
 #include "open_files.h"
+#include <stdio.h>
 
 ///////////////////////////////////
 //  Hidden functions
@@ -54,7 +55,7 @@ int8_t fs_save_data_to_open_file_uint16(uint16_t openFileIndex, uint8_t index, u
     if(offset == UINT8_MAX) return -1;
 
     memcpy(openFileTable_ptr + openFileOffset + offset, &data, size);
-
+    return 0;
 }
 
 int8_t fs_save_data_to_open_file_uint32(uint16_t openFileIndex, uint8_t index, uint32_t data, void* addr){
@@ -68,6 +69,7 @@ int8_t fs_save_data_to_open_file_uint32(uint16_t openFileIndex, uint8_t index, u
     if(offset == UINT8_MAX) return -1;
 
     memcpy(openFileTable_ptr + openFileOffset + offset, &data, size);
+    return 0;
 }
 
 int8_t fs_get_data_from_open_file_uint16(uint16_t openFileIndex, uint8_t index, uint16_t* data, void* addr){
@@ -116,7 +118,7 @@ int8_t fs_get_free_open_file(uint16_t* openFileIndex, void* addr){
 }
 
 int8_t fs_occupy_free_open_file(uint32_t* openFileIndex, struct OpenFile* openFileToSave, void* addr){
-    void* openFileTable_ptr = fs_get_inode_table_ptr(addr);
+    void* openFileTable_ptr = fs_get_open_file_table_ptr(addr);
     uint32_t ret = inner_fs_find_free_index(fs_get_open_file_bitmap_ptr(addr), fs_get_max_number_of_open_files(addr));
 
     if(ret == UINT32_MAX) return -1;
@@ -132,7 +134,7 @@ int8_t fs_create_open_file_table_stuctures_in_shm(void* addr){
     struct OpenFile toSave;
     uint32_t offset = 0;
     void* openFileTable_ptr = fs_get_open_file_table_ptr(addr);
-    void* OpenFileStat_ptr = fs_get_inode_bitmap_ptr(addr);
+    void* OpenFileStat_ptr = fs_get_open_file_bitmap_ptr(addr);
     uint32_t maxNumberOfOpenFiles = fs_get_max_number_of_open_files(addr);
     uint32_t sizeofBitmapAlone = (maxNumberOfOpenFiles / 8) + 1;
 
@@ -157,7 +159,8 @@ int8_t fs_create_open_file_table_stuctures_in_shm(void* addr){
     // last 8 bits
     int32_t modulo = maxNumberOfOpenFiles % 8;
     uint8_t lastBits = 0xFF;
-    lastBits = lastBits << (8 - modulo);
+    lastBits = lastBits << modulo;
+
     toSaveStat.open_file_bitmap[sizeofBitmapAlone - 1] = lastBits;
 
     memcpy(OpenFileStat_ptr, toSaveStat.open_file_bitmap, sizeofBitmapAlone);
