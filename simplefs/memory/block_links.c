@@ -4,11 +4,7 @@
  *      Author: Kordowski Mateusz
  */
 
-#ifndef SIMPLEFS_BLOCK_LINKS_C
-#define SIMPLEFS_BLOCK_LINKS_C
-
 #include "block_links.h"
-
 #include <stdio.h>
 
 ///////////////////////////////////
@@ -45,11 +41,14 @@ int8_t fs_get_data(uint32_t from, uint32_t to, uint32_t initialBlockNumber, void
     differenceInBlock = blockSize;
     for(uint32_t i = 1; i < howManyBlocks; ++i){
         dataBlockReal_ptr = fs_get_data_blocks_ptr(addr) + (nextBlockIndex * blockSize);
-        if(inner_fs_next_block_with_error(&nextBlockIndex, addr) == -1) return -1;
+        int8_t ret = inner_fs_next_block_with_error(&nextBlockIndex, addr);
+        if(ret == -1) return -1;
+        printf("%d\n", nextBlockIndex);
 
         memcpy(receivedData + receivedData_ptr, dataBlockReal_ptr, differenceInBlock);
         receivedData_ptr += differenceInBlock;
     }
+
 
     // end of read, possibly last block
     if(lastBlockOccupancy != 0){
@@ -128,7 +127,6 @@ uint32_t fs_allocate_new_block(uint32_t blockNumerInChain, void* addr){
     uint32_t freeBlockIndex = inner_fs_find_free_index(fs_get_block_bitmap_ptr(addr), fs_get_max_number_data_blocks(addr));
 
     if(freeBlockIndex == UINT32_MAX) return FS_EMPTY_BLOCK_VALUE;
-    if(freeBlockIndex == 0) return FS_EMPTY_BLOCK_VALUE;
 
     inner_fs_mark_bitmap_bit(fs_get_block_bitmap_ptr(addr), freeBlockIndex);
 
@@ -142,12 +140,13 @@ uint32_t fs_allocate_new_block(uint32_t blockNumerInChain, void* addr){
 }
 
 uint32_t fs_allocate_new_chain(void* addr){
-    uint32_t freeBlockIndex = inner_fs_find_free_index(fs_get_block_bitmap_ptr(addr), fs_get_max_number_data_blocks(addr));
-    printf("%ud\n", freeBlockIndex);
+    void* bitmap_addr = fs_get_block_bitmap_ptr(addr);
+    uint32_t empty = FS_EMPTY_BLOCK_VALUE;
+    uint32_t freeBlockIndex = inner_fs_find_free_index(bitmap_addr, fs_get_max_number_data_blocks(addr));
     if(freeBlockIndex == UINT32_MAX) return FS_EMPTY_BLOCK_VALUE;
-    if(freeBlockIndex == 0) return FS_EMPTY_BLOCK_VALUE;
 
-    inner_fs_mark_bitmap_bit(fs_get_block_bitmap_ptr(addr), freeBlockIndex);
+    inner_fs_mark_bitmap_bit(bitmap_addr, freeBlockIndex);
+    memcpy(fs_get_block_links_ptr(addr) + (sizeof(uint32_t) * freeBlockIndex), &empty, sizeof(uint32_t));
 
     return freeBlockIndex;
 }
@@ -191,7 +190,7 @@ int8_t fs_create_blocks_stuctures_in_shm(void* addr){
     }
 
     // first block is for main directory
-    toSaveStat.block_bitmap[0] = 0x7F;
+    toSaveStat.block_bitmap[0] = 0xFE;
 
     for(unsigned int i = 1; i < sizeofBitmapAlone; ++i){
         toSaveStat.block_bitmap[i] = 0xFF;
@@ -230,7 +229,8 @@ int8_t inner_fs_next_block_with_allocate(uint32_t* blockIndex, void* addr){
 }
 
 int8_t inner_fs_next_block_with_error(uint32_t* blockIndex, void* addr){
-    *blockIndex = fs_get_next_block_number(*blockIndex, addr);
+    uint32_t previousBlockIndex = *blockIndex;
+    *blockIndex = fs_get_next_block_number(previousBlockIndex, addr);
     if(*blockIndex == FS_EMPTY_BLOCK_VALUE) {
         return -1;
     }
@@ -238,5 +238,3 @@ int8_t inner_fs_next_block_with_error(uint32_t* blockIndex, void* addr){
     return 0;
 }
 
-
-#endif

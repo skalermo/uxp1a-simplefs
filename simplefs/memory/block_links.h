@@ -64,7 +64,8 @@ int8_t fs_get_data(uint32_t from, uint32_t to, uint32_t initialBlockNumber, void
 /**
  * @brief Save data to the file.
  * @details The data in dataToRecord pointer will be read form the beginning and if the data size is bigger than difference 
- * of the pointers in blockchain then the next blocks will be allocated.
+ * of the pointers in blockchain then the next blocks will be allocated. The blocks will be allocated too if the 'from' variable points
+ * to the yet unallocated memory.
  * The first block must be already allocated.
  * 
  * @param from - starting place in blockchain.

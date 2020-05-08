@@ -4,8 +4,6 @@
  *      Author: Kordowski Mateusz
  */
 
-#ifndef SIMPLEFS_SUPERBLOCK_C
-#define SIMPLEFS_SUPERBLOCK_C
 
 #include "superblock.h"
 
@@ -270,6 +268,3 @@ uint32_t calculate_fs_needed_blocks(uint32_t maxOpenFiles, uint32_t maxInodes, u
     uint32_t fun = calculate_fs_inode_stat_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock);
     return (maxFilesystemSize - 1 - fun) * 8 / ((8 * (sizeof(uint32_t) + sizeofOneBlock)) + 1);  // floor
 }
-
-
-#endif

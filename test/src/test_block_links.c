@@ -5,9 +5,6 @@
  */
 
 
-#ifndef SIMPLEFS_BLOCK_LINKS_TEST_C
-#define SIMPLEFS_BLOCK_LINKS_TEST_C
-
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -15,6 +12,9 @@
 #include <sys/mman.h>
 #include <sys/stat.h> 
 #include <fcntl.h> 
+
+#include <stdlib.h>
+#include <time.h>
 
 #include "unity.h"
 #include "superblock.h"
@@ -94,14 +94,36 @@ void setUp_block_links(void){
 void block_links_getters_setters_test(void){
     uint32_t sizeofData1 = 5000;
     uint32_t sizeofData2 = 10000;
-    uint32_t sizeofData3 = 1024*1024*2;
+    uint32_t sizeofData3 = 1024*1024;
     uint32_t sizeofData4 = 62;
+
+    srand(time(NULL));
 
     // may be trash data, does not matter
     void* dataToSave1 = malloc(sizeofData1);
     void* dataToSave2 = malloc(sizeofData2);
     void* dataToSave3 = malloc(sizeofData3);
     void* dataToSave4 = malloc(sizeofData4);
+
+    for(uint32_t i = 0; i < sizeofData1; ++i){
+        uint8_t rad = rand() % UINT8_MAX;
+        memcpy(dataToSave1 + i, &rad, 1);
+    }
+
+    for(uint32_t i = 0; i < sizeofData2; ++i){
+        uint8_t rad = rand() % UINT8_MAX;
+        memcpy(dataToSave2 + i, &rad, 1);
+    }
+
+    for(uint32_t i = 0; i < sizeofData2; ++i){
+        uint8_t rad = rand() % UINT8_MAX;
+        memcpy(dataToSave3 + i, &rad, 1);
+    }
+
+    for(uint32_t i = 0; i < sizeofData4; ++i){
+        uint8_t rad = rand() % UINT8_MAX;
+        memcpy(dataToSave4 + i, &rad, 1);
+    }
 
     void* dataToReceived1 = malloc(sizeofData1);
     void* dataToReceived2 = malloc(sizeofData2);
@@ -120,19 +142,20 @@ void block_links_getters_setters_test(void){
 
     // memory comparison
     TEST_ASSERT_TRUE(fs_save_data(0, sizeofData1, freeBlock1, dataToSave1, shm_addr) == 0);
-    TEST_ASSERT_TRUE(fs_get_data(0, sizeofData1, freeBlock1, dataToReceived1, shm_addr));
+    TEST_ASSERT_TRUE(fs_get_data(0, sizeofData1, freeBlock1, dataToReceived1, shm_addr) == 0);
     TEST_ASSERT_TRUE(memcmp(dataToSave1, dataToReceived1, sizeofData1) == 0);
 
-    TEST_ASSERT_TRUE(fs_save_data(57, sizeofData2, freeBlock2, dataToSave2, shm_addr) == 0);
-    TEST_ASSERT_TRUE(fs_get_data(57, sizeofData2, freeBlock2, dataToReceived2, shm_addr));
+    TEST_ASSERT_TRUE(fs_save_data(57, 57 + sizeofData2, freeBlock2, dataToSave2, shm_addr) == 0);
+    TEST_ASSERT_TRUE(fs_get_data(57, 57 + sizeofData2, freeBlock2, dataToReceived2, shm_addr) == 0);
     TEST_ASSERT_TRUE(memcmp(dataToSave2, dataToReceived2, sizeofData2) == 0);
 
-    TEST_ASSERT_TRUE(fs_save_data(3569, sizeofData3, freeBlock3, dataToSave3, shm_addr) == 0);
-    TEST_ASSERT_TRUE(fs_get_data(3569, sizeofData3, freeBlock3, dataToReceived3, shm_addr));
+
+    TEST_ASSERT_TRUE(fs_save_data(3569, 3569 + sizeofData3, freeBlock3, dataToSave3, shm_addr) == 0);
+    TEST_ASSERT_TRUE(fs_get_data(3569, 3569 + sizeofData3, freeBlock3, dataToReceived3, shm_addr) == 0);
     TEST_ASSERT_TRUE(memcmp(dataToSave3, dataToReceived3, sizeofData3) == 0);
 
-    TEST_ASSERT_TRUE(fs_save_data(12000, sizeofData4, freeBlock4, dataToSave4, shm_addr) == 0);
-    TEST_ASSERT_TRUE(fs_get_data(12000, sizeofData4, freeBlock4, dataToReceived4, shm_addr));
+    TEST_ASSERT_TRUE(fs_save_data(12000, 12000 + sizeofData4, freeBlock4, dataToSave4, shm_addr) == 0);
+    TEST_ASSERT_TRUE(fs_get_data(12000, 12000 + sizeofData4, freeBlock4, dataToReceived4, shm_addr) == 0);
     TEST_ASSERT_TRUE(memcmp(dataToSave4, dataToReceived4, sizeofData4) == 0);
 
     fs_free_blockchain(freeBlock1, shm_addr);
@@ -149,6 +172,7 @@ void block_links_getters_setters_test(void){
     free(dataToReceived2);
     free(dataToReceived3);
     free(dataToReceived4);
+
 }
 
 void block_links_allocation_test(void){
@@ -163,6 +187,8 @@ void block_links_allocation_test(void){
     TEST_ASSERT_TRUE(chain2 != FS_EMPTY_BLOCK_VALUE);
     TEST_ASSERT_TRUE(chain3 != FS_EMPTY_BLOCK_VALUE);
     TEST_ASSERT_TRUE(chain4 != FS_EMPTY_BLOCK_VALUE);
+
+    TEST_ASSERT_TRUE(chain1 != chain2 && chain3 != chain4 && chain2 != chain3);
 
     TEST_ASSERT_TRUE((test1 = fs_allocate_new_block(chain1, shm_addr)) != FS_EMPTY_BLOCK_VALUE);
     TEST_ASSERT_TRUE((test2 = fs_allocate_new_block(chain2, shm_addr)) != FS_EMPTY_BLOCK_VALUE);
@@ -231,5 +257,3 @@ int main(void){
 
     return UNITY_END();
 }
-
-#endif

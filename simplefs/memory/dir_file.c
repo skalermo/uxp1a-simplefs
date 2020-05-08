@@ -4,8 +4,6 @@
  *      Author: Kordowski Mateusz
  */
 
-#ifndef SIMPLEFS_DIR_FILE_C
-#define SIMPLEFS_DIR_FILE_C
 
 #include "dir_file.h"
 
@@ -323,5 +321,3 @@ int8_t fs_occupy_free_dir_entry(uint32_t blockNumber, uint32_t* dirEntryIndex, s
     
     return -1; // unacceptable state
 }
-
-#endif

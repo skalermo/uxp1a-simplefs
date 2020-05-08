@@ -1,16 +1,11 @@
-#ifndef SIMPLEFS_UTILS_C
-#define SIMPLEFS_UTILS_C
 
 #include "utils.h"
-#include <stdio.h>
 
 uint32_t inner_fs_get_position_in_8bit(uint8_t bits){
     uint8_t shift = 0x01;
     uint32_t ret = 0;
-    printf("32 - %X\n", bits);
-    for(; shift != 0; shift = 1 << shift, ++ret){
-        //printf("%X\n", shift);
-        if(bits & shift != 0) return ret;
+    for(; ret < 8; shift = shift << 1, ++ret){
+        if((bits & shift) != 0) return ret;
     }
     
     return UINT32_MAX;
@@ -19,16 +14,21 @@ uint32_t inner_fs_get_position_in_8bit(uint8_t bits){
 uint32_t inner_fs_get_position_in_16bit(uint16_t bits){
     uint32_t ret = 0;
     uint8_t fun;
-    printf("32 - %X\n", bits);
-    fun = 8 >> (bits & 0xFF00);
+
+    // first half
+    fun = bits & 0x00FF;
+    if(fun != 0) {
+        ret = inner_fs_get_position_in_8bit(fun);
+        return ret;
+    }
+
+    // second half
+    fun = (bits >> 8) & 0x00FF;
     if(fun != 0) {
         ret = inner_fs_get_position_in_8bit(fun);
         if(ret == UINT32_MAX) return UINT32_MAX;
         return ret + 8;
     }
-
-    fun = bits & 0x00FF;
-    if(fun != 0) return inner_fs_get_position_in_8bit(fun);
 
     return UINT32_MAX;
 }
@@ -36,17 +36,21 @@ uint32_t inner_fs_get_position_in_16bit(uint16_t bits){
 uint32_t inner_fs_get_position_in_32bit(uint32_t bits){
     uint32_t ret = 0;
     uint16_t fun;
-    printf("32 - %X\n", bits);
-    fun = 16 >> (bits & 0xFFFF0000);
-    printf("fun 16 - %X\n", fun);
+
+    // first half
+    fun = bits & 0x0000FFFF;
     if(fun != 0) {
         ret =  inner_fs_get_position_in_16bit(fun);
+        return ret;
+    }
+
+    // second half
+    fun = (bits >> 16) & 0x0000FFFF;
+    if(fun != 0) { 
+        ret = inner_fs_get_position_in_16bit(fun);
         if(ret == UINT32_MAX) return UINT32_MAX;
         return ret + 16;
     }
-
-    fun = bits & 0x0000FFFF;
-    if(fun != 0) return inner_fs_get_position_in_16bit(fun);
 
     return UINT32_MAX;
 }
@@ -83,7 +87,7 @@ uint32_t inner_fs_find_free_index(void* bitmap_ptr, uint32_t maxOffset){
 
         // not found
 
-        return 0;
+        return UINT32_MAX;
     }
     else{
         ret = inner_fs_get_position_in_32bit(test32);
@@ -96,15 +100,16 @@ uint32_t inner_fs_find_free_index(void* bitmap_ptr, uint32_t maxOffset){
 
 int8_t inner_fs_mark_bitmap_bit(void* bitmap_ptr, uint32_t bitmapIndex){
     bitmap_ptr += bitmapIndex / 8;
-    uint32_t smallBitmapOffset = bitmapIndex % 8;
+    uint8_t smallBitmapOffset = bitmapIndex % 8;
 
     uint8_t bitmapCopy;
     memcpy(&bitmapCopy, bitmap_ptr, sizeof(uint8_t));
+    
 
-    uint8_t setBit = 1;
-
-    setBit = smallBitmapOffset << setBit;
-    bitmapCopy = bitmapCopy | setBit;
+    uint8_t setBit = 0x01;
+    setBit = setBit <<  smallBitmapOffset;
+    bitmapCopy = bitmapCopy | setBit; // set bit
+    bitmapCopy = bitmapCopy & (~setBit); // unset bit (0 means it is used)
 
     memcpy(bitmap_ptr, &bitmapCopy, sizeof(uint8_t));
 
@@ -118,14 +123,12 @@ int8_t inner_fs_free_bitmap_bit(void* bitmap_ptr, uint32_t bitmapIndex){
     uint8_t bitmapCopy;
     memcpy(&bitmapCopy, bitmap_ptr, sizeof(uint8_t));
 
-    uint8_t setBit = 1;
+    uint8_t setBit = 0x01;
 
-    setBit = smallBitmapOffset << setBit;
-    bitmapCopy = bitmapCopy & setBit;
+    setBit = setBit << smallBitmapOffset;
+    bitmapCopy = bitmapCopy | setBit; // 1 means it is unused
 
     memcpy(bitmap_ptr, &bitmapCopy, sizeof(uint8_t));
 
     return 0;
 }
-
-#endif

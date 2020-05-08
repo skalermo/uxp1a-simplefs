@@ -123,8 +123,7 @@ int8_t fs_get_open_file_copy(uint16_t openFileIndex, struct OpenFile* openFileCo
  * @param openFileIndex - pointer where the open file index will be saved.
  * @param addr - address of the mapped shared memory.
  * @return int8_t - 0 if operation was successful.
- * -1 if some other error happend.
- * -2 if there is no more free open files structures.
+ * -1 if there is no more free open files structures.
  */
 int8_t fs_get_free_open_file(uint16_t* openFileIndex, void* addr);
 
@@ -137,8 +136,7 @@ int8_t fs_get_free_open_file(uint16_t* openFileIndex, void* addr);
  * @param openFileToSave - - pointer to the open file structure that will be saved.
  * @param addr - address of the mapped shared memory.
  * @return int8_t - 0 if operation was successful.
- * -1 if some other error happend.
- * -2 if there is no more free open files structures.
+ * -1 if there is no more free open files structures.
  */
 int8_t fs_occupy_free_open_file(uint32_t* openFileIndex, struct OpenFile* openFileToSave, void* addr);
 

@@ -4,8 +4,6 @@
  *      Author: Kordowski Mateusz
  */
 
-#ifndef SIMPLEFS_INODE_C
-#define SIMPLEFS_INODE_C
 
 #include "inode.h"
 
@@ -153,7 +151,6 @@ int8_t fs_get_free_inode(uint16_t* inodeIndex, void* addr){
     uint16_t ret = inner_fs_find_free_index(fs_get_inode_bitmap_ptr(addr), fs_get_max_number_of_inodes(addr));
 
     if(ret == UINT32_MAX) return -1;
-    if(ret == 0) return -2;
 
     *inodeIndex = ret;
     return 0;
@@ -164,7 +161,6 @@ int8_t fs_occupy_free_inode(uint16_t* inodeIndex, struct Inode* inodeToSave, voi
     uint32_t ret = inner_fs_find_free_index(fs_get_inode_bitmap_ptr(addr), fs_get_max_number_of_inodes(addr));
 
     if(ret == UINT32_MAX) return -1;
-    if(ret == 0) return -2;
 
     inner_fs_mark_bitmap_bit(fs_get_inode_bitmap_ptr(addr), ret);
 
@@ -216,12 +212,12 @@ int8_t fs_create_inode_structures_in_shm(void* addr){
     struct InodeStat toSaveStat;
     toSaveStat.inode_bitmap = malloc(sizeofBitmapAlone);
 
-    // for main directory
-    toSaveStat.inode_used = 1;
-    toSaveStat.inode_bitmap[0] = 0x7F;
+    // for trash and main directory
+    toSaveStat.inode_used = 2;
+    toSaveStat.inode_bitmap[0] = 0xFC;
 
     for(unsigned int i = 1; i < sizeofBitmapAlone; ++i){
-        toSaveStat.inode_bitmap[i] = 1;
+        toSaveStat.inode_bitmap[i] = 0xFF;
     }
 
     // last 8 bits
@@ -236,5 +232,3 @@ int8_t fs_create_inode_structures_in_shm(void* addr){
     free(toSaveStat.inode_bitmap);
     return 0;
 }
-
-#endif

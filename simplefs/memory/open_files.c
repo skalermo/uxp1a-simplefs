@@ -4,8 +4,6 @@
  *      Author: Kordowski Mateusz
  */
 
-#ifndef SIMPLEFS_OPEN_FILES_C
-#define SIMPLEFS_OPEN_FILES_C
 
 #include "open_files.h"
 
@@ -112,7 +110,6 @@ int8_t fs_get_free_open_file(uint16_t* openFileIndex, void* addr){
     uint32_t ret = inner_fs_find_free_index(fs_get_open_file_bitmap_ptr(addr), fs_get_max_number_of_open_files(addr));
 
     if(ret == UINT32_MAX) return -1;
-    if(ret == 0) return -2;
 
     *openFileIndex = ret;
     return 0;
@@ -123,7 +120,6 @@ int8_t fs_occupy_free_open_file(uint32_t* openFileIndex, struct OpenFile* openFi
     uint32_t ret = inner_fs_find_free_index(fs_get_open_file_bitmap_ptr(addr), fs_get_max_number_of_open_files(addr));
 
     if(ret == UINT32_MAX) return -1;
-    if(ret == 0) return -2;
 
     *openFileIndex = ret;
     memcpy(openFileTable_ptr + (ret * sizeof(struct OpenFile)), openFileToSave, sizeof(struct OpenFile));
@@ -178,5 +174,3 @@ int8_t fs_mark_open_file_as_used(uint32_t openFileIndex, void* addr){
 int8_t fs_mark_open_file_as_free(uint32_t openFileIndex, void* addr){
     return inner_fs_free_bitmap_bit(fs_get_open_file_bitmap_ptr(addr), openFileIndex);
 }
-
-#endif

@@ -4,10 +4,6 @@
  *      Author: Kordowski Mateusz
  */
 
-
-#ifndef SIMPLEFS_TEST_INITIALIZATION_C
-#define SIMPLEFS_TEST_INITIALIZATION_C
-
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -17,6 +13,7 @@
 #include <fcntl.h> 
 
 #include "unity.h"
+
 #include "superblock.h"
 #include "open_files.h"
 #include "block_links.h"
@@ -210,6 +207,3 @@ int main(void){
     return UNITY_END();
 }
 
-
-
-#endif

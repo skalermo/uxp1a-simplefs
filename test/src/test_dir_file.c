@@ -4,10 +4,6 @@
  *      Author: Kordowski Mateusz
  */
 
-
-#ifndef SIMPLEFS_SUPERBLOCK_TEST_C
-#define SIMPLEFS_SUPERBLOCK_TEST_C
-
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -140,5 +136,3 @@ int main(void){
     return UNITY_END();
 }
 
-
-#endif

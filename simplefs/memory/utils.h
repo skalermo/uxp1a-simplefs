@@ -18,8 +18,7 @@ uint32_t inner_fs_get_position_in_32bit(uint32_t bits);
  * 
  * @param block_ptr - pointer to the bitmap block.
  * @param maxOffset - maximum number of some structures in block. All of those indexed structures must be usable.
- * @return uint32_t - UINT32_MAX if some error happend or
- * 0 if there is no more free indexes.
+ * @return uint32_t - UINT32_MAX if some error happend (then it is implementation fault) or if there is no more free indexes.
  * Otherwise index of an free index.
  */
 uint32_t inner_fs_find_free_index(void* bitmap_ptr, uint32_t maxOffset);

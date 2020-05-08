@@ -157,8 +157,7 @@ int8_t fs_get_inode_copy(uint32_t inodeIndex, struct Inode* inodeCopy, void* add
  * @param inodeIndex - pointer where the free inode index will be saved.
  * @param addr - address of the mapped shared memory.
  * @return int8_t - 0 if operation was successful or
- * -1 if there was some error.
- * -2 if there was no more free inode available.
+ * -1 if there was no more free inode available.
  */
 int8_t fs_get_free_inode(uint16_t* inodeIndex, void* addr);
 
@@ -171,8 +170,7 @@ int8_t fs_get_free_inode(uint16_t* inodeIndex, void* addr);
  * @param inodeToSave - inode that will be saved in inode table.
  * @param addr - address of the mapped shared memory.
  * @return int8_t - 0 if operation was successful or
- * -1 if there was some error or
- * -2 if there was no more free inode available.
+ * -1 if there was no more free inode available
  * In case of negative values the inodeIndex will be intact.
  */
 int8_t fs_occupy_free_inode(uint16_t* inodeIndex, struct Inode* inodeToSave, void* addr);

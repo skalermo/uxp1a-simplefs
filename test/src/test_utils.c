@@ -4,8 +4,6 @@
  *      Author: Kordowski Mateusz
  */
 
-#ifndef SIMPLEFS_TEST_UTILS_C
-#define SIMPLEFS_INODE_C
 
 #include <string.h>
 #include <stdlib.h>
@@ -22,17 +20,14 @@ void tearDown(void){
 }
 
 void find_free_bit_test(void){
-    uint32_t sizeofBitmap = 48;
+    uint32_t sizeofBitmap = 32;
     void* bitmap = malloc(sizeofBitmap);
-    uint8_t toSave = 0x1B;
+    uint32_t toSave32 = 0x0008000;
 
-    for(uint32_t i = 0; i < sizeofBitmap; ++i){
-        memcpy(bitmap + i, &toSave, sizeof(uint8_t));
-        ++toSave;
-    }
+    memcpy(bitmap, &toSave32, sizeof(uint32_t));
     uint32_t ret = inner_fs_find_free_index(bitmap, sizeofBitmap);
+    TEST_ASSERT_TRUE(ret == 15);
 
-    TEST_ASSERT_TRUE(ret != 0 && ret != UINT32_MAX);
 }
 
 
@@ -44,6 +39,3 @@ int main(void){
     return UNITY_END();
 }
 
-
-
-#endif

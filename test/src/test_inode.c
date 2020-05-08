@@ -5,9 +5,6 @@
  */
 
 
-#ifndef SIMPLEFS_SUPERBLOCK_TEST_C
-#define SIMPLEFS_SUPERBLOCK_TEST_C
-
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -115,6 +112,8 @@ void inode_setters_getters_test(void){
         TEST_ASSERT_TRUE(fs_mark_inode_as_used(inodes[i], shm_addr) == 0);
     }
 
+    TEST_ASSERT_TRUE(inodes[2] != inodes[5] && inodes[7] != inodes[9]);
+
     for(uint32_t i = 0; i < 10; ++i){
         TEST_ASSERT_TRUE(fs_save_data_to_inode_uint32(inodes[i], 0, data32S, shm_addr) == 0);
         ++data32S;
@@ -136,7 +135,6 @@ void inode_setters_getters_test(void){
 
     for(uint32_t i = 0; i < 10; ++i){
         TEST_ASSERT_TRUE(fs_get_data_from_inode_uint32(inodes[i], 0, &data32R, shm_addr) == 0);
-        //printf("%d %d\n", data32, data32R);
         TEST_ASSERT_TRUE(data32R == data32 + i);
     }
 
@@ -185,7 +183,7 @@ void inode_bitmap_test(void){
     toSave.readers = 17;
     toSave.ref_count = 55;
 
-    uint32_t inode[10];
+    uint16_t inode[10];
     uint16_t tmp;
 
     for(uint32_t i = 0; i < 10; ++i){
@@ -225,5 +223,3 @@ int main(void){
     
     return UNITY_END();
 }
-
-#endif
