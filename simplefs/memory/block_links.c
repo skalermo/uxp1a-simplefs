@@ -9,6 +9,7 @@
 
 #include "block_links.h"
 
+#include <stdio.h>
 
 ///////////////////////////////////
 //  Struct functions
@@ -142,7 +143,7 @@ uint32_t fs_allocate_new_block(uint32_t blockNumerInChain, void* addr){
 
 uint32_t fs_allocate_new_chain(void* addr){
     uint32_t freeBlockIndex = inner_fs_find_free_index(fs_get_block_bitmap_ptr(addr), fs_get_max_number_data_blocks(addr));
-
+    printf("%ud\n", freeBlockIndex);
     if(freeBlockIndex == UINT32_MAX) return FS_EMPTY_BLOCK_VALUE;
     if(freeBlockIndex == 0) return FS_EMPTY_BLOCK_VALUE;
 

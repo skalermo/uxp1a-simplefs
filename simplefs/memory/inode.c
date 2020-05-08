@@ -159,7 +159,7 @@ int8_t fs_get_free_inode(uint16_t* inodeIndex, void* addr){
     return 0;
 }
 
-int8_t fs_occupy_free_inode(uint32_t* inodeIndex, struct Inode* inodeToSave, void* addr){
+int8_t fs_occupy_free_inode(uint16_t* inodeIndex, struct Inode* inodeToSave, void* addr){
     void* inodeTable_ptr = fs_get_inode_table_ptr(addr);
     uint32_t ret = inner_fs_find_free_index(fs_get_inode_bitmap_ptr(addr), fs_get_max_number_of_inodes(addr));
 
@@ -173,11 +173,11 @@ int8_t fs_occupy_free_inode(uint32_t* inodeIndex, struct Inode* inodeToSave, voi
     return 0;
 }
 
-int8_t fs_mark_inode_as_used(uint32_t inodeIndex, void* addr){
+int8_t fs_mark_inode_as_used(uint16_t inodeIndex, void* addr){
     return inner_fs_mark_bitmap_bit(fs_get_inode_bitmap_ptr(addr), inodeIndex);
 }
 
-int8_t fs_mark_inode_as_free(uint32_t inodeIndex, void* addr){
+int8_t fs_mark_inode_as_free(uint16_t inodeIndex, void* addr){
     return inner_fs_free_bitmap_bit(fs_get_inode_bitmap_ptr(addr), inodeIndex);
 }
 

@@ -2,20 +2,24 @@
 #define SIMPLEFS_UTILS_C
 
 #include "utils.h"
+#include <stdio.h>
 
 uint32_t inner_fs_get_position_in_8bit(uint8_t bits){
-    uint8_t shift = 0x1;
+    uint8_t shift = 0x01;
     uint32_t ret = 0;
+    printf("32 - %X\n", bits);
     for(; shift != 0; shift = 1 << shift, ++ret){
+        //printf("%X\n", shift);
         if(bits & shift != 0) return ret;
     }
+    
     return UINT32_MAX;
 }
 
 uint32_t inner_fs_get_position_in_16bit(uint16_t bits){
     uint32_t ret = 0;
     uint8_t fun;
-
+    printf("32 - %X\n", bits);
     fun = 8 >> (bits & 0xFF00);
     if(fun != 0) {
         ret = inner_fs_get_position_in_8bit(fun);
@@ -32,8 +36,9 @@ uint32_t inner_fs_get_position_in_16bit(uint16_t bits){
 uint32_t inner_fs_get_position_in_32bit(uint32_t bits){
     uint32_t ret = 0;
     uint16_t fun;
-
+    printf("32 - %X\n", bits);
     fun = 16 >> (bits & 0xFFFF0000);
+    printf("fun 16 - %X\n", fun);
     if(fun != 0) {
         ret =  inner_fs_get_position_in_16bit(fun);
         if(ret == UINT32_MAX) return UINT32_MAX;

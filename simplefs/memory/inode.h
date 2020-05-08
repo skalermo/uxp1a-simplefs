@@ -175,7 +175,7 @@ int8_t fs_get_free_inode(uint16_t* inodeIndex, void* addr);
  * -2 if there was no more free inode available.
  * In case of negative values the inodeIndex will be intact.
  */
-int8_t fs_occupy_free_inode(uint32_t* inodeIndex, struct Inode* inodeToSave, void* addr);
+int8_t fs_occupy_free_inode(uint16_t* inodeIndex, struct Inode* inodeToSave, void* addr);
 
 /**
  * @brief Mark inode as used in inode bitmap.
@@ -185,7 +185,7 @@ int8_t fs_occupy_free_inode(uint32_t* inodeIndex, struct Inode* inodeToSave, voi
  * @return int8_t - 0 if operation was successful.
  * No other errors.
  */
-int8_t fs_mark_inode_as_used(uint32_t inodeIndex, void* addr);
+int8_t fs_mark_inode_as_used(uint16_t inodeIndex, void* addr);
 
 /**
  * @brief Mark inode as free in inode bitmap.
@@ -195,7 +195,7 @@ int8_t fs_mark_inode_as_used(uint32_t inodeIndex, void* addr);
  * @return int8_t - 0 if operation was successful.
  * No other errors.
  */
-int8_t fs_mark_inode_as_free(uint32_t inodeIndex,void* addr);
+int8_t fs_mark_inode_as_free(uint16_t inodeIndex,void* addr);
 
 
 ///////////////////////////////////
