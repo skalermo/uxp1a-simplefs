@@ -158,7 +158,7 @@ uint8_t createFile(char* path){
                 uint32_t indexOfNewEntry;
 
                 toSaveEntry.inode_number = currentInode;
-                strcpy(toSaveEntry.name, (*subPath)[i]);
+                strcpy((char*) toSaveEntry.name, (*subPath)[i]);
                 toSaveEntry.name_len = 20; // dummy value, here find the length of this string
 
                 toSaveInode.mode = 0;
