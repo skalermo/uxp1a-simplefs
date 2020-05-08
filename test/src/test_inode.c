@@ -112,6 +112,7 @@ void inode_setters_getters_test(void){
 
     for(uint32_t i = 0; i < 10; ++i){
         TEST_ASSERT_TRUE(fs_get_free_inode(&inodes[i], shm_addr) == 0);
+        TEST_ASSERT_TRUE(fs_mark_inode_as_used(inodes[i], shm_addr) == 0);
     }
 
     for(uint32_t i = 0; i < 10; ++i){
@@ -125,16 +126,17 @@ void inode_setters_getters_test(void){
     }
 
     for(uint32_t i = 0; i < 10; ++i){
-        TEST_ASSERT_TRUE(fs_save_data_to_inode_uint16(inodes[i], 2, data8S1, shm_addr) == 0);
+        TEST_ASSERT_TRUE(fs_save_data_to_inode_uint8(inodes[i], 2, data8S1, shm_addr) == 0);
         ++data8S1;
-        TEST_ASSERT_TRUE(fs_save_data_to_inode_uint16(inodes[i], 3, data8S2, shm_addr) == 0);
+        TEST_ASSERT_TRUE(fs_save_data_to_inode_uint8(inodes[i], 3, data8S2, shm_addr) == 0);
         ++data8S2;
-        TEST_ASSERT_TRUE(fs_save_data_to_inode_uint16(inodes[i], 4, data8S3, shm_addr) == 0);
+        TEST_ASSERT_TRUE(fs_save_data_to_inode_uint8(inodes[i], 4, data8S3, shm_addr) == 0);
         ++data8S3;
     }
 
     for(uint32_t i = 0; i < 10; ++i){
         TEST_ASSERT_TRUE(fs_get_data_from_inode_uint32(inodes[i], 0, &data32R, shm_addr) == 0);
+        //printf("%d %d\n", data32, data32R);
         TEST_ASSERT_TRUE(data32R == data32 + i);
     }
 
@@ -217,8 +219,8 @@ int main(void){
     UNITY_BEGIN();
 
     setUp_inode();
-    inode_setters_getters_test();
-    inode_bitmap_test();
+    RUN_TEST(inode_setters_getters_test);
+    RUN_TEST(inode_bitmap_test);
     tearDown_inode();
     
     return UNITY_END();

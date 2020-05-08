@@ -225,8 +225,8 @@ int main(void){
     UNITY_BEGIN();
 
     setUp_block_links();
-    block_links_allocation_test();
-    block_links_getters_setters_test();
+    RUN_TEST(block_links_getters_setters_test);
+    RUN_TEST(block_links_allocation_test);
     tearDown_block_links();
 
     return UNITY_END();
