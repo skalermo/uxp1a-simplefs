@@ -7,6 +7,15 @@
 #include "block_links.h"
 
 ///////////////////////////////////
+//  Hidden functions
+//////////////////////////////////
+
+uint8_t inner_fs_get_used_data_blocks_sizeof(){
+    return sizeof(uint32_t);
+}
+
+
+///////////////////////////////////
 //  Struct functions
 //////////////////////////////////
 
@@ -147,6 +156,8 @@ uint32_t fs_allocate_new_block(uint32_t blockNumerInChain, void* addr){
     if(freeBlockIndex == UINT32_MAX) return FS_EMPTY_BLOCK_VALUE;
 
     inner_fs_mark_bitmap_bit(fs_get_block_bitmap_ptr(addr), freeBlockIndex);
+    uint32_t tmp = fs_get_used_blocks(addr);
+    fs_set_used_blocks(++tmp, addr);
 
     // link to the next block
     memcpy(block_ptr + (blockNumerInChain * sizeof(uint32_t)), &freeBlockIndex, sizeof(uint32_t));
@@ -164,6 +175,8 @@ uint32_t fs_allocate_new_chain(void* addr){
     if(freeBlockIndex == UINT32_MAX) return FS_EMPTY_BLOCK_VALUE;
 
     inner_fs_mark_bitmap_bit(bitmap_addr, freeBlockIndex);
+    uint32_t tmp = fs_get_used_blocks(addr);
+    fs_set_used_blocks(++tmp, addr);
     memcpy(fs_get_block_links_ptr(addr) + (sizeof(uint32_t) * freeBlockIndex), &empty, sizeof(uint32_t));
 
     return freeBlockIndex;
@@ -174,16 +187,21 @@ uint8_t fs_free_blockchain(uint32_t firstBlockInBlockchain, void* addr){
 
     uint32_t nextBlockIndex;
     uint32_t reset = FS_EMPTY_BLOCK_VALUE;
+    uint32_t freedBlocks = 0;
 
     do{
         nextBlockIndex = fs_get_next_block_number(firstBlockInBlockchain, addr);
 
         inner_fs_free_bitmap_bit(fs_get_block_bitmap_ptr(addr), firstBlockInBlockchain);
+        ++freedBlocks;
         memcpy(fs_get_block_links_ptr(addr) + (sizeof(uint32_t) * firstBlockInBlockchain), &reset, sizeof(uint32_t));
 
         firstBlockInBlockchain = nextBlockIndex;
     }
     while(firstBlockInBlockchain != FS_EMPTY_BLOCK_VALUE);
+
+    uint32_t tmp = fs_get_used_blocks(addr);
+    fs_set_used_blocks(tmp - freedBlocks, addr);
 
     return 0;
 }
@@ -193,7 +211,7 @@ int8_t fs_create_blocks_stuctures_in_shm(void* addr){
     void* blockStat_ptr = fs_get_block_bitmap_ptr(addr);
 
     uint32_t numberOfBlocks = fs_get_max_number_data_blocks(addr);
-    uint32_t sizeofBitmapAlone = (sizeof(uint8_t) * numberOfBlocks / 8) + 1;
+    uint32_t sizeofBitmapAlone = inner_fs_get_sizeof_bitmap_alone(numberOfBlocks);
     uint32_t sizeofBlockLinks = sizeof(uint32_t) * numberOfBlocks;
     uint32_t sizeofBlockStat = sizeofBitmapAlone + sizeof(uint32_t);
 
@@ -223,10 +241,22 @@ int8_t fs_create_blocks_stuctures_in_shm(void* addr){
 
     memcpy(blockLinks_ptr, toSave.block_num, sizeofBlockLinks);
     memcpy(blockStat_ptr, toSaveStat.block_bitmap, sizeofBitmapAlone);
-    memcpy(blockStat_ptr + sizeofBitmapAlone, &toSaveStat.used_data_blocks, sizeof(uint32_t));
+    memcpy(blockStat_ptr + sizeofBitmapAlone, &toSaveStat.used_data_blocks, inner_fs_get_used_data_blocks_sizeof());
 
     free(toSaveStat.block_bitmap);
     free(toSave.block_num);
+    return 0;
+}
+
+uint32_t fs_get_used_blocks(void* addr){
+    uint32_t ret;
+    memcpy(&ret, fs_get_block_bitmap_ptr(addr) + inner_fs_get_sizeof_bitmap_alone(fs_get_max_number_data_blocks(addr)), inner_fs_get_used_data_blocks_sizeof());
+    return ret;
+}
+
+int8_t fs_set_used_blocks(uint32_t saveUsedBlocks, void* addr){
+    memcpy(fs_get_block_bitmap_ptr(addr) + inner_fs_get_sizeof_bitmap_alone(fs_get_max_number_data_blocks(addr)), &saveUsedBlocks, inner_fs_get_used_data_blocks_sizeof());
+    
     return 0;
 }
 

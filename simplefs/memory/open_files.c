@@ -39,6 +39,10 @@ uint8_t inner_fs_get_open_file_variable_size(uint8_t index){
 }
 
 
+uint8_t inner_fs_get_opened_files_used_sizeof(){
+    return sizeof(uint16_t);
+}
+
 ///////////////////////////////////
 //  Struct functions
 //////////////////////////////////
@@ -126,6 +130,8 @@ int8_t fs_occupy_free_open_file(uint32_t* openFileIndex, struct OpenFile* openFi
     *openFileIndex = ret;
     memcpy(openFileTable_ptr + (ret * sizeof(struct OpenFile)), openFileToSave, sizeof(struct OpenFile));
     fs_mark_open_file_as_used(ret, addr);
+    uint32_t tmp = fs_get_used_opened_files(addr);
+    fs_set_used_opened_files(++tmp, addr);
 
     return 0;
 }
@@ -136,7 +142,7 @@ int8_t fs_create_open_file_table_stuctures_in_shm(void* addr){
     void* openFileTable_ptr = fs_get_open_file_table_ptr(addr);
     void* OpenFileStat_ptr = fs_get_open_file_bitmap_ptr(addr);
     uint32_t maxNumberOfOpenFiles = fs_get_max_number_of_open_files(addr);
-    uint32_t sizeofBitmapAlone = (maxNumberOfOpenFiles / 8) + 1;
+    uint32_t sizeofBitmapAlone = inner_fs_get_sizeof_bitmap_alone(maxNumberOfOpenFiles);
 
     toSave.mode;
     toSave.inode_num;
@@ -176,4 +182,17 @@ int8_t fs_mark_open_file_as_used(uint32_t openFileIndex, void* addr){
 
 int8_t fs_mark_open_file_as_free(uint32_t openFileIndex, void* addr){
     return inner_fs_free_bitmap_bit(fs_get_open_file_bitmap_ptr(addr), openFileIndex);
+}
+
+
+uint32_t fs_get_used_opened_files(void* addr){
+    uint32_t ret;
+    memcpy(&ret, fs_get_open_file_bitmap_ptr(addr) + inner_fs_get_sizeof_bitmap_alone(fs_get_max_number_of_open_files(addr)), inner_fs_get_opened_files_used_sizeof());
+    return ret;
+}
+
+int8_t fs_set_used_opened_files(uint32_t saveUsedInodes, void* addr){
+    memcpy(fs_get_open_file_bitmap_ptr(addr) + inner_fs_get_sizeof_bitmap_alone(fs_get_max_number_of_open_files(addr)), &saveUsedInodes, inner_fs_get_opened_files_used_sizeof());
+    
+    return 0;
 }

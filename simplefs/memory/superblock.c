@@ -230,7 +230,7 @@ uint32_t calculate_fs_open_file_table_end(uint32_t maxOpenFiles, uint32_t maxIno
 
 uint32_t calculate_fs_open_file_stat_end(uint32_t maxOpenFiles, uint32_t maxInodes, uint32_t maxFilesystemSize, uint32_t sizeofOneBlock){
     uint32_t fun = calculate_fs_open_file_table_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock);
-    uint32_t sizeOfStat = (maxOpenFiles / 8) + 1 + 2;
+    uint32_t sizeOfStat = inner_fs_get_sizeof_bitmap_alone(maxOpenFiles) + inner_fs_get_opened_files_used_sizeof();
     return fun + sizeOfStat;
 }
 
@@ -241,7 +241,7 @@ uint32_t calculate_fs_inode_table_end(uint32_t maxOpenFiles, uint32_t maxInodes,
 
 uint32_t calculate_fs_inode_stat_end(uint32_t maxOpenFiles, uint32_t maxInodes, uint32_t maxFilesystemSize, uint32_t sizeofOneBlock){
     uint32_t fun = calculate_fs_inode_table_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock);
-    uint32_t sizeOfStat = (maxInodes / 8) + 1 + 2;
+    uint32_t sizeOfStat = inner_fs_get_sizeof_bitmap_alone(maxInodes) + inner_fs_get_InodeStat_used_sizeof();
     return fun + sizeOfStat;
 }
 
@@ -254,7 +254,7 @@ uint32_t calculate_fs_block_links_end(uint32_t maxOpenFiles, uint32_t maxInodes,
 uint32_t calculate_fs_block_stat_end(uint32_t maxOpenFiles, uint32_t maxInodes, uint32_t maxFilesystemSize, uint32_t sizeofOneBlock){
     uint32_t fun = calculate_fs_block_links_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock);
     uint32_t neededBlocks = calculate_fs_needed_blocks(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock);
-    uint32_t sizeOfStat = (neededBlocks / 8) + 1 + 4;
+    uint32_t sizeOfStat = inner_fs_get_sizeof_bitmap_alone(neededBlocks) + inner_fs_get_used_data_blocks_sizeof();
     return fun + sizeOfStat;
 }
 

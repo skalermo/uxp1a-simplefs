@@ -103,11 +103,11 @@ void calculate_fs_offset_test(void){
     TEST_ASSERT_TRUE(superblockEnd == sizeof(struct Superblock));
     TEST_ASSERT_TRUE(openFileTableEnd == 8236);
     TEST_ASSERT_TRUE(OpenFileStatEnd == 8367);
-    TEST_ASSERT_TRUE(inodeTableEnd == 794787);
-    TEST_ASSERT_TRUE(inodeStatEnd == 802981);
-    TEST_ASSERT_TRUE(blockLinksEnd == 930401);
-    TEST_ASSERT_TRUE(blockStatEnd == 934387);
-    TEST_ASSERT_TRUE(dataBlockEnd == 33553907);
+    TEST_ASSERT_TRUE(inodeTableEnd == 1056927);
+    TEST_ASSERT_TRUE(inodeStatEnd == 1065121);
+    TEST_ASSERT_TRUE(blockLinksEnd == 1191521);
+    TEST_ASSERT_TRUE(blockStatEnd == 1195476);
+    TEST_ASSERT_TRUE(dataBlockEnd == 33553876);
 }
 
 void superblock_copy_test(void)

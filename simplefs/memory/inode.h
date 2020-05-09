@@ -35,10 +35,11 @@
 struct Inode {
     uint32_t block_index;
     uint16_t file_size;
+    uint16_t readers;
+    uint16_t writers;
     uint8_t mode;
     uint8_t ref_count;
-    uint8_t readers;
-    uint8_t padding[3];
+    uint8_t padding[2];
 };
 
 
@@ -164,7 +165,7 @@ int8_t fs_get_free_inode(uint16_t* inodeIndex, void* addr);
 /**
  * @brief Get an free inode index and save the inode structure.
  * There is no rule which free inode will be chosen.
- * It does mark this inode in bitmap as used.
+ * It does mark this inode in bitmap as used and change the inode counter.
  * 
  * @param inodeIndex - pointer where the free inode index will be saved.
  * @param inodeToSave - inode that will be saved in inode table.
@@ -177,6 +178,7 @@ int8_t fs_occupy_free_inode(uint16_t* inodeIndex, struct Inode* inodeToSave, voi
 
 /**
  * @brief Mark inode as used in inode bitmap.
+ * It does not change the number of currently used inodes.
  * 
  * @param inodeIndex - index of an inode.
  * @param addr - address of the mapped shared memory.
@@ -187,6 +189,7 @@ int8_t fs_mark_inode_as_used(uint16_t inodeIndex, void* addr);
 
 /**
  * @brief Mark inode as free in inode bitmap.
+ * It does not change the number of currently used inodes.
  * 
  * @param inodeIndex - index of an inode.
  * @param addr - address of the mapped shared memory.
@@ -195,6 +198,24 @@ int8_t fs_mark_inode_as_used(uint16_t inodeIndex, void* addr);
  */
 int8_t fs_mark_inode_as_free(uint16_t inodeIndex,void* addr);
 
+/**
+ * @brief Get the number of currently used inodes.
+ * 
+ * @param addr - address of the mapped shared memory.
+ * @return uint32_t - the number of used inodes.
+ * No other errors.
+ */
+uint32_t fs_get_used_inodes(void* addr);
+
+/**
+ * @brief Set the number of currently used inodes.
+ * 
+ * @param saveUsedInodes - value that will be saved in stat structure.
+ * @param addr - address of the mapped shared memory.
+ * @return int8_t - 0 if operation was succsessful.
+ * No other errors.
+ */
+int8_t fs_set_used_inodes(uint32_t saveUsedInodes, void* addr);
 
 ///////////////////////////////////
 //  Other functions
@@ -210,5 +231,11 @@ int8_t fs_mark_inode_as_free(uint16_t inodeIndex,void* addr);
  */
 int8_t fs_create_inode_structures_in_shm(void* addr); // TO_CHECK, TODO
 
+
+///////////////////////////////////
+//  Private functions
+//////////////////////////////////
+
+uint8_t inner_fs_get_InodeStat_used_sizeof();
 
 #endif

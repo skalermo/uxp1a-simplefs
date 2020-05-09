@@ -95,13 +95,11 @@ void inode_setters_getters_test(void){
 
     uint8_t offset1 = 11;
     uint8_t offset2 = 22;
-    uint8_t offset3 = 33;
     
     uint32_t data32S = data32;
     uint16_t data16S = data16;
     uint8_t data8S1 = data8 + offset1;
     uint8_t data8S2 = data8 + offset2;
-    uint8_t data8S3 = data8 + offset3;
 
     uint32_t data32R;
     uint16_t data16R;
@@ -125,12 +123,10 @@ void inode_setters_getters_test(void){
     }
 
     for(uint32_t i = 0; i < 10; ++i){
-        TEST_ASSERT_TRUE(fs_save_data_to_inode_uint8(inodes[i], 2, data8S1, shm_addr) == 0);
+        TEST_ASSERT_TRUE(fs_save_data_to_inode_uint8(inodes[i], 4, data8S1, shm_addr) == 0);
         ++data8S1;
-        TEST_ASSERT_TRUE(fs_save_data_to_inode_uint8(inodes[i], 3, data8S2, shm_addr) == 0);
+        TEST_ASSERT_TRUE(fs_save_data_to_inode_uint8(inodes[i], 5, data8S2, shm_addr) == 0);
         ++data8S2;
-        TEST_ASSERT_TRUE(fs_save_data_to_inode_uint8(inodes[i], 4, data8S3, shm_addr) == 0);
-        ++data8S3;
     }
 
     for(uint32_t i = 0; i < 10; ++i){
@@ -144,14 +140,11 @@ void inode_setters_getters_test(void){
     }
 
     for(uint32_t i = 0; i < 10; ++i){
-        TEST_ASSERT_TRUE(fs_get_data_from_inode_uint8(inodes[i], 2, &data8R, shm_addr) == 0);
+        TEST_ASSERT_TRUE(fs_get_data_from_inode_uint8(inodes[i], 4, &data8R, shm_addr) == 0);
         TEST_ASSERT_TRUE(data8R == data8 + i + offset1);
 
-        TEST_ASSERT_TRUE(fs_get_data_from_inode_uint8(inodes[i], 3, &data8R, shm_addr) == 0);
+        TEST_ASSERT_TRUE(fs_get_data_from_inode_uint8(inodes[i], 5, &data8R, shm_addr) == 0);
         TEST_ASSERT_TRUE(data8R == data8 + i + offset2);
-
-        TEST_ASSERT_TRUE(fs_get_data_from_inode_uint8(inodes[i], 4, &data8R, shm_addr) == 0);
-        TEST_ASSERT_TRUE(data8R == data8 + i + offset3);
     }
 
     struct Inode inod;
@@ -162,7 +155,6 @@ void inode_setters_getters_test(void){
         TEST_ASSERT_TRUE(inod.file_size == data16 + i);
         TEST_ASSERT_TRUE(inod.mode == data8 + i + offset1);
         TEST_ASSERT_TRUE(inod.ref_count == data8 + i + offset2);
-        TEST_ASSERT_TRUE(inod.readers == data8 + i + offset3);
     }
     
 }

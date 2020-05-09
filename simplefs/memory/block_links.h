@@ -91,7 +91,7 @@ uint32_t fs_get_next_block_number(uint32_t blockNumber, void* addr);
 /**
  * @brief Allocates the new block in given blockchain and links it to the blockchain.
  * The block is marked in bitmap as used.
- * The allocated block have the next block value set as FS_EMPTY_BLOCK_VALUE.
+ * The allocated block have the next block value set as FS_EMPTY_BLOCK_VALUE and change the blocks counter.
  * 
  * @param blockNumerInChain - block index where the chain is. It is possible to give a non-initial index of blockchain.
  * @param addr - address of the mapped shared memory.
@@ -102,7 +102,7 @@ uint32_t fs_allocate_new_block(uint32_t blockNumerInChain, void* addr);
 
 /**
  * @brief Allocates the new blockchain. 
- * The returned block is marked in bitmap as used.
+ * The returned block is marked in bitmap as used and change the inode counter.
  * 
  * @param addr - address of the mapped shared memory.
  * @return uint32_t - index of a new alocated block.
@@ -111,7 +111,7 @@ uint32_t fs_allocate_new_block(uint32_t blockNumerInChain, void* addr);
 uint32_t fs_allocate_new_chain(void* addr);
 
 /**
- * @brief Frees alocated memory in this blockchain.
+ * @brief Frees alocated memory in this blockchain and change the inode counter.
  * 
  * @param firstBlockInBlockchain - the first block in blockchain that will be freed
  * @param addr - address of the mapped shared memory.
@@ -119,6 +119,25 @@ uint32_t fs_allocate_new_chain(void* addr);
  * No other errors.
  */
 uint8_t fs_free_blockchain(uint32_t firstBlockInBlockchain, void* addr);
+
+/**
+ * @brief Get the number of currently used blocks.
+ * 
+ * @param addr - address of the mapped shared memory.
+ * @return uint32_t - the number of used blocks.
+ * No other errors.
+ */
+uint32_t fs_get_used_blocks(void* addr);
+
+/**
+ * @brief Set the number of currently used blocks.
+ * 
+ * @param saveUsedInodes - value that will be saved in stat structure.
+ * @param addr - address of the mapped shared memory.
+ * @return int8_t - 0 if operation was succsessful.
+ * No other errors.
+ */
+int8_t fs_set_used_blocks(uint32_t saveUsedBlocks, void* addr);
 
 
 
@@ -139,7 +158,7 @@ int8_t fs_create_blocks_stuctures_in_shm(void* addr); // TO_CHECK, TODO
 
 
 ///////////////////////////////////////////////
-//  Private functions (used in dir_file too)
+//  Private functions (used only in dir_file or in superblock too)
 //////////////////////////////////////////////
 
 /**
@@ -162,5 +181,7 @@ int8_t inner_fs_next_block_with_allocate(uint32_t* blockIndex, void* addr);
  * -1 if there was no next block. blockIndex is set to FS_EMPTY_BLOCK_VALUE
  */
 int8_t inner_fs_next_block_with_error(uint32_t* blockIndex, void* addr);
+
+uint8_t inner_fs_get_used_data_blocks_sizeof();
 
 #endif

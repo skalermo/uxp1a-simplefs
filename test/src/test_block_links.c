@@ -153,13 +153,6 @@ void block_links_getters_setters_test(void){
     uint32_t off2 = 3569;
     TEST_ASSERT_TRUE(fs_save_data(off2, off2 + sizeofData3, freeBlock3, dataToSave3, shm_addr) == 0);
     TEST_ASSERT_TRUE(fs_get_data(off2, off2 + sizeofData3, freeBlock3, dataToReceived3, shm_addr) == 0);
-
-    uint32_t nextBlock = freeBlock3;
-    printf("    %d\n", nextBlock);
-    for(uint32_t i = 0; (nextBlock = fs_get_next_block_number(nextBlock, shm_addr)) != FS_EMPTY_BLOCK_VALUE; ++i){
-        //printf("%d\n", nextBlock);
-    }
-
     TEST_ASSERT_TRUE(memcmp(dataToSave3, dataToReceived3, sizeofData3) == 0);
 
     TEST_ASSERT_TRUE(fs_save_data(12000, 12000 + sizeofData4, freeBlock4, dataToSave4, shm_addr) == 0);

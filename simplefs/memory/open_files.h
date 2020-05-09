@@ -130,7 +130,7 @@ int8_t fs_get_free_open_file(uint16_t* openFileIndex, void* addr);
 /**
  * @brief Get an free open file index and save the provided open file here,
  * There is no rule which free open file index will be chosen.
- * It does mark this open file in bitmap (set as used).
+ * It does mark this open file in bitmap (set as used) and change the opened file counter.
  * 
  * @param openFileIndex - pointer where the open file index will be saved.
  * @param openFileToSave - - pointer to the open file structure that will be saved.
@@ -142,6 +142,7 @@ int8_t fs_occupy_free_open_file(uint32_t* openFileIndex, struct OpenFile* openFi
 
 /**
  * @brief Mark open file as used in open file bitmap.
+ * It does not change the number of currently used opened files.
  * 
  * @param inodeIndex - index of an open file.
  * @param addr - address of the mapped shared memory.
@@ -152,6 +153,7 @@ int8_t fs_mark_open_file_as_used(uint32_t openFileIndex, void* addr);
 
 /**
  * @brief Mark open file as free in open file bitmap.
+ * It does not change the number of currently used opened files.
  * 
  * @param inodeIndex - index of an open file.
  * @param addr - address of the mapped shared memory.
@@ -159,6 +161,25 @@ int8_t fs_mark_open_file_as_used(uint32_t openFileIndex, void* addr);
  * No other errors.
  */
 int8_t fs_mark_open_file_as_free(uint32_t openFileIndex, void* addr);
+
+/**
+ * @brief Get the number of currently used opened files.
+ * 
+ * @param addr - address of the mapped shared memory.
+ * @return uint32_t - the number of used opened files.
+ * No other errors.
+ */
+uint32_t fs_get_used_opened_files(void* addr);
+
+/**
+ * @brief Set the number of currently used opened files.
+ * 
+ * @param saveUsedInodes - value that will be saved in stat structure.
+ * @param addr - address of the mapped shared memory.
+ * @return int8_t - 0 if operation was succsessful.
+ * No other errors.
+ */
+int8_t fs_set_used_opened_files(uint32_t saveUsedInodes, void* addr);
 
 
 ///////////////////////////////////
@@ -177,6 +198,11 @@ int8_t fs_mark_open_file_as_free(uint32_t openFileIndex, void* addr);
 int8_t fs_create_open_file_table_stuctures_in_shm(void* addr);  // TO_CHECK, TODO
 
 
+///////////////////////////////////
+//  Private functions
+//////////////////////////////////
+
+uint8_t inner_fs_get_opened_files_used_sizeof();
 
 
 #endif
