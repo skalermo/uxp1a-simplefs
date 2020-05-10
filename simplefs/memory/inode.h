@@ -12,25 +12,12 @@
 #include <stdint.h>
 #include <stddef.h> // offsetof function to use with structs.
 
-#include "superblock.h"
 #include "utils.h"
-
-
-
-///////////////////////////////////
-//  Defines
-//////////////////////////////////
-
-/*
-#define FS_MAX_NUMBER_OF_INODES UINT16_MAX
-#define FS_MAX_NUMBER_OF_INODES_BY_8 ((FS_MAX_NUMBER_OF_INODES / 8) + 1)*/
 
 
 ///////////////////////////////////
 //  Structs
 //////////////////////////////////
-
-
 
 struct Inode {
     uint32_t block_index;
@@ -237,5 +224,26 @@ int8_t fs_create_inode_structures_in_shm(void* addr); // TO_CHECK, TODO
 //////////////////////////////////
 
 uint8_t inner_fs_get_InodeStat_used_sizeof();
+
+///////////////////////////////////
+//  Forward declaration
+//////////////////////////////////
+
+void* fs_get_open_file_table_ptr(void* addr);
+
+void* fs_get_open_file_bitmap_ptr(void* addr);
+
+
+void* fs_get_inode_table_ptr(void* addr);
+
+void* fs_get_inode_bitmap_ptr(void* addr);
+
+
+uint16_t fs_get_data_block_size(void* addr);
+
+uint16_t fs_get_max_number_of_inodes(void* addr);
+
+uint16_t fs_get_max_number_of_open_files(void* addr);
+
 
 #endif

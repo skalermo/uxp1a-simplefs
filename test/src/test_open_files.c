@@ -18,13 +18,12 @@
 #include "open_files.h"
 
 void* shm_addr = NULL;
-const uint32_t sizeof_shm = 33554432; //(32 MB)
 const char* shm_name = "shm_test_open_files";
 
-uint32_t maxOpenFiles = 1024;
-uint32_t maxInodes = UINT16_MAX;
-uint32_t maxFilesystemSize = 33554432; //(32 MB);
-uint32_t sizeofOneBlock = 1024;
+const uint32_t maxOpenFiles = 1024;
+const uint32_t maxInodes = UINT16_MAX;
+const uint32_t maxFilesystemSize = 33554432; //(32 MB);
+const uint32_t sizeofOneBlock = 1024;
 
 void setUp(void){
 
@@ -35,7 +34,7 @@ void tearDown(void){
 }
 
 void tearDown_open_files(void) {
-    munmap(shm_addr, sizeof_shm);
+    munmap(shm_addr, maxFilesystemSize);
     shm_unlink(shm_name);
 }
 
@@ -50,13 +49,13 @@ void setUp_open_files(void){
     }
 
     // allocate memory in shm 
-    if (ftruncate(fd, sizeof_shm) == -1) {
+    if (ftruncate(fd, maxFilesystemSize) == -1) {
         puts("ftruncate failed");
         exit(EXIT_FAILURE);
     }
 
     // map the object into the caller's address space
-    shm_addr = mmap(NULL, sizeof_shm, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    shm_addr = mmap(NULL, maxFilesystemSize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if (shm_addr == MAP_FAILED) {
         puts("mmap failed");
         exit(EXIT_FAILURE);

@@ -1,5 +1,5 @@
-#ifndef SIMPLEFS_UTILS_H
-#define SIMPLEFS_UTILS_H
+#ifndef SIMPLEFS_MEMORY_UTILS_H
+#define SIMPLEFS_MEMORY_UTILS_H
 
 #include <stdint.h>
 #include <string.h>

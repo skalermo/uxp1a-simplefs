@@ -6,7 +6,6 @@
 
 
 #include "open_files.h"
-#include <stdio.h>
 
 ///////////////////////////////////
 //  Hidden functions

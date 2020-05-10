@@ -13,17 +13,11 @@
 #include <stddef.h> // offsetof function to use with structs.
 #include <limits.h>
 
-#include "superblock.h"
 #include "utils.h"
 
 ///////////////////////////////////
 //  Defines
 //////////////////////////////////
-
-/*
-#define FS_NUMBER_OF_BLOCKS 65536
-#define FS_NUMBER_OF_BLOCKS_BY_8 ((FS_NUMBER_OF_BLOCKS / 8) + 1)
-#define FS_BLOCK_SIZE 1024 // in bytes*/
 
 #define FS_EMPTY_BLOCK_VALUE UINT32_MAX
 
@@ -183,5 +177,19 @@ int8_t inner_fs_next_block_with_allocate(uint32_t* blockIndex, void* addr);
 int8_t inner_fs_next_block_with_error(uint32_t* blockIndex, void* addr);
 
 uint8_t inner_fs_get_used_data_blocks_sizeof();
+
+///////////////////////////////////
+//  Forward declaration
+//////////////////////////////////
+
+void* fs_get_block_links_ptr(void* addr);
+
+void* fs_get_block_bitmap_ptr(void* addr);
+
+void* fs_get_data_blocks_ptr(void* addr);
+
+uint16_t fs_get_data_block_size(void* addr);
+
+uint32_t fs_get_max_number_data_blocks(void* addr);
 
 #endif

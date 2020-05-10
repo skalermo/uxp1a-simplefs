@@ -12,7 +12,9 @@
 #include <sys/stat.h> 
 #include <fcntl.h> 
 
+
 #include "unity.h"
+
 
 #include "superblock.h"
 #include "open_files.h"
@@ -25,10 +27,10 @@
 void* shm_addr = NULL;
 const char* shm_name = "shm_test_init";
 
-uint32_t maxOpenFiles = 1024;
-uint32_t maxInodes = UINT16_MAX;
-uint32_t sizeof_shm = 33554432; //(32 MB)
-uint32_t sizeofOneBlock = 1024;
+const uint32_t maxOpenFiles = 1024;
+const uint32_t maxInodes = UINT16_MAX;
+const uint32_t maxFilesystemSize = 33554432; //(32 MB)
+const uint32_t sizeofOneBlock = 1024;
 
 void setUp(void){
 
@@ -39,7 +41,7 @@ void tearDown(void){
 }
 
 void dispose_fs(void){
-    munmap(shm_addr, sizeof_shm);
+    munmap(shm_addr, maxFilesystemSize);
     shm_unlink(shm_name);
 }
 
@@ -54,13 +56,13 @@ void create_fs(void){
     }
 
     // allocate memory in shm 
-    if (ftruncate(fd, sizeof_shm) == -1) {
+    if (ftruncate(fd, maxFilesystemSize) == -1) {
         puts("ftruncate failed");
         exit(EXIT_FAILURE);
     }
 
     // map the object into the caller's address space
-    shm_addr = mmap(NULL, sizeof_shm, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    shm_addr = mmap(NULL, maxFilesystemSize, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if (shm_addr == MAP_FAILED) {
         puts("mmap failed");
         exit(EXIT_FAILURE);
@@ -72,18 +74,18 @@ void create_fs(void){
     toSet.max_number_of_open_files = maxOpenFiles;
     toSet.filesystem_checks = 0;
     toSet.data_block_size = sizeofOneBlock; 
-    toSet.number_of_data_blocks = calculate_fs_needed_blocks(maxOpenFiles, maxInodes, sizeof_shm, sizeofOneBlock);
-    toSet.fs_size = sizeof_shm; 
+    toSet.number_of_data_blocks = calculate_fs_needed_blocks(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock);
+    toSet.fs_size = maxFilesystemSize; 
 
     toSet.open_file_table_pointer = calculate_fs_superblock_end();
-    toSet.open_file_bitmap_pointer = calculate_fs_open_file_table_end(maxOpenFiles, maxInodes, sizeof_shm, sizeofOneBlock);
+    toSet.open_file_bitmap_pointer = calculate_fs_open_file_table_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock);
 
-    toSet.inode_table_pointer = calculate_fs_open_file_stat_end(maxOpenFiles, maxInodes, sizeof_shm, sizeofOneBlock);
-    toSet.inode_bitmap_pointer = calculate_fs_inode_table_end(maxOpenFiles, maxInodes, sizeof_shm, sizeofOneBlock);
+    toSet.inode_table_pointer = calculate_fs_open_file_stat_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock);
+    toSet.inode_bitmap_pointer = calculate_fs_inode_table_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock);
 
-    toSet.block_links_pointer = calculate_fs_inode_stat_end(maxOpenFiles, maxInodes, sizeof_shm, sizeofOneBlock);
-    toSet.block_bitmap_pointer = calculate_fs_block_links_end(maxOpenFiles, maxInodes, sizeof_shm, sizeofOneBlock);
-    toSet.data_blocks_pointer = calculate_fs_block_stat_end(maxOpenFiles, maxInodes, sizeof_shm, sizeofOneBlock);
+    toSet.block_links_pointer = calculate_fs_inode_stat_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock);
+    toSet.block_bitmap_pointer = calculate_fs_block_links_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock);
+    toSet.data_blocks_pointer = calculate_fs_block_stat_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock);
 
     // create the most important structure
     fs_create_superblock_in_shm(&toSet, shm_addr);

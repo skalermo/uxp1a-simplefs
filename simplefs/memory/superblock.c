@@ -77,7 +77,7 @@ uint8_t inner_fs_get_superblock_variable_size(uint8_t index){
     }
 }
 
-void* innet_fs_get_superblock_pointers(void* addr, uint8_t index){
+void* inner_fs_get_superblock_pointers(void* addr, uint8_t index){
     void* ret;
     uint32_t ret_tmp;
     uint8_t offset = inner_fs_get_superblock_offsetof(index);
@@ -161,31 +161,31 @@ int8_t fs_get_superblock_copy(struct Superblock* superblockCopy, void* addr){
 }
 
 void* fs_get_open_file_table_ptr(void* addr){
-    return innet_fs_get_superblock_pointers(addr, 6);
+    return inner_fs_get_superblock_pointers(addr, 6);
 }
 
 void* fs_get_open_file_bitmap_ptr(void* addr){
-    return innet_fs_get_superblock_pointers(addr, 7);
+    return inner_fs_get_superblock_pointers(addr, 7);
 }
 
 void* fs_get_block_links_ptr(void* addr){
-    return innet_fs_get_superblock_pointers(addr, 10);
+    return inner_fs_get_superblock_pointers(addr, 10);
 }
 
 void* fs_get_block_bitmap_ptr(void* addr){
-    return innet_fs_get_superblock_pointers(addr, 11);
+    return inner_fs_get_superblock_pointers(addr, 11);
 }
 
 void* fs_get_data_blocks_ptr(void* addr){
-    return innet_fs_get_superblock_pointers(addr, 12);
+    return inner_fs_get_superblock_pointers(addr, 12);
 }
 
 void* fs_get_inode_table_ptr(void* addr){
-    return innet_fs_get_superblock_pointers(addr, 8);
+    return inner_fs_get_superblock_pointers(addr, 8);
 }
 
 void* fs_get_inode_bitmap_ptr(void* addr){
-    return innet_fs_get_superblock_pointers(addr, 9);
+    return inner_fs_get_superblock_pointers(addr, 9);
 }
 
 uint16_t fs_get_data_block_size(void* addr){
