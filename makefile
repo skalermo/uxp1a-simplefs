@@ -5,6 +5,7 @@
 CC := gcc
 CCFLAGS := -Wall -g  # More flags to be added...
 INCLUDE_FS = -I $(FS_DIR)
+INCLUDE_MEM_FS = -I $(FS_MEM_DIR)
 VALGRIND = 
 
 
@@ -13,11 +14,14 @@ VALGRIND =
 #############################
 
 FS_DIR := simplefs
+FS_MEM_DIR := $(FS_DIR)/memory
 LIB_DIR := lib
 USR_SRC_DIR := usr_src
 TEST_DIR := test
 TEST_SRC_DIR := $(TEST_DIR)/src
 FS_SRCS := $(wildcard $(FS_DIR)/*.c)
+FS_MEM_SRCS := $(wildcard $(FS_MEM_DIR)/*.c)
+
 USR_SRCS := $(wildcard $(USR_SRC_DIR)/*.c)
 TEST_SRCS := $(wildcard $(TEST_SRC_DIR)/test_*.c)
 
@@ -62,9 +66,9 @@ $(BIN_DIR)/%.out: $(OBJ_DIR)/%.o $(LIB_DIR)/$(LIB_TARGET)
 	$(CC) $^ -o $@ -L$(LIB_DIR)
 
 $(OBJ_DIR)/%.o: $(USR_SRC_DIR)/%.c
-	$(CC) $(CCFLAGS) $(INCLUDE_FS) -c $< -o $@
+	$(CC) $(CCFLAGS) $(INCLUDE_FS) $(INCLUDE_MEM_FS) -c $< -o $@
 
-$(LIB_DIR)/$(LIB_TARGET): $(FS_SRCS)
+$(LIB_DIR)/$(LIB_TARGET): $(FS_SRCS) $(FS_MEM_SRCS)
 	$(CC) -g -fPIC $^ -shared -o $(LIB_TARGET)
 	mkdir -p $(LIB_DIR)
 	mv $(LIB_TARGET) $(LIB_DIR)
@@ -95,18 +99,19 @@ test: build_tests run_tests
 valgrind:
 	$(eval VALGRIND := valgrind --leak-check=full)
 
-build_tests: $(TEST_BUILD_PATHS) $(TEST_TARGETS)
+build_tests: lib $(TEST_BUILD_PATHS) $(TEST_TARGETS)
 
 run_tests: build_tests
 	@echo >> $(TEST_LOG)
 	@date "+%Y-%m-%d[%H:%M:%S]" >> $(TEST_LOG)
 	@for test_exec in $(TEST_TARGETS); do { $(VALGRIND) ./$$test_exec; } 2>&1 | tee -a $(TEST_LOG); done
 
+# added here -lrt
 $(TEST_BIN_DIR)/test_%.out: $(TEST_OBJ_DIR)/test_%.o $(TEST_OBJ_DIR)/unity.o $(LIB_DIR)/$(LIB_TARGET)
-	$(CC) $(CCFLAGS) $^ -o $@ -L$(LIB_DIR)
+	$(CC) $(CCFLAGS) $^ -o $@ -L$(LIB_DIR) -lrt 
 
 $(TEST_OBJ_DIR)/test_%.o: $(TEST_SRC_DIR)/test_%.c
-	$(CC) $(CCFLAGS) $(INCLUDE_FS) -I $(UNITY_SRC_DIR) -c $< -o $@
+	$(CC) $(CCFLAGS) $(INCLUDE_FS) $(INCLUDE_MEM_FS) -I $(UNITY_SRC_DIR) -c $< -o $@
 
 $(TEST_OBJ_DIR)/unity.o: $(UNITY_SRC_DIR)/unity.c
 	$(CC) $(CCFLAGS) -c $< -o $@
