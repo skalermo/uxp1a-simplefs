@@ -82,9 +82,6 @@ void is_dir();
 // a file or a directory in filesystem.
 void exists();
 
-// Find file by path and return its inode.
-void find_inode_by_path();
-
 // Find file by path in provided directory
 // and return its inode.
 void find_file_in_dir();
@@ -99,6 +96,53 @@ void create_file();
 // Same as simplefs_mkdir.
 void create_dir();
 
+// Level 2 functions
+/**
+ * @param path
+ * @return Inode index or Error code
+ */
+int32_t get_inode_index(char *path);
+
+/**
+ * @brief synchronised fs_allocate_new_chain(void* addr)
+ * @param shm_addr FS address
+ * @return First block index or Error code
+ */
+uint32_t allocate_new_chain(void* shm_addr);
+
+/**
+ * @brief Synchronised fs_occupy_free_inode function
+ * @param inode Inode structure to save
+ * @param shm_addr FS address
+ * @return New inode index or Error code
+ */
+int32_t save_new_inode(struct Inode* inode, void* shm_addr);
+
+/***
+ * @brief Synchronised fs_occupy_free_dir_entry function
+ * @param dir_block_number Block number where struct dir_file
+ * @param dir_entry DirEntry structure to save
+ * @param shm_addr FS address
+ * @return
+ */
+int32_t save_new_dir_entry(uint32_t dir_block_number, struct DirEntry* dir_entry, void* shm_addr);
+
+
+/***
+ * @brief Search bitmap for empty space and save OpenFile struct
+ * @param open_file_entry OpenFile structure to save
+ * @param shm_addr FS address
+ * @return New OpenFile index or Error code
+ */
+int32_t save_new_OpenFile_entry(struct OpenFile* open_file_entry, void* shm_addr);
+
+// Synchronised getters for inode
+struct Inode get_inode(uint16_t inode, void* shm_addr);
+uint32_t get_inode_block_index(uint16_t inode, void* shm_addr);
+uint16_t get_inode_file_size(uint16_t inode, void* shm_addr);
+uint16_t get_inode_readers(uint16_t inode, void* shm_addr);
+uint16_t get_inode_writers(uint16_t inode, void* shm_addr);
+uint8_t  get_inode_mode(uint16_t inode, void* shm_addr);
 
 
 #endif // SIMPLEFS_API_H
