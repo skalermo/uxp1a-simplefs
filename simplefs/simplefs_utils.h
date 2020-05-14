@@ -56,10 +56,6 @@ void use_row();
 void set_bit(uint8_t *bitmap, int index);
 
 // Unset bit in inode_bitmap and
-// decrement by 1 used inodes count.
-void free_inode();
-
-// Unset bit in inode_bitmap and
 // decrement by 1 used blocks count.
 void free_block();
 
@@ -127,7 +123,6 @@ int32_t save_new_inode(struct Inode* inode, void* shm_addr);
  */
 int32_t save_new_dir_entry(uint32_t dir_block_number, struct DirEntry* dir_entry, void* shm_addr);
 
-
 /***
  * @brief Search bitmap for empty space and save OpenFile struct
  * @param open_file_entry OpenFile structure to save
@@ -136,6 +131,62 @@ int32_t save_new_dir_entry(uint32_t dir_block_number, struct DirEntry* dir_entry
  */
 int32_t save_new_OpenFile_entry(struct OpenFile* open_file_entry, void* shm_addr);
 
+/***
+ * @brief Free all block in chain
+ * @param block_index First data block index
+ * @param shm_addr FS address
+ * @return 0 or Error code
+ */
+int16_t free_data_blocks(uint32_t block_index, void* shm_addr);
+
+/***
+ * 
+ * @param inode Inode index
+ * @param shm_addr FS address
+ * @return 0 or Error code
+ */
+int16_t free_inode(uint16_t inode, void* shm_addr);
+
+/***
+ * 
+ * @param dir_block_number Block number where struct dir_file
+ * @param inode Inode index
+ * @param shm_addr FS address
+ * @return 0 or Error code
+ */
+int16_t free_dir_entry(uint32_t dir_block_number, uint16_t inode, void* shm_addr);
+
+/***
+ * @brief Set bit in bitmap
+ * @param fd OpenFile index
+ * @param shm_addr FS address
+ * @return 0 or Error code
+ */
+int16_t free_OpenFile(uint32_t fd, void* shm_addr);
+
+/***
+ * @brief Synchronised read
+ * @param block_num First block num
+ * @param offset
+ * @param buf Read buffer
+ * @param len Read length
+ * @param shm_addr FS address
+ * @return 0 or Error code
+ */
+int16_t read_buffer(uint32_t block_num, uint32_t offset, char* buf, int len, void* shm_addr);
+
+/***
+ * @brief Synchronised write
+ * @param block_num First block num
+ * @param offset
+ * @param buf Read buffer
+ * @param len Read length
+ * @param shm_addr FS address
+ * @return 0 or Error code
+ */
+int16_t write_buffer(uint32_t block_num, uint32_t offset, char* buf, int len, void* shm_addr);
+
+
 // Synchronised getters for inode
 struct Inode get_inode(uint16_t inode, void* shm_addr);
 uint32_t get_inode_block_index(uint16_t inode, void* shm_addr);
@@ -143,6 +194,26 @@ uint16_t get_inode_file_size(uint16_t inode, void* shm_addr);
 uint16_t get_inode_readers(uint16_t inode, void* shm_addr);
 uint16_t get_inode_writers(uint16_t inode, void* shm_addr);
 uint8_t  get_inode_mode(uint16_t inode, void* shm_addr);
+uint8_t  get_ref_count(uint16_t inode, void* shm_addr);
 
+// Synchronised setters for inode
+void set_inode_block_index(uint16_t inode, uint32_t block_index, void* shm_addr);
+void set_inode_file_size(uint16_t inode, uint16_t filesize, void* shm_addr);
+void set_inode_mode(uint16_t inode, uint8_t mode, void* shm_addr);
+
+// Synchronised increment and decrement functions for inode
+void inc_ref_count(uint16_t inode, void* shm_addr);
+void dec_ref_count(uint16_t inode, void* shm_addr);
+void inc_inode_readers(uint16_t inode, void* shm_addr);
+void dec_inode_readers(uint16_t inode, void* shm_addr);
+void inc_inode_writers(uint16_t inode, void* shm_addr);
+void dec_inode_writers(uint16_t inode, void* shm_addr);
+
+// Synchronised get for OpenFile
+struct OpenFile get_open_file(uint32_t fd, void* shm_addr);
+
+// Synchronised setters for OpenFile
+void set_inode_num(uint32_t fd, uint16_t inode_num, void* shm_addr);
+void set_offset(uint32_t fd, uint32_t offset, void* shm_addr);
 
 #endif // SIMPLEFS_API_H
