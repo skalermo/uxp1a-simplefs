@@ -75,14 +75,14 @@ void create_fs() {
 }
 
 void create_fs_custom(const char *path, const unsigned fs_size) {
-	sem_t *sem = sem_open(CREATE_FS_GUARD, O_CREAT);
+	// sem_t *sem = sem_open(CREATE_FS_GUARD, O_CREAT);
 
 	if (sem == SEM_FAILED) {
 		perror("sem_open");
 		exit(EXIT_FAILURE);
 	}
 
-	sem_wait(sem);
+	// sem_wait(sem);
 
 	int fd = shm_open(path,
 					  O_CREAT | O_EXCL | O_RDWR,
@@ -90,8 +90,8 @@ void create_fs_custom(const char *path, const unsigned fs_size) {
 
 	// already exists, nothing to be done
 	if (fd == -1 && errno == EEXIST) {
-		sem_post(sem);
-		sem_close(sem);
+		// sem_post(sem);
+		// sem_close(sem);
 		return;
 	}
 
@@ -184,12 +184,12 @@ void create_fs_custom(const char *path, const unsigned fs_size) {
 	// writing structures to shm // end
     printf("After writing structures\n");
 
-	sem_post(sem);
-	sem_close(sem);
+	// sem_post(sem);
+	// sem_close(sem);
 
 	// because fs was created
 	// no more need in this semaphore
-	sem_unlink(CREATE_FS_GUARD);
+	// sem_unlink(CREATE_FS_GUARD);
 }
 
 void unlink_fs() {
