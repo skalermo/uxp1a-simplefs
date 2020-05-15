@@ -38,7 +38,7 @@ void test_mmap_fs() {
 	void *ptr;
 
 	// make sure fs doesn't exist at the beginning
-	unlink_fs_custom(path);
+	// unlink_fs_custom(path);
 
 	// there is no fs, so mmap should fail
 	ptr = mmap_fs_custom(path, fs_size);
@@ -62,7 +62,7 @@ void test_create_fs() {
 	int fd;
 
 	// make sure fs doesn't exist at the beginning
-	unlink_fs_custom(path);
+	// unlink_fs_custom(path);
 
 	// check if fs doesn't exist
 	fd = shm_open(path,
@@ -82,11 +82,12 @@ void test_create_fs() {
 	TEST_ASSERT_TRUE(fd >= 0);
 	close(fd);
 
+
 	// also check if it appeared in /dev/shm
-	char *full_path = "/dev/shm/";
+	char full_path[80];
+	strcpy(full_path, "/dev/shm/");
 	strcat(full_path, path);
 	TEST_ASSERT_EQUAL(0, access(full_path, F_OK ));
-
 	unlink_fs_custom(path);
 
 	// now check if it doesn't exist
@@ -96,6 +97,7 @@ void test_create_fs() {
 
 	TEST_ASSERT_EQUAL(-1, fd);
 	TEST_ASSERT_EQUAL(ENOENT, errno);
+	TEST_ASSERT_EQUAL(-1, access(full_path, F_OK ));
 }
 
 int main(void){
