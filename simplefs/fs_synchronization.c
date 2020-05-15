@@ -1,0 +1,387 @@
+/*
+ * fs_synchronization.c
+ *
+ *      Author: Kordowski Mateusz
+ */
+
+
+#include "fs_synchronization.h"
+
+//////////////////////////////////////
+// Hidden functions
+//////////////////////////////////////
+
+int8_t inner_fs_increment_inode(uint16_t inodeIndex, uint16_t index, uint16_t *data, void *addr){ 
+    if(fs_get_data_from_inode_uint16(inodeIndex, index, data, addr) < 0) return SIMPLEFS_ERROR_SYNCH_GET_DATA;
+    if(fs_save_data_to_inode_uint16(inodeIndex, index, ++(*data), addr) < 0) return SIMPLEFS_ERROR_SYNCH_SAVE_DATA;
+}
+
+int8_t inner_fs_decrement_inode(uint16_t inodeIndex, uint16_t index, uint16_t *data, void *addr){
+
+    if(fs_get_data_from_inode_uint16(inodeIndex, index, data, addr) < 0) return SIMPLEFS_ERROR_SYNCH_GET_DATA;
+    if(fs_save_data_to_inode_uint16(inodeIndex, index, --(*data), addr) < 0) return SIMPLEFS_ERROR_SYNCH_SAVE_DATA;
+}
+
+/**
+ * @brief Generate the inode name used in semaphores.
+ * 
+ * @param inodeIndex - index of an inode
+ * @param suffix - what the generated name should have at the end. Using '\0' as stop.
+ * @return char* - created name. Do not forget to free alocated memory.
+ */
+char* inner_fs_generate_inode_name(uint16_t inodeIndex, char* suffix){
+    char* name = malloc(512);
+    char* tmp = INODE_SEM_NAME;
+    int size = sizeof(INODE_SEM_NAME);
+    strcpy(name, tmp);
+    
+    uint32_t it = size - 1;
+    char character;
+
+    //itoa(inodeIndex, name + it, 10); // not suported
+    it += snprintf(name + it, 16, "%d", inodeIndex); // 16 - uint16_t
+
+    // search the end of string
+    /*do{ // maby not needed
+        character = *(name + it++);
+    }
+    while(character != '\0');*/
+    --it; // delete the end of string
+    
+    // add suffix
+    strcpy(name + it, suffix);
+
+    return name;
+}
+
+//////////////////////////////////////
+// Sychronization functions
+//////////////////////////////////////
+
+int8_t fs_sem_init_main_folder(sem_t* readTry, sem_t* readMutex, sem_t* writeMutex, sem_t* resource){
+    readTry = sem_open(MAIN_FOLDER_SEM_READ_TRY_NAME, O_CREAT);
+    if(readTry < 0) return SIMPLEFS_ERROR_SYNCH_SEM_OPEN_READ_TRY;
+    readMutex = sem_open(MAIN_FOLDER_SEM_READ_MUTEX_NAME, O_CREAT);
+    if(readMutex < 0) return SIMPLEFS_ERROR_SYNCH_SEM_OPEN_READ_MUTEX;
+    writeMutex = sem_open(MAIN_FOLDER_SEM_WRITE_MUTEX_NAME, O_CREAT);
+    if(writeMutex < 0) return SIMPLEFS_ERROR_SYNCH_SEM_OPEN_WRITE_MUTEX;
+    resource = sem_open(MAIN_FOLDER_SEM_RESOURCE_NAME, O_CREAT);
+    if(resource < 0) return SIMPLEFS_ERROR_SYNCH_SEM_OPEN_RESOURCE;
+
+    return 0;
+}
+
+int8_t fs_sem_lock_read_main_folder(sem_t* readTry, sem_t* readMutex, sem_t* resource, void* addr){
+    return fs_sem_lock_read_inode(readTry, readMutex, resource, 1, addr);
+}
+
+int8_t fs_sem_lock_write_main_folder(sem_t* readTry, sem_t* writeMutex, sem_t* resource, void* addr){
+    return fs_sem_lock_write_inode(readTry, writeMutex, resource, 1, addr);
+}
+
+int8_t fs_sem_unlock_read_main_folder(sem_t* readMutex, sem_t* resource, void* addr){
+    return fs_sem_unlock_read_inode(readMutex, resource, 1, addr);
+}
+
+int8_t fs_sem_unlock_write_main_folder(sem_t* readTry, sem_t* writeMutex, sem_t* resource, void* addr){
+    return fs_sem_unlock_write_inode(readTry, writeMutex, resource, 1, addr);
+}
+
+int8_t fs_sem_close_main_folder(sem_t* readTry, sem_t* readMutex, sem_t* writeMutex, sem_t* resource){
+    int tmp;
+    tmp = sem_close(readTry);
+    if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_CLOSE_READ_TRY;
+    tmp = sem_close(readMutex);
+    if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_CLOSE_READ_MUTEX;
+    tmp = sem_close(writeMutex);
+    if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_CLOSE_WRITE_MUTEX;
+    tmp = sem_close(resource);
+    if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_CLOSE_RESOURCE;
+
+    return 0;
+}
+
+int8_t fs_sem_unlink_main_folder(){
+    int tmp;
+    tmp = sem_unlink(MAIN_FOLDER_SEM_READ_TRY_NAME);
+    if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_UNLINK_READ_TRY;
+
+    tmp = sem_unlink(MAIN_FOLDER_SEM_READ_MUTEX_NAME);
+    if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_UNLINK_READ_MUTEX;
+
+    tmp = sem_unlink(MAIN_FOLDER_SEM_WRITE_MUTEX_NAME);
+    if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_UNLINK_WRITE_MUTEX;
+
+    tmp = sem_unlink(MAIN_FOLDER_SEM_RESOURCE_NAME);
+    if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_UNLINK_RESOURCE;
+
+    return 0;
+}
+
+
+
+int8_t fs_sem_init_inode(sem_t* readTry, sem_t* readMutex, sem_t* writeMutex, sem_t* resource, uint16_t inodeIndex){
+    char* tmp;
+
+    readTry = sem_open(tmp = inner_fs_generate_inode_name(inodeIndex, READ_TRY_MUTEX_SUFFIX), O_CREAT);
+    free(tmp);
+    if(readTry < 0) return SIMPLEFS_ERROR_SYNCH_SEM_OPEN_READ_TRY;
+
+
+    readMutex = sem_open(tmp = inner_fs_generate_inode_name(inodeIndex, READ_MUTEX_SUFFIX), O_CREAT);
+    free(tmp);
+    if(readMutex < 0) return SIMPLEFS_ERROR_SYNCH_SEM_OPEN_READ_MUTEX;
+
+
+    writeMutex = sem_open(tmp = inner_fs_generate_inode_name(inodeIndex, WRITE_MUTEX_SUFFIX), O_CREAT);
+    free(tmp);
+    if(writeMutex < 0) return SIMPLEFS_ERROR_SYNCH_SEM_OPEN_WRITE_MUTEX;
+
+
+    resource = sem_open(tmp = inner_fs_generate_inode_name(inodeIndex, RESOURCE_SUFFIX), O_CREAT);
+    free(tmp);
+    if(resource < 0) return SIMPLEFS_ERROR_SYNCH_SEM_OPEN_RESOURCE;
+}
+
+int8_t fs_sem_lock_read_inode(sem_t* readTry, sem_t* readMutex, sem_t* resource, uint16_t inodeIndex, void* addr){
+    // P
+    int tmp = sem_wait(readTry);
+    if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_WAIT_READ_TRY;
+    tmp = sem_wait(readMutex);
+    if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_WAIT_READ_MUTEX;
+
+    // ++readcount    
+    uint16_t data;
+    int8_t inner_tmp = inner_fs_increment_inode(inodeIndex, 2, &data, addr);
+    if(inner_tmp < 0) return inner_tmp;
+
+    if(data == 1){
+        tmp = sem_wait(resource);
+        if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_WAIT_RESOURCE;
+    }
+
+    // V
+    tmp = sem_post(readMutex);
+    if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_POST_READ_MUTEX;
+    tmp = sem_post(readTry);
+    if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_POST_READ_TRY;
+
+    // critical section below
+
+    return 0;
+}
+
+int8_t fs_sem_lock_write_inode(sem_t* readTry, sem_t* writeMutex, sem_t* resource, uint16_t inodeIndex, void* addr){
+
+    // P
+    int tmp = sem_wait(writeMutex);
+    if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_WAIT_WRITE_MUTEX;
+
+    uint16_t data;
+    // ++writecount   
+    int8_t inner_tmp = inner_fs_increment_inode(inodeIndex, 3, &data, addr);
+    if(inner_tmp < 0) return inner_tmp;
+
+    // V
+    if(data == 1){
+        tmp = sem_wait(readTry);
+        if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_WAIT_READ_TRY;
+    }
+
+    tmp = sem_post(writeMutex);
+    if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_POST_WRITE_MUTEX;
+
+    // critical section
+
+    tmp = sem_wait(resource);
+    if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_WAIT_RESOURCE;
+
+    return 0;
+}
+
+int8_t fs_sem_unlock_read_inode(sem_t* readMutex, sem_t* resource, uint16_t inodeIndex, void* addr){
+
+    // P
+    int tmp = sem_wait(readMutex);
+    if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_WAIT_READ_MUTEX;
+
+    uint16_t data;
+    // --readcount    
+    int8_t inner_tmp = inner_fs_decrement_inode(inodeIndex, 2, &data, addr);
+    if(inner_tmp < 0) return inner_tmp;
+
+    // V
+    if(data == 0){
+        tmp = sem_post(resource);
+        if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_POST_RESOURCE;
+    }
+
+    tmp = sem_post(readMutex);
+    if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_POST_READ_MUTEX;
+
+    return 0;
+}
+
+int8_t fs_sem_unlock_write_inode(sem_t* readTry, sem_t* writeMutex, sem_t* resource, uint16_t inodeIndex, void* addr){
+
+    int tmp = sem_post(resource);
+    if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_POST_RESOURCE;
+
+     // P
+    tmp = sem_wait(writeMutex);
+    if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_WAIT_WRITE_MUTEX;
+
+    uint16_t data;
+    // --writecount   
+    int8_t inner_tmp = inner_fs_decrement_inode(inodeIndex, 3, &data, addr);
+    if(inner_tmp < 0) return inner_tmp;
+
+    if(data == 0){
+        tmp = sem_post(readTry);
+        if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_POST_READ_TRY;
+    }
+
+    tmp = sem_post(writeMutex);
+    if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_POST_WRITE_MUTEX;
+
+    return 0;
+}
+
+int8_t fs_sem_close_inode(sem_t* readTry, sem_t* readMutex, sem_t* writeMutex, sem_t* resource, uint16_t inodeIndex){
+    int intTmp;
+
+    intTmp = sem_close(readTry);
+    if(intTmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_CLOSE_READ_TRY;
+
+    intTmp = sem_close(readMutex);
+    if(intTmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_CLOSE_READ_MUTEX;
+
+    intTmp = sem_close(writeMutex);
+    if(intTmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_CLOSE_WRITE_MUTEX;
+
+    intTmp = sem_close(resource);
+    if(intTmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_CLOSE_RESOURCE;
+}
+
+int8_t fs_sem_unlink_inode(uint16_t inodeIndex){
+    char* tmp;
+    int intTmp;
+
+    intTmp = sem_unlink(tmp = inner_fs_generate_inode_name(inodeIndex, READ_TRY_MUTEX_SUFFIX));
+    free(tmp);
+    if(intTmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_UNLINK_READ_TRY;
+
+    intTmp = sem_unlink(tmp = inner_fs_generate_inode_name(inodeIndex, READ_MUTEX_SUFFIX));
+    free(tmp);
+    if(intTmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_UNLINK_READ_MUTEX;
+
+    intTmp = sem_unlink(tmp = inner_fs_generate_inode_name(inodeIndex, WRITE_MUTEX_SUFFIX));
+    free(tmp);
+    if(intTmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_UNLINK_WRITE_MUTEX;
+
+    intTmp = sem_unlink(tmp = inner_fs_generate_inode_name(inodeIndex, RESOURCE_SUFFIX));
+    free(tmp);
+    if(intTmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_UNLINK_RESOURCE;
+
+    return 0;
+}
+
+
+int8_t fs_sem_init_inode_stat(sem_t* inodeStat){
+    inodeStat = sem_open(INODE_STAT_SEM_NAME, O_CREAT);
+    if(inodeStat < 0) return SIMPLEFS_ERROR_SYNCH_SEM_OPEN_INODE_STAT;
+    return 0;
+}
+
+int8_t fs_sem_lock_inode_stat(sem_t* inodeStat){
+    int tmp = sem_wait(inodeStat);
+    if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_WAIT_INODE_STAT;
+
+    return 0;
+}
+
+int8_t fs_sem_unlock_inode_stat(sem_t* inodeStat){
+    int tmp = sem_post(inodeStat);
+    if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_POST_INODE_STAT;
+
+    return 0;
+}
+
+int8_t fs_sem_close_inode_stat(sem_t* inodeStat){
+    int tmp = sem_close(inodeStat);
+    if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_CLOSE_INODE_STAT;
+    return 0;
+}
+
+int8_t fs_sem_unlink_inode_stat(){
+    int tmp = sem_unlink(INODE_STAT_SEM_NAME);
+    if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_UNLINK_INODE_STAT;
+    return 0;
+}
+
+
+int8_t fs_sem_init_block_stat(sem_t* blockStat){
+    blockStat = sem_open(BLOCK_STAT_SEM_NAME, O_CREAT);
+    if(blockStat < 0) return SIMPLEFS_ERROR_SYNCH_SEM_OPEN_BLOCK_STAT;
+    return 0;
+}
+
+int8_t fs_sem_lock_block_stat(sem_t* blockStat){
+    int tmp = sem_wait(blockStat);
+    if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_WAIT_BLOCK_STAT;
+
+    return 0;
+}
+
+int8_t fs_sem_unlock_block_stat(sem_t* blockStat){
+    int tmp = sem_post(blockStat);
+    if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_POST_BLOCK_STAT;
+
+    return 0;
+}
+
+int8_t fs_sem_close_block_stat(sem_t* blockStat){
+    int tmp = sem_close(blockStat);
+    if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_CLOSE_BLOCK_STAT;
+    return 0;
+}
+
+int8_t fs_sem_unlink_block_stat(){
+    int tmp = sem_unlink(BLOCK_STAT_SEM_NAME);
+    if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_UNLINK_BLOCK_STAT;
+    return 0;
+}
+
+
+int8_t fs_sem_init_open_file_stat(sem_t* openFileStat){
+    openFileStat = sem_open(OPEN_FILE_STAT_SEM_NAME, O_CREAT);
+    if(openFileStat < 0) return SIMPLEFS_ERROR_SYNCH_SEM_OPEN_OPEN_FILE_STAT;
+    return 0;
+}
+
+int8_t fs_sem_lock_open_file_stat(sem_t* openFileStat){
+    int tmp = sem_wait(openFileStat);
+    if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_WAIT_OPEN_FILE_STAT;
+
+    return 0;
+}
+
+int8_t fs_sem_unlock_open_file_stat(sem_t* openFileStat){
+    int tmp = sem_post(openFileStat);
+    if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_POST_OPEN_FILE_STAT;
+
+    return 0;
+}
+
+int8_t fs_sem_init_close_file_stat(sem_t* openFileStat){
+    int tmp = sem_close(openFileStat);
+    if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_CLOSE_OPEN_FILE_STAT;
+    return 0;
+}
+
+int8_t fs_sem_unlink_open_file_stat(){
+    int tmp = sem_unlink(OPEN_FILE_STAT_SEM_NAME);
+    if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_UNLINK_OPEN_FILE_STAT;
+    return 0;
+}
+
