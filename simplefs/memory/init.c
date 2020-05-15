@@ -127,7 +127,7 @@ void create_fs_custom(const char *path, const unsigned fs_size) {
 
     sblock.number_of_data_blocks = calculate_fs_needed_blocks(MAX_OPEN_FILES, 
     														  MAX_INODES, 
-    														  FS_SIZE, 
+    														  fs_size, 
     														  BLOCK_SIZE);
     sblock.fs_size = fs_size; 
 
@@ -135,32 +135,32 @@ void create_fs_custom(const char *path, const unsigned fs_size) {
     sblock.open_file_bitmap_pointer =\
     						calculate_fs_open_file_table_end(MAX_OPEN_FILES,
     														 MAX_INODES,
-    														 FS_SIZE,
+    														 fs_size,
     														 BLOCK_SIZE);
 
     sblock.inode_table_pointer = calculate_fs_open_file_stat_end(MAX_OPEN_FILES,
     															 MAX_INODES,
-    															 FS_SIZE,
+    															 fs_size,
     															 BLOCK_SIZE);
 
     sblock.inode_bitmap_pointer = calculate_fs_inode_table_end(MAX_OPEN_FILES, 
     														   MAX_INODES,
-    														   FS_SIZE,
+    														   fs_size,
     														   BLOCK_SIZE);
 
     sblock.block_links_pointer = calculate_fs_inode_stat_end(MAX_OPEN_FILES,
     														 MAX_INODES,
-    														 FS_SIZE,
+    														 fs_size,
     														 BLOCK_SIZE);
 
     sblock.block_bitmap_pointer = calculate_fs_block_links_end(MAX_OPEN_FILES, 
     														   MAX_INODES,
-    														   FS_SIZE,
+    														   fs_size,
     														   BLOCK_SIZE);
 
     sblock.data_blocks_pointer = calculate_fs_block_stat_end(MAX_OPEN_FILES, 
     														 MAX_INODES,
-    														 FS_SIZE, 
+    														 fs_size, 
     														 BLOCK_SIZE);
 	printf("1\n");
 
