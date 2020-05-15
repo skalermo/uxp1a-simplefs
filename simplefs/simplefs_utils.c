@@ -127,3 +127,148 @@ int32_t get_inode_index(char *path, void* shm_addr){
 
     return current_inode;
 }
+
+uint32_t allocate_new_chain(void* shm_addr){
+    // wait
+    uint32_t block_num = fs_allocate_new_chain(shm_addr);
+    // signal
+
+    return block_num;
+}
+
+int32_t save_new_inode(struct Inode* inode, void* shm_addr){
+    uint16_t inode_idx;
+
+    // wait
+    int8_t ret_value = fs_occupy_free_inode(&inode_idx, inode, shm_addr);
+    // signal
+
+    if(ret_value < 0){
+        return ret_value;
+    }
+
+    return inode_idx;
+}
+
+int32_t save_new_dir_entry(uint32_t dir_block_number, struct DirEntry* dir_entry, void* shm_addr){
+    uint32_t entry_idx;
+
+    // wait
+    int8_t ret_value = fs_occupy_free_dir_entry(dir_block_number, &entry_idx, dir_entry, shm_addr);
+    // signal
+
+    if(ret_value < 0){
+        return ret_value;
+    }
+
+    return entry_idx;
+}
+
+int32_t save_new_OpenFile_entry(struct OpenFile* open_file_entry, void* shm_addr){
+    uint32_t open_file_idx;
+
+    // wait
+    int8_t ret_value = fs_occupy_free_open_file(&open_file_idx, open_file_entry, shm_addr);
+    // signal
+
+    if(ret_value < 0){
+        return ret_value;
+    }
+
+    return open_file_idx;
+}
+
+
+// Inode getters
+struct Inode get_inode(uint16_t inode_idx, void* shm_addr){
+    struct Inode inode = {0};
+
+    // wait
+    fs_get_inode_copy(inode_idx, &inode, shm_addr);
+    // signal
+
+    return inode;
+}
+
+uint32_t get_inode_block_index(uint16_t inode_idx, void* shm_addr){
+    uint32_t block_idx;
+
+    // wait
+    int8_t ret_value = fs_get_data_from_inode_uint32(inode_idx, 0, &block_idx, shm_addr);
+    // signal
+
+    if(ret_value < 0){
+        return ret_value;
+    }
+
+    return block_idx;
+}
+
+uint16_t get_inode_file_size(uint16_t inode_idx, void* shm_addr){
+    uint16_t file_size;
+
+    // wait
+    int8_t ret_value = fs_get_data_from_inode_uint16(inode_idx, 1, &file_size, shm_addr);
+    // signal
+
+    if(ret_value < 0){
+        return ret_value;
+    }
+
+    return file_size;
+}
+
+uint16_t get_inode_readers(uint16_t inode_idx, void* shm_addr){
+    uint16_t readers;
+
+    // wait
+    int8_t ret_value = fs_get_data_from_inode_uint16(inode_idx, 2, &readers, shm_addr);
+    // signal
+
+    if(ret_value < 0){
+        return ret_value;
+    }
+
+    return readers;
+}
+
+uint16_t get_inode_writers(uint16_t inode_idx, void* shm_addr){
+    uint16_t writers;
+
+    // wait
+    int8_t ret_value = fs_get_data_from_inode_uint16(inode_idx, 3, &writers, shm_addr);
+    // signal
+
+    if(ret_value < 0){
+        return ret_value;
+    }
+
+    return writers;
+}
+
+uint8_t  get_inode_mode(uint16_t inode_idx, void* shm_addr){
+    uint8_t mode;
+
+    // wait
+    int8_t ret_value = fs_get_data_from_inode_uint8(inode_idx, 4, &mode, shm_addr);
+    // signal
+
+    if(ret_value < 0){
+        return ret_value;
+    }
+
+    return mode;
+}
+uint8_t  get_ref_count(uint16_t inode_idx, void* shm_addr){
+    uint8_t ref_count;
+
+    // wait
+    int8_t ret_value = fs_get_data_from_inode_uint8(inode_idx, 5, &ref_count, shm_addr);
+    // signal
+
+    if(ret_value < 0){
+        return ret_value;
+    }
+
+    return ref_count;
+}

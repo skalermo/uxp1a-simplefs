@@ -5,6 +5,7 @@
 #include "simplefs_api.h"
 #include <stdint.h>
 #include <memory/dir_file.h>
+#include <memory/open_files.h>
 
 
 //define parse_path error
@@ -189,9 +190,9 @@ int16_t read_buffer(uint32_t block_num, uint32_t offset, char* buf, int len, voi
 int16_t write_buffer(uint32_t block_num, uint32_t offset, char* buf, int len, void* shm_addr);
 
 
-// Synchronised getters for inode
-struct Inode get_inode(uint16_t inode, void* shm_addr);
-uint32_t get_inode_block_index(uint16_t inode, void* shm_addr);
+// Synchronised getters for inode_idx
+struct Inode get_inode(uint16_t inode_idx, void* shm_addr);
+uint32_t get_inode_block_index(uint16_t inode_idx, void* shm_addr);
 uint16_t get_inode_file_size(uint16_t inode, void* shm_addr);
 uint16_t get_inode_readers(uint16_t inode, void* shm_addr);
 uint16_t get_inode_writers(uint16_t inode, void* shm_addr);
