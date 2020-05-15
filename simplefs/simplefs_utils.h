@@ -2,6 +2,9 @@
 #define SIMPLEFS_UTILS_H
 
 #include "simplefs_internals.h"
+#include "inode.h"
+#include "open_files.h"
+#include "dir_file.h"
 #include <stdint.h>
 
 
