@@ -95,9 +95,10 @@ void create_dir();
 // Level 2 functions
 /**
  * @param path
+ * @param shm_addr FS address
  * @return Inode index or Error code
  */
-int32_t get_inode_index(char *path);
+int32_t get_inode_index(char *path, void* shm_addr);
 
 /**
  * @brief synchronised fs_allocate_new_chain(void* addr)
@@ -119,7 +120,7 @@ int32_t save_new_inode(struct Inode* inode, void* shm_addr);
  * @param dir_block_number Block number where struct dir_file
  * @param dir_entry DirEntry structure to save
  * @param shm_addr FS address
- * @return
+ * @return New dir entry index or Error code
  */
 int32_t save_new_dir_entry(uint32_t dir_block_number, struct DirEntry* dir_entry, void* shm_addr);
 
