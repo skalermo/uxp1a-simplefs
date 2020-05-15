@@ -116,6 +116,9 @@ int32_t get_inode_index(char *path, void* shm_addr){
     char** sub_path = NULL;
     uint32_t sub_path_count = parse_path(path, &sub_path);
 
+    if(sub_path_count < 0)
+        return sub_path_count;
+
     for(int i = 0; i < sub_path_count; ++i){
         current_inode = next_inode(current_inode, sub_path[i], shm_addr);
         if(current_inode < 0) {
@@ -271,4 +274,12 @@ uint8_t  get_ref_count(uint16_t inode_idx, void* shm_addr){
     }
 
     return ref_count;
+}
+
+int8_t get_dir_entry(uint32_t dir_file_block, uint32_t entry_idx, struct DirEntry* return_entry, void* shm_addr){
+    // wait
+    int8_t ret_value = fs_get_dir_entry_copy(dir_file_block, entry_idx, return_entry, shm_addr);
+    // signal
+
+    return ret_value;
 }

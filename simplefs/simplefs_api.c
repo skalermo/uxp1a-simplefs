@@ -3,6 +3,8 @@
 #include <libgen.h>
 #include <string.h>
 
+void* shm_addr = NULL;
+
 int simplefs_open(char *name, int mode) {
     // Init system
 

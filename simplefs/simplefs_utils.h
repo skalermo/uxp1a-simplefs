@@ -4,19 +4,12 @@
 #include "simplefs_internals.h"
 #include "simplefs_api.h"
 #include <stdint.h>
-#include <memory/dir_file.h>
-#include <memory/open_files.h>
+#include "memory/dir_file.h"
+#include "memory/open_files.h"
 
 
 //define parse_path error
 #define EINPATH -150
-
-
-// Initialize filesystem with set parameters.
-void simplefs_init();
-
-// Unlink shared memory segment used by filesystem.
-void simplefs_unlink();
 
 // Return count of used resources.
 void used_inodes_count();

@@ -29,17 +29,17 @@ void test_dir_count(void)
 
     dirCount = parse_path("/abc/cd/e", &entries);
     TEST_ASSERT_EQUAL(4, dirCount);
-    freeStrArr(&entries, dirCount);
+    free_string_array(&entries, dirCount);
 
     //path given as NULL string
     dirCount = parse_path(NULL, &entries);
     TEST_ASSERT_EQUAL(EINPATH, dirCount);
-    freeStrArr(&entries, dirCount);
+    free_string_array(&entries, dirCount);
 
     //path is not absolute
     dirCount = parse_path("fsxc/fds/frwq/fwq", &entries);
     TEST_ASSERT_EQUAL(EINPATH, dirCount);
-    freeStrArr(&entries, dirCount);
+    free_string_array(&entries, dirCount);
 
 }
 
@@ -53,7 +53,7 @@ void test_parsed_dirs(void)
     TEST_ASSERT_EQUAL_STRING("abc", entries[1]);
     TEST_ASSERT_EQUAL_STRING("cd", entries[2]);
     TEST_ASSERT_EQUAL_STRING("e", entries[3]);
-    freeStrArr(&entries, dirCount);
+    free_string_array(&entries, dirCount);
 
     dirCount = parse_path(NULL, &entries);
     TEST_ASSERT_EQUAL(NULL, entries);
