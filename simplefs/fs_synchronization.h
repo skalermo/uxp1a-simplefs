@@ -44,7 +44,7 @@
  * Close is faster than unlink.
  */
 
-int8_t fs_sem_init_main_folder(sem_t* readTry, sem_t* readMutex, sem_t* writeMutex, sem_t* resource);
+int8_t fs_sem_init_main_folder(sem_t** readTry, sem_t** readMutex, sem_t** writeMutex, sem_t** resource);
 
 int8_t fs_sem_lock_read_main_folder(sem_t* readTry, sem_t* readMutex, sem_t* resource, void* addr);
 
@@ -59,7 +59,7 @@ int8_t fs_sem_close_main_folder(sem_t* readTry, sem_t* readMutex, sem_t* writeMu
 int8_t fs_sem_unlink_main_folder();
 
 
-int8_t fs_sem_init_inode(sem_t* readTry, sem_t* readMutex, sem_t* writeMutex, sem_t* resource, uint16_t inodeIndex);
+int8_t fs_sem_init_inode(sem_t** readTry, sem_t** readMutex, sem_t** writeMutex, sem_t** resource, uint16_t inodeIndex);
 
 int8_t fs_sem_lock_read_inode(sem_t* readTry, sem_t* readMutex, sem_t* resource, uint16_t inodeIndex, void* addr);
 
@@ -74,7 +74,7 @@ int8_t fs_sem_close_inode(sem_t* readTry, sem_t* readMutex, sem_t* writeMutex, s
 int8_t fs_sem_unlink_inode(uint16_t inodeIndex);
 
 
-int8_t fs_sem_init_inode_stat(sem_t* inodeStat);
+int8_t fs_sem_init_inode_stat(sem_t** inodeStat);
 
 int8_t fs_sem_lock_inode_stat(sem_t* inodeStat);
 
@@ -85,7 +85,7 @@ int8_t fs_sem_close_inode_stat(sem_t* inodeStat);
 int8_t fs_sem_unlink_inode_stat();
 
 
-int8_t fs_sem_init_block_stat(sem_t* blockStat);
+int8_t fs_sem_init_block_stat(sem_t** blockStat);
 
 int8_t fs_sem_lock_block_stat(sem_t* blockStat);
 
@@ -97,7 +97,7 @@ int8_t fs_sem_unlink_block_stat();
 
 
 
-int8_t fs_sem_init_open_file_stat(sem_t* openFileStat);
+int8_t fs_sem_init_open_file_stat(sem_t** openFileStat);
 
 int8_t fs_sem_lock_open_file_stat(sem_t* openFileStat);
 
