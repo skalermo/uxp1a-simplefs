@@ -75,14 +75,14 @@ void create_fs() {
 }
 
 void create_fs_custom(const char *path, const unsigned fs_size) {
-	// sem_t *sem = sem_open(CREATE_FS_GUARD, O_CREAT);
+	sem_t *sem = sem_open(CREATE_FS_GUARD, O_CREAT);
 
-	// if (sem == SEM_FAILED) {
-	// 	perror("sem_open");
-	// 	exit(EXIT_FAILURE);
-	// }
+	if (sem == SEM_FAILED) {
+		perror("sem_open");
+		exit(EXIT_FAILURE);
+	}
 
-	// sem_wait(sem);
+	sem_wait(sem);
 
 	int fd = shm_open(path,
 					  O_CREAT | O_EXCL | O_RDWR,
@@ -90,8 +90,8 @@ void create_fs_custom(const char *path, const unsigned fs_size) {
 
 	// already exists, nothing to be done
 	if (fd == -1 && errno == EEXIST) {
-		// sem_post(sem);
-		// sem_close(sem);
+		sem_post(sem);
+		sem_close(sem);
 		return;
 	}
 
@@ -118,7 +118,6 @@ void create_fs_custom(const char *path, const unsigned fs_size) {
 
 	// writing structures to shm
 
-    printf("Before writing structures\n");
 	struct Superblock sblock;
     sblock.max_number_of_inodes = (uint16_t) MAX_INODES;
     sblock.max_number_of_open_files = MAX_OPEN_FILES;
@@ -162,34 +161,28 @@ void create_fs_custom(const char *path, const unsigned fs_size) {
     														 MAX_INODES,
     														 fs_size, 
     														 BLOCK_SIZE);
-	printf("1\n");
 
     // create the most important structure
-    fs_create_superblock_in_shm(&sblock, PTR_TO_FS);
-	printf("2\n");
+    fs_create_superblock_in_shm(&sblock, addr);
 
     // create other structures
-    fs_create_inode_structures_in_shm(PTR_TO_FS);
-	printf("3\n");
+    fs_create_inode_structures_in_shm(addr);
 
-    fs_create_open_file_table_stuctures_in_shm(PTR_TO_FS);
-	printf("4\n");
+    fs_create_open_file_table_stuctures_in_shm(addr);
 
-    fs_create_blocks_stuctures_in_shm(PTR_TO_FS);
-	printf("5\n");
+    fs_create_blocks_stuctures_in_shm(addr);
 
     // create last structure
-    fs_create_main_folder(PTR_TO_FS);
+    fs_create_main_folder(addr);
 
 	// writing structures to shm // end
-    printf("After writing structures\n");
 
-	// sem_post(sem);
-	// sem_close(sem);
+	sem_post(sem);
+	sem_close(sem);
 
 	// because fs was created
 	// no more need in this semaphore
-	// sem_unlink(CREATE_FS_GUARD);
+	sem_unlink(CREATE_FS_GUARD);
 }
 
 void unlink_fs() {
