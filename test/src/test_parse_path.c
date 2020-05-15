@@ -11,7 +11,7 @@ void tearDown(void) {
 
 }
 
-void freeStrArr(char*** entries, int dirCount)
+void free_string_array(char*** entries, int dirCount)
 {
     for(int i = 0; i < dirCount; ++i )
     {

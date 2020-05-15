@@ -2,8 +2,9 @@
 #define SIMPLEFS_UTILS_H
 
 #include "simplefs_internals.h"
+#include "simplefs_api.h"
 #include <stdint.h>
-
+#include <memory/dir_file.h>
 
 
 //define parse_path error
@@ -216,5 +217,9 @@ struct OpenFile get_open_file(uint32_t fd, void* shm_addr);
 // Synchronised setters for OpenFile
 void set_inode_num(uint32_t fd, uint16_t inode_num, void* shm_addr);
 void set_offset(uint32_t fd, uint32_t offset, void* shm_addr);
+
+// Synchronised get for DirEntry
+int8_t get_dir_entry(uint32_t dir_file_block, uint32_t entry_idx, struct DirEntry* return_entry, void* shm_addr);
+
 
 #endif // SIMPLEFS_API_H
