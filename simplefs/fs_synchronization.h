@@ -24,6 +24,8 @@
 #define WRITE_MUTEX_SUFFIX "_write_mutex"
 #define RESOURCE_SUFFIX "_resource"
 
+#define SEMAPHORE_MODE S_IRUSR | S_IWUSR
+
 #include <stdint.h>
 #include <stdio.h> 
 #include <semaphore.h>
