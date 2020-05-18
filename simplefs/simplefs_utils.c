@@ -298,7 +298,7 @@ uint32_t used_rows_count(void* shm_addr){
 }
 
 void print_simplefs_stats(void* shm_addr){
-    printf("Address to the begin of file system: \t- %u\n\n", (uint32_t)shm_addr);
+    printf("Address to the begin of file system: \t- %p\n\n", shm_addr);
 
     puts("Superblock structure:");
     struct Superblock superbl;
