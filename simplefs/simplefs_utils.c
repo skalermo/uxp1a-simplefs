@@ -1,5 +1,7 @@
 #include "simplefs_utils.h"
 #include "open_files.h"
+#include "inode.h"
+#include "block_links.h"
 #include <string.h>
 #include <stdlib.h>
 
@@ -287,10 +289,22 @@ int8_t get_dir_entry(uint32_t dir_file_block, uint32_t entry_idx, struct DirEntr
 
 int16_t read_buffer(uint32_t block_num, uint32_t offset, char* buf, int len, void* shm_addr) {
 
+    // this function has to return number of bytes that were read
+    // change in fs_get_data() required
+
+    // target inode read semaphore
+    fs_get_data(offset, offset + len, block_num, buf, shm_addr);
 }
 
 int16_t write_buffer(uint32_t block_num, uint32_t offset, char* buf, int len, void* shm_addr) {
 
+    // this function has to return number of bytes that were wriiten
+    // change in fs_save_data() required
+
+    // target inode write semaphore
+    // also block_stat semaphore here or inside fs_save_data 
+    // because of block allocation
+    fs_save_data(offset, offset + len, block_num, buf, shm_addr);
 }
 
 
