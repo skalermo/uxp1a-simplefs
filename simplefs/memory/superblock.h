@@ -25,7 +25,7 @@
 //  Defines
 //////////////////////////////////
 
-#define FS_SHM_NAME "Simple_fs_shm"s
+#define FS_SHM_NAME "Simple_fs_shm"
 
 
 ///////////////////////////////////
