@@ -262,6 +262,7 @@ uint8_t  get_inode_mode(uint16_t inode_idx, void* shm_addr){
 
     return mode;
 }
+
 uint8_t  get_ref_count(uint16_t inode_idx, void* shm_addr){
     uint8_t ref_count;
 
@@ -282,4 +283,70 @@ int8_t get_dir_entry(uint32_t dir_file_block, uint32_t entry_idx, struct DirEntr
     // signal
 
     return ret_value;
+}
+
+uint32_t used_inodes_count(void* shm_addr){
+    return fs_get_used_inodes(shm_addr);
+}
+
+uint32_t used_blocks_count(void* shm_addr){
+    return fs_get_used_blocks(shm_addr);
+}
+
+uint32_t used_rows_count(void* shm_addr){
+    return fs_get_used_opened_files(shm_addr);
+}
+
+void print_simplefs_stats(void* shm_addr){
+    printf("Address to the begin of file system: \t- %u\n\n", (uint32_t)shm_addr);
+
+    puts("Superblock structure:");
+    struct Superblock superbl;
+    fs_get_superblock_copy(&superbl, shm_addr);
+
+    printf("Maksimum number of inodes \t- %u\n", superbl.max_number_of_inodes);
+    printf("Maksimum number of opened files \t- %u\n", superbl.max_number_of_open_files);
+    printf("Maksimum number of data blocks \t- %u\n", superbl.number_of_data_blocks);
+    printf("Filesystem size \t- %u\n", superbl.fs_size);
+    printf("Size of one block \t- %u\n", superbl.data_block_size);
+    printf("Pointer to open file table \t- %u\n", superbl.open_file_table_pointer);
+    printf("Pointer to open file stat \t- %u\n", superbl.open_file_bitmap_pointer);
+    printf("Pointer to inode table \t- %u\n", superbl.inode_table_pointer);
+    printf("Pointer to inode stat \t- %u\n", superbl.inode_bitmap_pointer);
+    printf("Pointer to block links \t- %u\n", superbl.block_links_pointer);
+    printf("Pointer to block stat \t- %u\n", superbl.block_bitmap_pointer);
+    printf("Pointer to begin of data blocks \t- %u\n", superbl.data_blocks_pointer);
+
+    puts("\n");
+    printf("Open files used: \t- %u\n", fs_get_used_opened_files(shm_addr));
+    printf("Inode used: \t- %u\n", fs_get_used_inodes(shm_addr));
+    printf("Data blocks used: \t- %u\n", fs_get_used_blocks(shm_addr));
+}
+
+uint16_t find_free_inode(void* shm_addr){
+    uint16_t ret;
+    fs_get_free_inode(&ret, shm_addr);
+    return ret;
+}
+
+uint16_t find_free_row(void* shm_addr){
+    uint16_t ret;
+    fs_get_free_open_file(&ret, shm_addr);
+    return ret;
+}
+
+void use_inode(uint16_t inodeIndex, void* shm_addr){
+    fs_mark_inode_as_used(inodeIndex, shm_addr);
+    uint32_t tmp = fs_get_used_inodes(shm_addr);
+    fs_set_used_inodes(++tmp, shm_addr);
+}
+
+void use_row(uint16_t openFileIndex, void* shm_addr){
+    fs_mark_open_file_as_used(openFileIndex, shm_addr);
+    uint32_t tmp = fs_get_used_opened_files(shm_addr);
+    fs_set_used_opened_files(++tmp, shm_addr);
+}
+
+void free_row(uint16_t openFileIndex, void* shm_addr){
+    fs_mark_open_file_as_free(openFileIndex, shm_addr);
 }
