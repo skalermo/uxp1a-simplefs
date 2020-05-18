@@ -35,14 +35,14 @@
 
 
 struct Semaphore{
-    sem_t** semaphore;
+    sem_t* semaphore;
 };
 
 struct ReadWriteSem{
-    sem_t** readTry;
-    sem_t** readMutex;
-    sem_t** writeMutex;
-    sem_t** resource;
+    sem_t* readTry;
+    sem_t* readMutex;
+    sem_t* writeMutex;
+    sem_t* resource;
     uint16_t inodeIndex;
 };
 
