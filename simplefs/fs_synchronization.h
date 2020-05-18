@@ -8,16 +8,16 @@
 #ifndef SIMPLEFS_SYNCHRONIZATION_H
 #define SIMPLEFS_SYNCHRONIZATION_H
 
-#define MAIN_FOLDER_SEM_READ_TRY_NAME "Main_folder_sem_read_try_56142374"
-#define MAIN_FOLDER_SEM_READ_MUTEX_NAME "Main_folder_sem_read_mutex_7894498"
-#define MAIN_FOLDER_SEM_WRITE_MUTEX_NAME "Main_folder_sem_write_mutex_89875418"
-#define MAIN_FOLDER_SEM_RESOURCE_NAME "Main_folder_sem_resource_4892954"
+#define MAIN_FOLDER_SEM_READ_TRY_NAME "Main_folder_sem_read_try"
+#define MAIN_FOLDER_SEM_READ_MUTEX_NAME "Main_folder_sem_read_mutex"
+#define MAIN_FOLDER_SEM_WRITE_MUTEX_NAME "Main_folder_sem_write_mutex"
+#define MAIN_FOLDER_SEM_RESOURCE_NAME "Main_folder_sem_resource"
 
 #define INODE_SEM_NAME "Inode_sem_name_"
 
-#define INODE_STAT_SEM_NAME "Inode_stat_sem_name_654651"
-#define BLOCK_STAT_SEM_NAME "Block_stat_sem_name_786786"
-#define OPEN_FILE_STAT_SEM_NAME "Open_file_stat_sem_name_879766"
+#define INODE_STAT_SEM_NAME "Inode_stat_sem_name"
+#define BLOCK_STAT_SEM_NAME "Block_stat_sem_name"
+#define OPEN_FILE_STAT_SEM_NAME "Open_file_stat_sem_name"
 
 #define READ_TRY_MUTEX_SUFFIX "_read_try"
 #define READ_MUTEX_SUFFIX "_read_mutex"

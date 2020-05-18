@@ -40,12 +40,6 @@ char* inner_fs_generate_inode_name(uint16_t inodeIndex, char* suffix){
 
     //itoa(inodeIndex, name + it, 10); // not suported
     it += snprintf(name + it, 16, "%d", inodeIndex); // 16 - uint16_t
-
-    // search the end of string
-    /*do{ // maby not needed
-        character = *(name + it++);
-    }
-    while(character != '\0');*/
     --it; // delete the end of string
     
     // add suffix
