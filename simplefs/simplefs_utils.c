@@ -1,4 +1,5 @@
 #include "simplefs_utils.h"
+#include "open_files.h"
 #include <string.h>
 #include <stdlib.h>
 
@@ -282,4 +283,29 @@ int8_t get_dir_entry(uint32_t dir_file_block, uint32_t entry_idx, struct DirEntr
     // signal
 
     return ret_value;
+}
+
+int16_t read_buffer(uint32_t block_num, uint32_t offset, char* buf, int len, void* shm_addr) {
+
+}
+
+int16_t write_buffer(uint32_t block_num, uint32_t offset, char* buf, int len, void* shm_addr) {
+
+}
+
+void set_inode_block_index(uint16_t inode, uint32_t block_index, void* shm_addr);
+void set_inode_file_size(uint16_t inode, uint16_t filesize, void* shm_addr);
+void set_inode_mode(uint16_t inode, uint8_t mode, void* shm_addr);
+
+// Synchronized setters for OpenFile
+
+void set_inode_num(uint16_t fd, uint16_t inode_num, void* shm_addr) {
+    // no sync needed
+    fs_save_data_to_open_file_uint16(fd, 1, inode_num, shm_addr);
+}
+
+void set_offset(uint16_t fd, uint32_t offset, void* shm_addr) {
+
+    // no sync needed
+    fs_save_data_to_open_file_uint32(fd, 2, offset, shm_addr);
 }
