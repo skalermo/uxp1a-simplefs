@@ -293,9 +293,28 @@ int16_t write_buffer(uint32_t block_num, uint32_t offset, char* buf, int len, vo
 
 }
 
-void set_inode_block_index(uint16_t inode, uint32_t block_index, void* shm_addr);
-void set_inode_file_size(uint16_t inode, uint16_t filesize, void* shm_addr);
-void set_inode_mode(uint16_t inode, uint8_t mode, void* shm_addr);
+
+// Synchronized setters for Inode
+
+void set_inode_block_index(uint16_t inode, uint32_t block_index, void* shm_addr) {
+
+    // can be changed only via simplefs_write
+    // target inode write semaphore
+    fs_save_data_to_inode_uint32(inode, 0, block_index, shm_addr)
+}
+
+void set_inode_file_size(uint16_t inode, uint16_t filesize, void* shm_addr) {
+
+    // can be changed only via simplefs_write
+    // target inode write semaphore
+    fs_save_data_to_inode_uint16(inode, 1, filesize, shm_addr);
+}
+
+void set_inode_mode(uint16_t inode, uint8_t mode, void* shm_addr) {
+
+    // no sync needed
+    fs_save_data_to_inode_uint8(inode, 4, mode, shm_addr);
+}
 
 // Synchronized setters for OpenFile
 
