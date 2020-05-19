@@ -2,10 +2,11 @@
 #define SIMPLEFS_UTILS_H
 
 #include "simplefs_internals.h"
-#include "simplefs_api.h"
+#include "inode.h"
+#include "open_files.h"
+#include "dir_file.h"
 #include <stdint.h>
-#include "memory/dir_file.h"
-#include "memory/open_files.h"
+
 
 
 //define parse_path error
@@ -90,7 +91,6 @@ void create_dir();
 // Level 2 functions
 /**
  * @param path
- * @param shm_addr FS address
  * @return Inode index or Error code
  */
 int32_t get_inode_index(char *path, void* shm_addr);
