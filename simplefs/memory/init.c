@@ -119,7 +119,7 @@ void create_fs_custom(const char *path, const unsigned fs_size) {
 	// writing structures to shm
 
 	struct Superblock sblock;
-    sblock.max_number_of_inodes = (uint16_t) MAX_INODES;
+    sblock.max_number_of_inodes = MAX_INODES - 1;
     sblock.max_number_of_open_files = MAX_OPEN_FILES;
     sblock.filesystem_checks = 0;
     sblock.data_block_size = BLOCK_SIZE; 
@@ -175,6 +175,8 @@ void create_fs_custom(const char *path, const unsigned fs_size) {
     // create last structure
     fs_create_main_folder(addr);
 
+    munmap(addr, fs_size);
+
 	// writing structures to shm // end
 
 	sem_post(sem);
@@ -183,7 +185,7 @@ void create_fs_custom(const char *path, const unsigned fs_size) {
 	// because fs was created
 	// no more need in this semaphore
 	sem_unlink(CREATE_FS_GUARD);
-	PTR_TO_FS = addr;
+	// PTR_TO_FS = addr;
 }
 
 void unlink_fs() {
@@ -195,4 +197,27 @@ void unlink_fs_custom(const char *path) {
 		perror("shm_unlink");
 		exit(EXIT_FAILURE);
 	};
+}
+
+int get_data_blocks_number() {
+    // calculate space for datablocks and divide by size of one block
+    int size_of_all_structures = 0;
+    int data_space = FS_SIZE - size_of_all_structures;
+    return data_space / BLOCK_SIZE;
+}
+
+int get_superblock_size() {
+    return sizeof(struct Superblock);
+}
+
+int get_open_file_table_size() {
+    return sizeof(struct OpenFile) * MAX_OPEN_FILES;
+}
+
+int get_open_file_bitmap_size() {
+    return MAX_OPEN_FILES / 8;  // divide by 8 to get result in bytes
+}
+
+int get_inode_table_size () {
+    return sizeof(struct Inode) * MAX_INODES;
 }
