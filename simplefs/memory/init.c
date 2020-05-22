@@ -198,28 +198,43 @@ void unlink_fs_custom(const char *path) {
 	};
 }
 
-int get_data_blocks_number() {
-    // calculate space for datablocks and divide by size of one block
-    int size_of_all_structures = 0;
-    int data_space = FS_SIZE - size_of_all_structures;
-    return data_space / BLOCK_SIZE;
+int get_data_block_count(uint32_t fs_size, uint32_t size_without_blocks, uint32_t block_size) {
+    // fs_size - size_without_blocks == block_links_size + block_stat_size + data_blocks_size
+    // fs_size - size_without_blocks - sizeof(block_count) == block_links_size + block_bitmap_size + data_blocks_size
+    // diff == [sizeof(uint32_t) * blocks] + [blocks / 8 + blocks % 8 != 0] + [block_size * blocks]
+    // diff == [sizeof(uint32_t) * blocks] + [(blocks+(blocks % 8)) / 8] + [block_size * blocks]
+    // diff * 8 == 8*[sizeof(uint32_t) * blocks] + [blocks+(blocks % 8)] + 8*[block_size * blocks]
+    // diff * 8 == blocks * [8*sizeof(uint32_t) + 1+(blocks % 8)/blocks + 8*block_size]
+    // blocks == diff*8 / (8*(sizeof(uint32_t) + block_size) + 1 + (blocks%8)/blocks )
+    // blocks == diff*8 / (8*(sizeof(uint32_t) + block_size) + 1 + 0)
+
+    uint32_t diff = fs_size - size_without_blocks - sizeof(uint32_t);
+    return diff * 8 / (8*(sizeof(uint32_t) + block_size) + 1);
 }
 
 int get_superblock_size() {
     return sizeof(struct Superblock);
 }
 
-int get_open_file_table_size() {
-    return sizeof(struct OpenFile) * MAX_OPEN_FILES;
+int get_open_file_table_size(uint32_t open_file_count) {
+    return sizeof(struct OpenFile) * open_file_count;
 }
 
-int get_open_file_bitmap_size() {
-    return MAX_OPEN_FILES / 8;  // divide by 8 to get result in bytes
+int get_open_file_bitmap_size(open_file_count) {
+    // ceil(open_file_count/8)
+    uint32_t bitmaps = open_file_count / 8 + (open_file_count % 8 != 0);
+
+    // OpenFileStat struct:
+    // uint8_t* open_file_bitmap;
+    // uint16_t opened_files;
+
+    return sizeof(uint8_t) * bitmaps + sizeof(uint16_t);
 }
 
-int get_inode_table_size () {
-    return sizeof(struct Inode) * MAX_INODES;
+int get_inode_table_size (uint32_t inode_count) {
+    return sizeof(struct Inode) * inode_count;
 }
+
 uint32_t get_InodeStat_size(uint32_t inode_count){
     // ceil(inode_count/8)
     uint32_t bitmaps = inode_count / 8 + (inode_count % 8 != 0);
