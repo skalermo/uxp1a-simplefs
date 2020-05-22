@@ -75,7 +75,7 @@ void create_fs() {
 }
 
 void create_fs_custom(const char *path, const unsigned fs_size) {
-	sem_t *sem = sem_open(CREATE_FS_GUARD, O_CREAT);
+	sem_t *sem = sem_open(CREATE_FS_GUARD, O_CREAT, 0644, 1);
 
 	if (sem == SEM_FAILED) {
 		perror("sem_open");
@@ -183,6 +183,7 @@ void create_fs_custom(const char *path, const unsigned fs_size) {
 	// because fs was created
 	// no more need in this semaphore
 	sem_unlink(CREATE_FS_GUARD);
+	PTR_TO_FS = addr;
 }
 
 void unlink_fs() {

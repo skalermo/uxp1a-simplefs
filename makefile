@@ -107,7 +107,7 @@ run_tests: build_tests
 	@for test_exec in $(TEST_TARGETS); do echo $$test_exec; { $(VALGRIND) ./$$test_exec; } 2>&1 | tee -a $(TEST_LOG); done
 
 $(TEST_BIN_DIR)/test_%.out: $(TEST_OBJ_DIR)/test_%.o $(TEST_OBJ_DIR)/unity.o $(LIB_DIR)/$(LIB_TARGET)
-	$(CC) $(CCFLAGS) $^ -o $@ -L$(LIB_DIR) -lrt 
+	$(CC) $(CCFLAGS) $^ -o $@ -L$(LIB_DIR) -lrt -pthread
 
 $(TEST_OBJ_DIR)/test_%.o: $(TEST_SRC_DIR)/test_%.c
 	$(CC) $(CCFLAGS) $(INCLUDE_FS) $(INCLUDE_MEM_FS) -I $(UNITY_SRC_DIR) -c $< -o $@

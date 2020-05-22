@@ -1,5 +1,6 @@
 #include "simplefs_api.h"
 #include "simplefs_utils.h"
+#include "memory/init.h"
 #include <libgen.h>
 #include <string.h>
 
@@ -7,6 +8,8 @@ void* shm_addr = NULL;
 
 int simplefs_open(char *name, int mode) {
     // Init system
+    create_fs();
+    shm_addr = get_ptr_to_fs();
 
     // Get Inode idx for file
     int inode_idx = get_inode_index(name, shm_addr);
@@ -28,11 +31,13 @@ int simplefs_open(char *name, int mode) {
 
 int simplefs_creat(char *name, int mode) {
     // Init system
+    create_fs();
+    shm_addr = get_ptr_to_fs();
 
-    // Get Filename and dir path
     char* name_copy = strdup(name);
 
-    char* filename = basename(name_copy);
+    // Get Filename and dir path
+    char* filename = basename(name);
     char* dir_path = dirname(name_copy);
 
     // Get Inode idx for dir
