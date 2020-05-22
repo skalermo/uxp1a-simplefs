@@ -220,7 +220,7 @@ int get_open_file_bitmap_size() {
 int get_inode_table_size () {
     return sizeof(struct Inode) * MAX_INODES;
 }
-uint32_t get_inode_bitmap_size(uint32_t inode_count){
+uint32_t get_InodeStat_size(uint32_t inode_count){
     // ceil(inode_count/8)
     uint32_t bitmaps = inode_count / 8 + (inode_count % 8 != 0);
 
@@ -231,7 +231,7 @@ uint32_t get_inode_bitmap_size(uint32_t inode_count){
     return sizeof(uint8_t) * bitmaps + sizeof(uint16_t);
 }
 
-uint32_t get_block_bitmap_size(uint32_t block_count){
+uint32_t get_BlockStat_size(uint32_t block_count){
     // ceil(block_count/8)
     uint32_t bitmaps = block_count / 8 + (block_count % 8 != 0);
 
