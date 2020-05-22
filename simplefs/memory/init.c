@@ -131,8 +131,7 @@ void create_fs_custom(const char *path, const unsigned fs_size) {
     sblock.fs_size = fs_size; 
 
     sblock.open_file_table_pointer = calculate_fs_superblock_end();
-    sblock.open_file_bitmap_pointer =\
-    						calculate_fs_open_file_table_end(MAX_OPEN_FILES,
+    sblock.open_file_bitmap_pointer = calculate_fs_open_file_table_end(MAX_OPEN_FILES,
     														 MAX_INODES,
     														 fs_size,
     														 BLOCK_SIZE);
@@ -195,4 +194,35 @@ void unlink_fs_custom(const char *path) {
 		perror("shm_unlink");
 		exit(EXIT_FAILURE);
 	};
+}
+
+uint32_t get_inode_bitmap_size(uint32_t inode_count){
+    // ceil(inode_count/8)
+    uint32_t bitmaps = inode_count / 8 + (inode_count % 8 != 0);
+
+    // InodeStat struct:
+    // uint8_t* inode_bitmap;
+    // uint16_t inode_used;
+
+    return sizeof(uint8_t) * bitmaps + sizeof(uint16_t);
+}
+
+uint32_t get_block_bitmap_size(uint32_t block_count){
+    // ceil(block_count/8)
+    uint32_t bitmaps = block_count / 8 + (block_count % 8 != 0);
+
+    // BlockStat{
+    // uint8_t* block_bitmap;
+    // uint32_t used_data_blocks;}
+
+    return sizeof(uint8_t) * bitmaps + sizeof(uint32_t);
+}
+
+uint32_t get_block_links_size(uint32_t block_count, uint32_t block_size){
+    // TODO: Finish this
+    // BlockLinks struct:
+    // uint32_t* block_num;
+
+    // needed blocks * sizeof(uint32_t)
+    return block_count
 }
