@@ -24,6 +24,7 @@ int simplefs_open(char *name, int mode) {
     new_open_file.mode = mode;
     new_open_file.inode_num = inode_idx;
     new_open_file.offset = 0;
+    new_open_file.parent_pid = getpid();
 
     // Save Open file entry in FS
     int32_t fd = save_new_OpenFile_entry(&new_open_file, shm_addr);
@@ -87,6 +88,7 @@ int simplefs_creat(char *name, int mode) {
     new_open_file.mode = mode;
     new_open_file.inode_num = inode_idx;
     new_open_file.offset = 0;
+    new_open_file.parent_pid = getpid();
 
     // Save Open file entry in FS
     int32_t fd = save_new_OpenFile_entry(&new_open_file, shm_addr);
@@ -144,9 +146,8 @@ int simplefs_unlink(char *name) {
  * Podobne do simplefs_creat, tylko zmieniamy dir file zamiast inodow
  */
 int simplefs_mkdir(char *name) {
-    if(shm_addr == NULL){
-        return EIO;
-    }
+    if(shm_addr == NULL)
+        shm_addr = get_ptr_to_fs();
 
     char* name_copy = strdup(name);
 
@@ -218,9 +219,8 @@ int simplefs_rmdir(char *name) {
  * Usunięcie w open file.
  */
 int simplefs_close(int fd) {
-    if(shm_addr == NULL){
-        return EIO;
-    }
+    if(shm_addr == NULL)
+        shm_addr = get_ptr_to_fs();
 
     // synch
     struct OpenFile file;
