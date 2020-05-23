@@ -257,11 +257,9 @@ uint32_t get_BlockStat_size(uint32_t block_count){
     return sizeof(uint8_t) * bitmaps + sizeof(uint32_t);
 }
 
-uint32_t get_block_links_size(uint32_t block_count, uint32_t block_size){
-    // TODO: Finish this
+uint32_t get_block_links_size(uint32_t block_count){
     // BlockLinks struct:
     // uint32_t* block_num;
 
-    // needed blocks * sizeof(uint32_t)
-    return block_count
+    return block_count * sizeof(uint32_t);
 }
