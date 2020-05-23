@@ -97,11 +97,12 @@ void free_string_array(char*** entries, int count)
     *entries = NULL;
 }
 
-int16_t next_inode(uint16_t prev_inode, char* name, void* shm_addr){
+int16_t next_inode(uint16_t prev_inode, char* name, uint8_t type, void* shm_addr){
     if(!strcmp(name, "/"))
         return 1;
 
     struct DirEntry copy;
+    uint8_t inodeMode;
 
     uint32_t dir_file_block = get_inode_block_index(prev_inode, shm_addr);
 
@@ -109,15 +110,18 @@ int16_t next_inode(uint16_t prev_inode, char* name, void* shm_addr){
     while(get_dir_entry(dir_file_block, entry_idx, &copy, shm_addr) >= 0){
 
         if(copy.inode_number != 0 && !strcmp((char*) copy.name, name)){
-            return copy.inode_number;
-        }
+            fs_get_data_from_inode_uint8(copy.inode_number, 4, &inodeMode, shm_addr);
+            if(inodeMode & type != 0)
+                return copy.inode_number;
+            return -1;
+        }   
         ++entry_idx;
     }
 
     return -1;
 }
 
-int32_t get_inode_index(char *path, void* shm_addr){
+int32_t get_inode_index(char *path, uint8_t type, void* shm_addr){
     uint16_t current_inode = 1;
 
     char** sub_path = NULL;
@@ -126,11 +130,24 @@ int32_t get_inode_index(char *path, void* shm_addr){
     if(sub_path_count < 0)
         return sub_path_count;
 
-    for(int i = 0; i < sub_path_count; ++i){
-        current_inode = next_inode(current_inode, sub_path[i], shm_addr);
+    int loopMax = sub_path_count - 1;
+    for(int i = 0; i < loopMax; ++i){
+        current_inode = next_inode(current_inode, sub_path[i], IS_DIR, shm_addr);
         if(current_inode < 0) {
             return -1;
         }
+    }
+
+    if(type == IS_DIR){
+        current_inode = next_inode(current_inode, sub_path[loopMax], IS_DIR, shm_addr);
+    }
+    else if(type == IS_FILE){
+        current_inode = next_inode(current_inode, sub_path[loopMax], IS_FILE, shm_addr);
+    }
+    else return -1;
+
+    if(current_inode < 0) {
+        return -1;
     }
 
     free_string_array(&sub_path, sub_path_count);

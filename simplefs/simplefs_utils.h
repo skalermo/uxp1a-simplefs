@@ -86,7 +86,7 @@ void create_dir();
  * @param path
  * @return Inode index or Error code
  */
-int32_t get_inode_index(char *path, void* shm_addr);
+int32_t get_inode_index(char *path, uint8_t type, void* shm_addr);
 
 /**
  * @brief synchronised fs_allocate_new_chain(void* addr)

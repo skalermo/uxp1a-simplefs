@@ -14,7 +14,7 @@ int simplefs_open(char *name, int mode) {
     shm_addr = get_ptr_to_fs();
 
     // Get Inode idx for file
-    int inode_idx = get_inode_index(name, shm_addr);
+    int inode_idx = get_inode_index(name, IS_FILE, shm_addr);
 
     if(inode_idx < 0)
         return ENOTDIR;
@@ -46,13 +46,14 @@ int simplefs_creat(char *name, int mode) {
     char* filenamePrev = basename(dir_path);
 
     // Get Inode idx for dir
-    int dir_inode = get_inode_index(dir_path, shm_addr);
+    int dir_inode = get_inode_index(dir_path, IS_FILE, shm_addr);
 
     if(dir_inode < 0)
         return ENOTDIR;
 
     // Create inode
     struct Inode new_inode = {0};
+    new_inode.mode = IS_FILE;
     new_inode.block_index = allocate_new_chain(shm_addr);
 
     if(new_inode.block_index == UINT32_MAX)
@@ -156,13 +157,14 @@ int simplefs_mkdir(char *name) {
 
 
     // Get Inode idx for dir
-    int dir_inode = get_inode_index(dir_path, shm_addr);
+    int dir_inode = get_inode_index(dir_path, IS_DIR, shm_addr);
 
     if(dir_inode < 0)
         return ENOTDIR;
 
     // Create DirFile and inode
     struct Inode new_inode = {0};
+    new_inode.mode = IS_DIR;
     struct FS_create_dir_data structHelp;
     uint16_t inode_idx = save_new_inode(&new_inode, shm_addr);
 
