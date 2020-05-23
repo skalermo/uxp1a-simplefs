@@ -8,7 +8,6 @@ void* shm_addr = NULL;
 
 int simplefs_open(char *name, int mode) {
     // Init system
-    create_fs();
     shm_addr = get_ptr_to_fs();
 
     // Get Inode idx for file
@@ -31,7 +30,6 @@ int simplefs_open(char *name, int mode) {
 
 int simplefs_creat(char *name, int mode) {
     // Init system
-    create_fs();
     shm_addr = get_ptr_to_fs();
 
     char* name_copy = strdup(name);
