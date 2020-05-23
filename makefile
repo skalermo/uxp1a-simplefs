@@ -3,7 +3,7 @@
 #############################
 
 CC := gcc
-CCFLAGS := -Wall -g  # More flags to be added...
+CCFLAGS := -Wall -gdwarf-2  -O0 -ggdb3 # More flags to be added...
 INCLUDE_FS = -I $(FS_DIR)
 INCLUDE_MEM_FS = -I $(FS_MEM_DIR)
 VALGRIND = 
@@ -63,13 +63,13 @@ all: $(BUILD_PATHS) $(USR_TARGETS)
 lib: $(LIB_DIR)/$(LIB_TARGET)
 
 $(BIN_DIR)/%.out: $(OBJ_DIR)/%.o $(LIB_DIR)/$(LIB_TARGET)
-	$(CC) $^ -o $@ -L$(LIB_DIR)
+	$(CC) $^ -o $@ -L$(LIB_DIR) -lrt -pthread
 
 $(OBJ_DIR)/%.o: $(USR_SRC_DIR)/%.c
 	$(CC) $(CCFLAGS) $(INCLUDE_FS) $(INCLUDE_MEM_FS) -c $< -o $@
 
 $(LIB_DIR)/$(LIB_TARGET): $(FS_SRCS) $(FS_MEM_SRCS)
-	$(CC) -g -fPIC $^ -shared -o $(LIB_TARGET)
+	$(CC) -g $(INCLUDE_MEM_FS) -fPIC $^ -shared -o $(LIB_TARGET)
 	mkdir -p $(LIB_DIR)
 	mv $(LIB_TARGET) $(LIB_DIR)
 
@@ -104,11 +104,10 @@ build_tests: lib $(TEST_BUILD_PATHS) $(TEST_TARGETS)
 run_tests: build_tests
 	@echo >> $(TEST_LOG)
 	@date "+%Y-%m-%d[%H:%M:%S]" >> $(TEST_LOG)
-	@for test_exec in $(TEST_TARGETS); do { $(VALGRIND) ./$$test_exec; } 2>&1 | tee -a $(TEST_LOG); done
+	@for test_exec in $(TEST_TARGETS); do echo $$test_exec; { $(VALGRIND) ./$$test_exec; } 2>&1 | tee -a $(TEST_LOG); done
 
-# added here -lrt
 $(TEST_BIN_DIR)/test_%.out: $(TEST_OBJ_DIR)/test_%.o $(TEST_OBJ_DIR)/unity.o $(LIB_DIR)/$(LIB_TARGET)
-	$(CC) $(CCFLAGS) $^ -o $@ -L$(LIB_DIR) -lrt 
+	$(CC) $(CCFLAGS) $^ -o $@ -L$(LIB_DIR) -lrt -pthread
 
 $(TEST_OBJ_DIR)/test_%.o: $(TEST_SRC_DIR)/test_%.c
 	$(CC) $(CCFLAGS) $(INCLUDE_FS) $(INCLUDE_MEM_FS) -I $(UNITY_SRC_DIR) -c $< -o $@

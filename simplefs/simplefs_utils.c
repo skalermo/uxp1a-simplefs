@@ -1,4 +1,7 @@
 #include "simplefs_utils.h"
+#include "open_files.h"
+#include "inode.h"
+#include "block_links.h"
 #include <string.h>
 #include <stdlib.h>
 
@@ -95,12 +98,15 @@ void free_string_array(char*** entries, int count)
 }
 
 int16_t next_inode(uint16_t prev_inode, char* name, void* shm_addr){
+    if(!strcmp(name, "/"))
+        return 1;
+
     struct DirEntry copy;
 
     uint32_t dir_file_block = get_inode_block_index(prev_inode, shm_addr);
 
     uint32_t entry_idx = 0;
-    while(get_dir_entry(dir_file_block, entry_idx, &copy, shm_addr) > 0){
+    while(get_dir_entry(dir_file_block, entry_idx, &copy, shm_addr) >= 0){
 
         if(copy.inode_number != 0 && !strcmp((char*) copy.name, name)){
             return copy.inode_number;
@@ -113,6 +119,7 @@ int16_t next_inode(uint16_t prev_inode, char* name, void* shm_addr){
 
 int32_t get_inode_index(char *path, void* shm_addr){
     uint16_t current_inode = 1;
+
     char** sub_path = NULL;
     uint32_t sub_path_count = parse_path(path, &sub_path);
 
@@ -349,4 +356,64 @@ void use_row(uint16_t openFileIndex, void* shm_addr){
 
 void free_row(uint16_t openFileIndex, void* shm_addr){
     fs_mark_open_file_as_free(openFileIndex, shm_addr);
+
+int16_t read_buffer(uint32_t block_num, uint32_t offset, char* buf, int len, void* shm_addr) {
+
+    // this function has to return number of bytes that were read
+    // change in fs_get_data() required
+
+    // target inode read semaphore
+    fs_get_data(offset, offset + len, block_num, buf, shm_addr);
+}
+
+int16_t write_buffer(uint32_t block_num, uint32_t offset, char* buf, int len, void* shm_addr) {
+
+    // this function has to return number of bytes that were wriiten
+    // change in fs_save_data() required
+
+    // target inode write semaphore
+    // also block_stat semaphore here or inside fs_save_data 
+    // because of block allocation
+    fs_save_data(offset, offset + len, block_num, buf, shm_addr);
+}
+
+
+// Synchronized setters for Inode
+
+void set_inode_block_index(uint16_t inode, uint32_t block_index, void* shm_addr) {
+
+    // can be changed only via simplefs_write
+    // target inode write semaphore
+    int8_t ret_value = fs_save_data_to_inode_uint32(inode, 0, block_index, shm_addr)
+    return ret_value;
+}
+
+void set_inode_file_size(uint16_t inode, uint16_t filesize, void* shm_addr) {
+
+    // can be changed only via simplefs_write
+    // target inode write semaphore
+    int8_t ret_value = fs_save_data_to_inode_uint16(inode, 1, filesize, shm_addr);
+    return ret_value;
+}
+
+int8_t set_inode_mode(uint16_t inode, uint8_t mode, void* shm_addr) {
+
+    // no sync needed
+    int8_t ret_value = fs_save_data_to_inode_uint8(inode, 4, mode, shm_addr);
+    return ret_value;
+}
+
+// Synchronized setters for OpenFile
+
+int8_t set_inode_num(uint16_t fd, uint16_t inode_num, void* shm_addr) {
+    // no sync needed
+    int8_t ret_value = fs_save_data_to_open_file_uint16(fd, 1, inode_num, shm_addr);
+    return ret_value;
+}
+
+int8_t set_offset(uint16_t fd, uint32_t offset, void* shm_addr) {
+
+    // no sync needed
+    int8_t ret_value = fs_save_data_to_open_file_uint32(fd, 2, offset, shm_addr);
+    return ret_value;
 }

@@ -1,28 +1,39 @@
 #include "unity.h"
 #include "simplefs_utils.h"
+#include "simplefs_api.h"
 #include "memory/inode.h"
+#include "memory/init.h"
+#include "memory/superblock.h"
+#include <semaphore.h>
+#include <sys/mman.h>
+
 
 void* shm_addr = NULL;
 
 void setUp(void) {
-    // init fs
-    // mkdir dir
+    sem_unlink(CREATE_FS_GUARD);
+    shm_unlink(FS_SHM_NAME);
+
     // creat file.txt
+    simplefs_creat("/file.txt", 0);
+
+    shm_addr = get_ptr_to_fs();
 }
 
 void tearDown(void) {
+    unlink_fs();
 }
 
 void test_get_inode_index(void)
 {
-    int idx = get_inode_index("/dir/file.txt", shm_addr);
+    int idx = get_inode_index("/file.txt", shm_addr);
 
     TEST_ASSERT_GREATER_THAN(0, idx);
 }
 
 void test_get_inode(void)
 {
-    int idx = get_inode_index("/dir/file.txt", shm_addr);
+    int idx = get_inode_index("/file.txt", shm_addr);
     TEST_ASSERT_GREATER_THAN(0, idx);
 
 

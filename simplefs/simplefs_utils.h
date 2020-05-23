@@ -3,10 +3,13 @@
 
 #include "simplefs_internals.h"
 #include "simplefs_api.h"
+#include "memory/block_links.h"
+#include "memory/dir_file.h"
+#include "memory/inode.h"
+#include "memory/open_files.h"
+#include "memory/utils.h"
 #include <stdint.h>
 #include <stdio.h>
-#include "memory/dir_file.h"
-#include "memory/open_files.h"
 
 #include "memory/superblock.h"
 
@@ -81,7 +84,6 @@ void create_dir();
 // Level 2 functions
 /**
  * @param path
- * @param shm_addr FS address
  * @return Inode index or Error code
  */
 int32_t get_inode_index(char *path, void* shm_addr);
@@ -200,8 +202,8 @@ void dec_inode_writers(uint16_t inode, void* shm_addr);
 struct OpenFile get_open_file(uint32_t fd, void* shm_addr);
 
 // Synchronised setters for OpenFile
-void set_inode_num(uint32_t fd, uint16_t inode_num, void* shm_addr);
-void set_offset(uint32_t fd, uint32_t offset, void* shm_addr);
+void set_inode_num(uint16_t fd, uint16_t inode_num, void* shm_addr);
+void set_offset(uint16_t fd, uint32_t offset, void* shm_addr);
 
 // Synchronised get for DirEntry
 int8_t get_dir_entry(uint32_t dir_file_block, uint32_t entry_idx, struct DirEntry* return_entry, void* shm_addr);
