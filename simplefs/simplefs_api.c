@@ -87,30 +87,71 @@ int simplefs_creat(char *name, int mode) {
     return fd;
 }
 
+/**
+ * Zmienia w inode mode, czeka, jeżeli mode jest niekompatybilny z tym, co chce zrobić
+ * lub nie zmienia nic, bo już dany mode jest taki jaki chce (tylko mode do read)
+ * 
+ * Zmienia offset w open file
+ * 
+ * Po wyjściu zmienia mode w inode na 0, jeżeli nikt inny nie czyta. Jeżeli czytają, to nie zmieniamy.
+ * Jeżeli write, to i tak inne read czekają, więc można mode wyzerować.
+ */
 int simplefs_read(int fd, char *buf, int len) {
     return ENOTIMPLEMENTED;
 }
 
+
+/**
+ * To samo co w read tylko z sprawdzaniem, czy alokujemy nowe bloki, czy też nie.
+ * Ważne przy synchronizacji.
+ */
 int simplefs_write(int fd, char *buf, int len) {
     return ENOTIMPLEMENTED;
 }
 
+
+/**
+ * Zmiana offset w open file.
+ * 
+ * Sprawdzenie czy offset nie przekracza file size
+ */
 int simplefs_lseek(int fd, int whence, int offset) {
     return ENOTIMPLEMENTED;
 }
 
+
+/**
+ * Oznaczenie w bitmapie jako pusty w inode stat.
+ * 
+ * Usunięcie w dir file struktury odwołującej się do danego inoda
+ * 
+ * Sprawdzenie ref count.
+ */
 int simplefs_unlink(char *name) {
     return ENOTIMPLEMENTED;
 }
 
+
+/**
+ * Podobne do simplefs_creat, tylko zmieniamy dir file zamiast inodow
+ */
 int simplefs_mkdir(char *name) {
     return ENOTIMPLEMENTED;
 }
 
+
+/**
+ * Podobne do simplefs_unlink, tylko zmieniamy dir file zamiast inodow
+ * 
+ */
 int simplefs_rmdir(char *name) {
     return ENOTIMPLEMENTED;
 }
 
+
+/**
+ * Usunięcie w open file.
+ */
 int simplefs_close(int fd) {
     return ENOTIMPLEMENTED;
 }
