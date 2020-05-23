@@ -211,8 +211,8 @@ void dec_inode_writers(uint16_t inode, void* shm_addr);
 struct OpenFile get_open_file(uint32_t fd, void* shm_addr);
 
 // Synchronised setters for OpenFile
-void set_inode_num(uint32_t fd, uint16_t inode_num, void* shm_addr);
-void set_offset(uint32_t fd, uint32_t offset, void* shm_addr);
+void set_inode_num(uint16_t fd, uint16_t inode_num, void* shm_addr);
+void set_offset(uint16_t fd, uint32_t offset, void* shm_addr);
 
 // Synchronised get for DirEntry
 int8_t get_dir_entry(uint32_t dir_file_block, uint32_t entry_idx, struct DirEntry* return_entry, void* shm_addr);
