@@ -131,30 +131,30 @@ void create_fs_custom(const char *path, const unsigned fs_size) {
     sblock.fs_size = fs_size; 
 
     sblock.open_file_table_pointer = calculate_fs_superblock_end();
-    sblock.open_file_bitmap_pointer = calculate_fs_open_file_table_end(MAX_OPEN_FILES,
-    														 MAX_INODES,
-    														 fs_size,
-    														 BLOCK_SIZE);
+    sblock.open_file_stat_pointer = calculate_fs_open_file_table_end(MAX_OPEN_FILES,
+                                                                     MAX_INODES,
+                                                                     fs_size,
+                                                                     BLOCK_SIZE);
 
     sblock.inode_table_pointer = calculate_fs_open_file_stat_end(MAX_OPEN_FILES,
     															 MAX_INODES,
     															 fs_size,
     															 BLOCK_SIZE);
 
-    sblock.inode_bitmap_pointer = calculate_fs_inode_table_end(MAX_OPEN_FILES, 
-    														   MAX_INODES,
-    														   fs_size,
-    														   BLOCK_SIZE);
+    sblock.inode_stat_pointer = calculate_fs_inode_table_end(MAX_OPEN_FILES,
+                                                             MAX_INODES,
+                                                             fs_size,
+                                                             BLOCK_SIZE);
 
     sblock.block_links_pointer = calculate_fs_inode_stat_end(MAX_OPEN_FILES,
     														 MAX_INODES,
     														 fs_size,
     														 BLOCK_SIZE);
 
-    sblock.block_bitmap_pointer = calculate_fs_block_links_end(MAX_OPEN_FILES, 
-    														   MAX_INODES,
-    														   fs_size,
-    														   BLOCK_SIZE);
+    sblock.block_stat_pointer = calculate_fs_block_links_end(MAX_OPEN_FILES,
+                                                             MAX_INODES,
+                                                             fs_size,
+                                                             BLOCK_SIZE);
 
     sblock.data_blocks_pointer = calculate_fs_block_stat_end(MAX_OPEN_FILES, 
     														 MAX_INODES,
