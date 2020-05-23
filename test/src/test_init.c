@@ -107,30 +107,31 @@ void test_getters() {
     const uint32_t block_size = 1024;               // 1 KiB
     uint32_t total_size = 0;
 
-    printf("%u\n", get_superblock_size()); // 44
+    printf("Superblock size %u\n", get_superblock_size()); // 44
     total_size += get_superblock_size();
 
-    printf("%u\n", get_InodeStat_size(inode_count)); // 8194
+    printf("InodeStat size %u\n", get_InodeStat_size(inode_count)); // 8194
     total_size += get_InodeStat_size(inode_count);
 
-    printf("%u\n", get_inode_table_size(inode_count)); // 1048576
+    printf("Inode table size %u\n", get_inode_table_size(inode_count)); // 1048576
     total_size += get_inode_table_size(inode_count);
 
-    printf("%u\n", get_open_file_stat_size(open_file_count)); // 130
+    printf("OpenFileStat size %u\n", get_open_file_stat_size(open_file_count)); // 130
     total_size += get_open_file_stat_size(open_file_count);
 
-    printf("%u\n", get_open_file_table_size(open_file_count)); // 8192
+    printf("OpenFile table size %u\n", get_open_file_table_size(open_file_count)); // 8192
     total_size += get_open_file_table_size(open_file_count);
 
     const uint32_t size_without_blocks = total_size;
     const uint32_t block_count = get_data_block_count(fs_size, size_without_blocks, block_size);
 
-    printf("%u\n", block_count);
+    printf("Data block count %u\n", block_count);
+    printf("Data blocks total size %u\n", block_count * block_size);
 
-    printf("%u\n", get_BlockStat_size(block_count));
+    printf("BlockStat size %u\n", get_BlockStat_size(block_count));
     total_size += get_BlockStat_size(block_count);
 
-    printf("%u\n", get_block_links_size(block_count));
+    printf("Block links size %u\n", get_block_links_size(block_count));
     total_size += get_block_links_size(block_count);
 
     total_size += block_count * block_size;
