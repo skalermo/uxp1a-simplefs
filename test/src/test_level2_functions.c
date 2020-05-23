@@ -11,8 +11,8 @@
 void* shm_addr = NULL;
 
 void setUp(void) {
-//    sem_unlink(CREATE_FS_GUARD);
-//    shm_unlink(FS_SHM_NAME);
+    sem_unlink(CREATE_FS_GUARD);
+    shm_unlink(FS_SHM_NAME);
 
     // creat file.txt
     simplefs_creat("/file.txt", 0);
