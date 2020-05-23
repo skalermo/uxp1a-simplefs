@@ -261,6 +261,5 @@ uint32_t get_block_links_size(uint32_t block_count) {
     // BlockLinks struct:
     // uint32_t* block_num;
 
-    // needed blocks * sizeof(uint32_t)
     return block_count * sizeof(uint32_t);
 }
