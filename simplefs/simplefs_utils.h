@@ -2,64 +2,55 @@
 #define SIMPLEFS_UTILS_H
 
 #include "simplefs_internals.h"
+#include "simplefs_api.h"
 #include "memory/block_links.h"
 #include "memory/dir_file.h"
 #include "memory/inode.h"
 #include "memory/open_files.h"
 #include "memory/utils.h"
 #include <stdint.h>
+#include <stdio.h>
 
+#include "memory/superblock.h"
 
 
 //define parse_path error
 #define EINPATH -150
 
 // Return count of used resources.
-void used_inodes_count();
-void used_blocks_count();
-void used_rows_count();
+uint32_t used_inodes_count(void* shm_addr);
+uint32_t used_blocks_count(void* shm_addr);
+uint32_t used_rows_count(void* shm_addr); // ???
 
 // Print all useful information about filesystem.
-void print_simplefs_stats();
+void print_simplefs_stats(void* shm_addr);
 
-// Find in inode_bitmap first unset bit
-// and return its position.
-void find_free_inode();
+// Find in inode_bitmap unset bit
+// and return its index.
+uint16_t find_free_inode(void* shm_addr);
 
-// Find in block_bitmap first unset bit
-// and return its position.
-void find_free_block();
+// Find in open_file_bitmap unset bit
+// and return its index. 
+uint16_t find_free_row(void* shm_addr);
 
-// Find in open_file_bitmap first unset bit
-// and return its position. 
-void find_free_row();
-
-// Generic function to find first unset bit
+// Generic function to find unset bit
 // in provided array.
 int find_free_bit(uint8_t *bitmap, int size);
 
 // Set bit in inode_bitmap and
 // increment by 1 used inodes count.
-void use_inode();
-
-// Set bit in block_bitmap and
-// increment by 1 used blocks count.
-void use_block();
+void use_inode(uint16_t inodeIndex, void* shm_addr);
 
 // Set bit in open_file_bitmap and
 // increment by 1 used rows in open file table count.
-void use_row();
+void use_row(uint16_t openFileIndex, void* shm_addr);
 
 // Generic function to set bit in provided array.
 void set_bit(uint8_t *bitmap, int index);
 
-// Unset bit in inode_bitmap and
-// decrement by 1 used blocks count.
-void free_block();
-
-// Unset bit in inode_bitmap and
+// Unset bit in open_file_bitmap and
 // decrement by 1 used rows count.
-void free_row();
+void free_row(uint16_t openFileIndex, void* shm_addr);
 
 // Generic function to unset bit in provided array.
 void unset_bit(uint8_t *bitmap, int index);
