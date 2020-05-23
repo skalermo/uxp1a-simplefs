@@ -78,13 +78,13 @@ void create_fs(void){
     toSet.fs_size = maxFilesystemSize; 
 
     toSet.open_file_table_pointer = calculate_fs_superblock_end();
-    toSet.open_file_bitmap_pointer = calculate_fs_open_file_table_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock);
+    toSet.open_file_stat_pointer = calculate_fs_open_file_table_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock);
 
     toSet.inode_table_pointer = calculate_fs_open_file_stat_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock);
-    toSet.inode_bitmap_pointer = calculate_fs_inode_table_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock);
+    toSet.inode_stat_pointer = calculate_fs_inode_table_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock);
 
     toSet.block_links_pointer = calculate_fs_inode_stat_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock);
-    toSet.block_bitmap_pointer = calculate_fs_block_links_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock);
+    toSet.block_stat_pointer = calculate_fs_block_links_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock);
     toSet.data_blocks_pointer = calculate_fs_block_stat_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock);
 
     // create the most important structure
@@ -199,13 +199,4 @@ uint8_t createFile(char* path){
     return 0;
 }
 
-int main(void){
-    UNITY_BEGIN();
-
-    create_fs();    
-
-    dispose_fs();
-    
-    return UNITY_END();
-}
 
