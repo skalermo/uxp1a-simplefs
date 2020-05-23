@@ -27,7 +27,7 @@ int main(int argc, char const *argv[])
 
     shm_unlink(FS_SHM_NAME);
 
-//    create_fs();
+    // create_fs();
 
     int fd = simplefs_creat("/file.txt", 1);
     void* shm_addr = get_ptr_to_fs();

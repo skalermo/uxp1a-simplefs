@@ -198,7 +198,7 @@ void unlink_fs_custom(const char *path) {
 	};
 }
 
-int get_data_block_count(uint32_t fs_size, uint32_t size_without_blocks, uint32_t block_size) {
+uint32_t get_data_block_count(uint32_t fs_size, uint32_t size_without_blocks, uint32_t block_size) {
     // fs_size - size_without_blocks == block_links_size + block_stat_size + data_blocks_size
     // fs_size - size_without_blocks - sizeof(block_count) == block_links_size + block_bitmap_size + data_blocks_size
     // diff == [sizeof(uint32_t) * blocks] + [blocks / 8 + blocks % 8 != 0] + [block_size * blocks]
@@ -220,7 +220,7 @@ int get_open_file_table_size(uint32_t open_file_count) {
     return sizeof(struct OpenFile) * open_file_count;
 }
 
-int get_open_file_bitmap_size(open_file_count) {
+int get_open_file_stat_size(uint32_t open_file_count) {
     // ceil(open_file_count/8)
     uint32_t bitmaps = open_file_count / 8 + (open_file_count % 8 != 0);
 
@@ -257,11 +257,10 @@ uint32_t get_BlockStat_size(uint32_t block_count){
     return sizeof(uint8_t) * bitmaps + sizeof(uint32_t);
 }
 
-uint32_t get_block_links_size(uint32_t block_count, uint32_t block_size){
-    // TODO: Finish this
+uint32_t get_block_links_size(uint32_t block_count) {
     // BlockLinks struct:
     // uint32_t* block_num;
 
     // needed blocks * sizeof(uint32_t)
-    return block_count
+    return block_count * sizeof(uint32_t);
 }

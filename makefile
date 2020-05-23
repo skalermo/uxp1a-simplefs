@@ -3,7 +3,7 @@
 #############################
 
 CC := gcc
-CCFLAGS := -Wall -g  # More flags to be added...
+CCFLAGS := -Wall -gdwarf-2  -O0 -ggdb3 # More flags to be added...
 INCLUDE_FS = -I $(FS_DIR)
 INCLUDE_MEM_FS = -I $(FS_MEM_DIR)
 VALGRIND = 
@@ -63,7 +63,7 @@ all: $(BUILD_PATHS) $(USR_TARGETS)
 lib: $(LIB_DIR)/$(LIB_TARGET)
 
 $(BIN_DIR)/%.out: $(OBJ_DIR)/%.o $(LIB_DIR)/$(LIB_TARGET)
-	$(CC) $^ -o $@ -L$(LIB_DIR) -lrt
+	$(CC) $^ -o $@ -L$(LIB_DIR) -lrt -pthread
 
 $(OBJ_DIR)/%.o: $(USR_SRC_DIR)/%.c
 	$(CC) $(CCFLAGS) $(INCLUDE_FS) $(INCLUDE_MEM_FS) -c $< -o $@
