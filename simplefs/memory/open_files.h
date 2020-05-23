@@ -30,6 +30,7 @@ struct OpenFile{
     uint16_t mode;
     uint16_t inode_num;
     uint32_t offset;
+    pid_t parent_pid;
 };
 
 

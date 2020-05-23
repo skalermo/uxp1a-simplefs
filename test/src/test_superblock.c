@@ -99,14 +99,14 @@ void calculate_fs_offset_test(void){
     uint32_t dataBlockEnd = calculate_fs_data_block_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock);
 
     // to calculate this, use excel
-    TEST_ASSERT_TRUE(superblockEnd == sizeof(struct Superblock));
-    TEST_ASSERT_TRUE(openFileTableEnd == 8236);
-    TEST_ASSERT_TRUE(OpenFileStatEnd == 8367);
-    TEST_ASSERT_TRUE(inodeTableEnd == 1056927);
-    TEST_ASSERT_TRUE(inodeStatEnd == 1065121);
-    TEST_ASSERT_TRUE(blockLinksEnd == 1191521);
-    TEST_ASSERT_TRUE(blockStatEnd == 1195476);
-    TEST_ASSERT_TRUE(dataBlockEnd == 33553876);
+    TEST_ASSERT_EQUAL_UINT32(superblockEnd, sizeof(struct Superblock));
+    TEST_ASSERT_EQUAL_UINT32(12332, openFileTableEnd);
+    TEST_ASSERT_EQUAL_UINT32(12463, OpenFileStatEnd);
+    TEST_ASSERT_EQUAL_UINT32(1061023, inodeTableEnd);
+    TEST_ASSERT_EQUAL_UINT32(1069217, inodeStatEnd);
+    TEST_ASSERT_EQUAL_UINT32(1195601, blockLinksEnd);
+    TEST_ASSERT_EQUAL_UINT32(1199555, blockStatEnd);
+    TEST_ASSERT_EQUAL_UINT32(33553859, dataBlockEnd);
 }
 
 void superblock_copy_test(void)
@@ -117,22 +117,22 @@ void superblock_copy_test(void)
 
     TEST_ASSERT_TRUE(ret == 0);
 
-    TEST_ASSERT_TRUE(superblockCopy.max_number_of_inodes == maxInodes);
-    TEST_ASSERT_TRUE(superblockCopy.max_number_of_open_files == maxOpenFiles);
-    TEST_ASSERT_TRUE(superblockCopy.filesystem_checks == 0);
-    TEST_ASSERT_TRUE(superblockCopy.data_block_size == sizeofOneBlock);
-    TEST_ASSERT_TRUE(superblockCopy.number_of_data_blocks == calculate_fs_needed_blocks(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock));
-    TEST_ASSERT_TRUE(superblockCopy.fs_size == maxFilesystemSize);
+    TEST_ASSERT_EQUAL_UINT32(maxInodes, superblockCopy.max_number_of_inodes);
+    TEST_ASSERT_EQUAL_UINT32(maxOpenFiles, superblockCopy.max_number_of_open_files);
+    TEST_ASSERT_EQUAL_UINT16(0, superblockCopy.filesystem_checks);
+    TEST_ASSERT_EQUAL_UINT32(sizeofOneBlock, superblockCopy.data_block_size);
+    TEST_ASSERT_EQUAL_UINT32(calculate_fs_needed_blocks(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock), superblockCopy.number_of_data_blocks);
+    TEST_ASSERT_EQUAL_UINT32(maxFilesystemSize, superblockCopy.fs_size);
 
-    TEST_ASSERT_TRUE(superblockCopy.open_file_table_pointer == calculate_fs_superblock_end());
-    TEST_ASSERT_TRUE(superblockCopy.open_file_stat_pointer == calculate_fs_open_file_table_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock));
+    TEST_ASSERT_EQUAL_UINT32(calculate_fs_superblock_end(), superblockCopy.open_file_table_pointer);
+    TEST_ASSERT_EQUAL_UINT32(calculate_fs_open_file_table_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock), superblockCopy.open_file_stat_pointer);
 
-    TEST_ASSERT_TRUE(superblockCopy.inode_table_pointer == calculate_fs_open_file_stat_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock));
-    TEST_ASSERT_TRUE(superblockCopy.inode_stat_pointer == calculate_fs_inode_table_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock));
+    TEST_ASSERT_EQUAL_UINT32(calculate_fs_open_file_stat_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock), superblockCopy.inode_table_pointer);
+    TEST_ASSERT_EQUAL_UINT32(calculate_fs_inode_table_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock), superblockCopy.inode_stat_pointer);
 
-    TEST_ASSERT_TRUE(superblockCopy.block_links_pointer == calculate_fs_inode_stat_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock));
-    TEST_ASSERT_TRUE(superblockCopy.block_stat_pointer == calculate_fs_block_links_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock));
-    TEST_ASSERT_TRUE(superblockCopy.data_blocks_pointer == calculate_fs_block_stat_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock));
+    TEST_ASSERT_EQUAL_UINT32(calculate_fs_inode_stat_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock), superblockCopy.block_links_pointer);
+    TEST_ASSERT_EQUAL_UINT32(calculate_fs_block_links_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock), superblockCopy.block_stat_pointer);
+    TEST_ASSERT_EQUAL_UINT32(calculate_fs_block_stat_end(maxOpenFiles, maxInodes, maxFilesystemSize, sizeofOneBlock), superblockCopy.data_blocks_pointer);
 }
 
 void superblock_getters_test(void){
