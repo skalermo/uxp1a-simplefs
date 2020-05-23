@@ -5,7 +5,7 @@
 
 #define FS_NAME "simplefs_shm"
 #define FS_SIZE 268435456 // 256 MiB
-#define MAX_INODES 65536 // 2^16
+#define MAX_INODES 65535 // 2^16-1
 #define MAX_OPEN_FILES 1024
 #define BLOCK_SIZE 1024 // 1 KiB
 

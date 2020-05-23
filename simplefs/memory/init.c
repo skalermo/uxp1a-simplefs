@@ -107,7 +107,7 @@ void create_fs_custom(const char *path, const unsigned fs_size) {
 
 	void *addr = mmap(NULL, fs_size,
 					  PROT_WRITE,
-					  MAP_PRIVATE, fd, 0);
+					  MAP_SHARED, fd, 0);
 
 	if (addr == MAP_FAILED) {
 	   perror("mmap");
@@ -119,47 +119,38 @@ void create_fs_custom(const char *path, const unsigned fs_size) {
 	// writing structures to shm
 
 	struct Superblock sblock;
-    sblock.max_number_of_inodes = MAX_INODES - 1;
+    sblock.max_number_of_inodes = MAX_INODES;
     sblock.max_number_of_open_files = MAX_OPEN_FILES;
     sblock.filesystem_checks = 0;
-    sblock.data_block_size = BLOCK_SIZE; 
+    sblock.data_block_size = BLOCK_SIZE;
+    sblock.fs_size = fs_size;
+    uint32_t total_size = 0;
 
-    sblock.number_of_data_blocks = calculate_fs_needed_blocks(MAX_OPEN_FILES, 
-    														  MAX_INODES, 
-    														  fs_size, 
-    														  BLOCK_SIZE);
-    sblock.fs_size = fs_size; 
+    total_size += get_superblock_size();
+    sblock.inode_stat_pointer = total_size + 1;
 
-    sblock.open_file_table_pointer = calculate_fs_superblock_end();
-    sblock.open_file_stat_pointer = calculate_fs_open_file_table_end(MAX_OPEN_FILES,
-                                                                     MAX_INODES,
-                                                                     fs_size,
-                                                                     BLOCK_SIZE);
+    total_size += get_InodeStat_size(sblock.max_number_of_inodes);
+    sblock.inode_table_pointer = total_size + 1;
 
-    sblock.inode_table_pointer = calculate_fs_open_file_stat_end(MAX_OPEN_FILES,
-    															 MAX_INODES,
-    															 fs_size,
-    															 BLOCK_SIZE);
+    total_size += get_inode_table_size(sblock.max_number_of_inodes);
+    sblock.open_file_stat_pointer = total_size + 1;
 
-    sblock.inode_stat_pointer = calculate_fs_inode_table_end(MAX_OPEN_FILES,
-                                                             MAX_INODES,
-                                                             fs_size,
-                                                             BLOCK_SIZE);
+    total_size += get_open_file_stat_size(sblock.max_number_of_open_files);
+    sblock.open_file_table_pointer = total_size + 1;
 
-    sblock.block_links_pointer = calculate_fs_inode_stat_end(MAX_OPEN_FILES,
-    														 MAX_INODES,
-    														 fs_size,
-    														 BLOCK_SIZE);
+    total_size += get_open_file_table_size(sblock.max_number_of_open_files);
+    sblock.block_stat_pointer = total_size + 1;
 
-    sblock.block_stat_pointer = calculate_fs_block_links_end(MAX_OPEN_FILES,
-                                                             MAX_INODES,
-                                                             fs_size,
-                                                             BLOCK_SIZE);
+    const uint32_t size_without_blocks = total_size;
+    const uint32_t block_count = get_data_block_count(fs_size, size_without_blocks, sblock.data_block_size);
+    sblock.number_of_data_blocks = block_count;
 
-    sblock.data_blocks_pointer = calculate_fs_block_stat_end(MAX_OPEN_FILES, 
-    														 MAX_INODES,
-    														 fs_size, 
-    														 BLOCK_SIZE);
+    total_size += get_BlockStat_size(sblock.number_of_data_blocks);
+    sblock.block_links_pointer = total_size + 1;
+
+    total_size += get_block_links_size(sblock.number_of_data_blocks);
+    sblock.data_blocks_pointer = total_size + 1;
+
 
     // create the most important structure
     fs_create_superblock_in_shm(&sblock, addr);
@@ -173,7 +164,6 @@ void create_fs_custom(const char *path, const unsigned fs_size) {
 
     // create last structure
     fs_create_main_folder(addr);
-
     munmap(addr, fs_size);
 
 	// writing structures to shm // end
