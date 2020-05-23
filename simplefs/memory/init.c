@@ -107,7 +107,7 @@ void create_fs_custom(const char *path, const unsigned fs_size) {
 
 	void *addr = mmap(NULL, fs_size,
 					  PROT_WRITE,
-					  MAP_PRIVATE, fd, 0);
+					  MAP_SHARED, fd, 0);
 
 	if (addr == MAP_FAILED) {
 	   perror("mmap");
@@ -123,6 +123,7 @@ void create_fs_custom(const char *path, const unsigned fs_size) {
     sblock.max_number_of_open_files = MAX_OPEN_FILES;
     sblock.filesystem_checks = 0;
     sblock.data_block_size = BLOCK_SIZE;
+    sblock.fs_size = fs_size;
     uint32_t total_size = 0;
 
     total_size += get_superblock_size();
@@ -163,7 +164,6 @@ void create_fs_custom(const char *path, const unsigned fs_size) {
 
     // create last structure
     fs_create_main_folder(addr);
-
     munmap(addr, fs_size);
 
 	// writing structures to shm // end
