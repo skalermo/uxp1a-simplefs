@@ -203,7 +203,7 @@ int8_t fs_create_inode_structures_in_shm(void* addr){
     struct Inode toSave;
     void* inodeTable_ptr = fs_get_inode_table_ptr(addr);
     void* inoteStat_ptr = fs_get_inode_bitmap_ptr(addr);
-    uint32_t offset = 0;
+    uint32_t offset = sizeof(struct Inode);
     uint32_t maxNumberOfInodes = fs_get_max_number_of_inodes(addr);
     uint32_t sizeofBitmapAlone = inner_fs_get_sizeof_bitmap_alone(maxNumberOfInodes);
 
@@ -226,8 +226,8 @@ int8_t fs_create_inode_structures_in_shm(void* addr){
     toSave.block_index = UINT32_MAX;
     toSave.file_size = 0;
     toSave.mode = 0;
-    
-    for(unsigned int i = 1; i < maxNumberOfInodes; ++i, offset += sizeof(struct Inode)){
+
+    for(unsigned int i = 2; i < maxNumberOfInodes; ++i, offset += sizeof(struct Inode)) {
         memcpy(inodeTable_ptr + offset, &toSave, sizeof(struct Inode));
     }
 

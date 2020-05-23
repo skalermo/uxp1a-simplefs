@@ -15,6 +15,20 @@
 #include "utils.h"
 
 
+// Inode mode defines
+
+#define RDONLY    0x01
+#define WRONLY    0x02
+#define RDWR      0x03
+
+// RDONLY | WRONLY == O_RDWR
+
+#define IS_DIR      0x10
+#define IS_FILE     0x30
+
+// IS_DIR | IS_FILE == IS_FILE
+
+
 ///////////////////////////////////
 //  Structs
 //////////////////////////////////

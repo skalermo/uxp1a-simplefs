@@ -55,14 +55,14 @@ struct Superblock {
     uint32_t number_of_data_blocks;
     uint32_t fs_size;   // this is a size of entire file system in bytes
 
-    uint32_t open_file_table_pointer;
-    uint32_t open_file_bitmap_pointer;
-
+    uint32_t inode_stat_pointer;
     uint32_t inode_table_pointer;
-    uint32_t inode_bitmap_pointer;
 
+    uint32_t open_file_stat_pointer;
+    uint32_t open_file_table_pointer;
+
+    uint32_t block_stat_pointer;
     uint32_t block_links_pointer;
-    uint32_t block_bitmap_pointer;
     uint32_t data_blocks_pointer;
 };
 
