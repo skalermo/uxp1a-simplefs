@@ -317,11 +317,11 @@ void print_simplefs_stats(void* shm_addr){
     printf("Filesystem size \t- %u\n", superbl.fs_size);
     printf("Size of one block \t- %u\n", superbl.data_block_size);
     printf("Pointer to open file table \t- %u\n", superbl.open_file_table_pointer);
-    printf("Pointer to open file stat \t- %u\n", superbl.open_file_bitmap_pointer);
+    printf("Pointer to open file stat \t- %u\n", superbl.open_file_stat_pointer);
     printf("Pointer to inode table \t- %u\n", superbl.inode_table_pointer);
-    printf("Pointer to inode stat \t- %u\n", superbl.inode_bitmap_pointer);
+    printf("Pointer to inode stat \t- %u\n", superbl.inode_stat_pointer);
     printf("Pointer to block links \t- %u\n", superbl.block_links_pointer);
-    printf("Pointer to block stat \t- %u\n", superbl.block_bitmap_pointer);
+    printf("Pointer to block stat \t- %u\n", superbl.block_stat_pointer);
     printf("Pointer to begin of data blocks \t- %u\n", superbl.data_blocks_pointer);
 
     puts("\n");
@@ -354,8 +354,9 @@ void use_row(uint16_t openFileIndex, void* shm_addr){
     fs_set_used_opened_files(++tmp, shm_addr);
 }
 
-void free_row(uint16_t openFileIndex, void* shm_addr){
+void free_row(uint16_t openFileIndex, void* shm_addr) {
     fs_mark_open_file_as_free(openFileIndex, shm_addr);
+}
 
 int16_t read_buffer(uint32_t block_num, uint32_t offset, char* buf, int len, void* shm_addr) {
 
@@ -364,6 +365,7 @@ int16_t read_buffer(uint32_t block_num, uint32_t offset, char* buf, int len, voi
 
     // target inode read semaphore
     fs_get_data(offset, offset + len, block_num, buf, shm_addr);
+    return -1;
 }
 
 int16_t write_buffer(uint32_t block_num, uint32_t offset, char* buf, int len, void* shm_addr) {
@@ -375,20 +377,21 @@ int16_t write_buffer(uint32_t block_num, uint32_t offset, char* buf, int len, vo
     // also block_stat semaphore here or inside fs_save_data 
     // because of block allocation
     fs_save_data(offset, offset + len, block_num, buf, shm_addr);
+    return -1;
 }
 
 
 // Synchronized setters for Inode
 
-void set_inode_block_index(uint16_t inode, uint32_t block_index, void* shm_addr) {
+int8_t set_inode_block_index(uint16_t inode, uint32_t block_index, void* shm_addr) {
 
     // can be changed only via simplefs_write
     // target inode write semaphore
-    int8_t ret_value = fs_save_data_to_inode_uint32(inode, 0, block_index, shm_addr)
+    int8_t ret_value = fs_save_data_to_inode_uint32(inode, 0, block_index, shm_addr);
     return ret_value;
 }
 
-void set_inode_file_size(uint16_t inode, uint16_t filesize, void* shm_addr) {
+int8_t set_inode_file_size(uint16_t inode, uint16_t filesize, void* shm_addr) {
 
     // can be changed only via simplefs_write
     // target inode write semaphore
