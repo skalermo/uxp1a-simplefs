@@ -463,3 +463,12 @@ struct OpenFile get_open_file(uint32_t fd, void *shm_addr) {
 
     return result;
 }
+
+void inc_ref_count(uint16_t inode, void *shm_addr) {
+    uint8_t ref_count;
+    fs_get_data_from_inode_uint8(inode, 5, &ref_count, shm_addr);
+
+    ref_count += 1;
+
+    fs_save_data_to_inode_uint8(inode, 5, ref_count, shm_addr);
+}

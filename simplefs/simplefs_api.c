@@ -25,6 +25,9 @@ int simplefs_open(char *name, int mode) {
     // Save Open file entry in FS
     int32_t fd = save_new_OpenFile_entry(&new_open_file, shm_addr);
 
+    // Increment ref_count
+    inc_ref_count(inode_idx, shm_addr);
+
     return fd;
 }
 
@@ -87,6 +90,9 @@ int simplefs_creat(char *name, int mode) {
 
     // Save Open file entry in FS
     int32_t fd = save_new_OpenFile_entry(&new_open_file, shm_addr);
+
+    // Increment ref_count
+    inc_ref_count(inode_idx, shm_addr);
 
     return fd;
 }
