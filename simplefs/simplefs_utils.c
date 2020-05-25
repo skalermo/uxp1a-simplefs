@@ -454,3 +454,11 @@ int16_t free_data_blocks(uint32_t block_index, void *shm_addr) {
     }
     return 0;
 }
+
+struct OpenFile get_open_file(uint32_t fd, void *shm_addr) {
+    struct OpenFile result;
+
+    fs_get_open_file_copy(fd, &result, shm_addr);
+
+    return result;
+}

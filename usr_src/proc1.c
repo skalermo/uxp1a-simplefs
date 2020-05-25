@@ -29,11 +29,20 @@ int main(int argc, char const *argv[])
 
 //     create_fs();
 
-    int fd = simplefs_creat("/file.txt", 1);
+    int fd1 = simplefs_creat("/file.txt", FS_WRITE);
     void* shm_addr = get_ptr_to_fs();
 
-    struct Superblock* superblock = shm_addr;
+    char buf[] = "Hello world";
 
+    simplefs_write(fd1, buf, sizeof(buf));
+
+    int fd2 = simplefs_open("/file.txt", FS_READ);
+
+    char read[12] = {0};
+
+    simplefs_read(fd2, read, 12);
+
+    printf("%s\n", read);
 
     unlink_fs();
     return 0;
