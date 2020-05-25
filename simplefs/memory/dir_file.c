@@ -63,7 +63,7 @@ int8_t inner_fs_find_block_through_index_with_error(uint32_t* blockNumber, uint3
         uint32_t indexDifference = fs_get_data_block_size(addr) / sizeof(struct DirEntry);
 
         for(uint32_t i = 0; i < howManyBlocks; ++i){
-            uint8_t ret = inner_fs_next_block_with_error(&realBlockNumber, addr);
+            int8_t ret = inner_fs_next_block_with_error(&realBlockNumber, addr);
             if(ret == -1) return -1;
             freeEntryIndexInBlock -= indexDifference;
         }
@@ -279,7 +279,7 @@ int8_t fs_get_free_dir_entry(uint32_t blockNumber, uint32_t* dirEntryIndex, void
                 return 0;
             }
         }
-        uint8_t retVal = inner_fs_next_block_with_allocate(&nextBlockIndex, addr);
+        int8_t retVal = inner_fs_next_block_with_allocate(&nextBlockIndex, addr);
         if(retVal == -1) return -1;
         if(retVal == 1){ // new block was allocated
             // create empty structures
@@ -294,7 +294,7 @@ int8_t fs_get_free_dir_entry(uint32_t blockNumber, uint32_t* dirEntryIndex, void
 }
 
 int8_t fs_occupy_free_dir_entry(uint32_t blockNumber, uint32_t* dirEntryIndex, struct DirEntry* dirEntryToSave, void* addr){
-    void* block_ptr = fs_get_data_blocks_ptr(addr) + (blockNumber * sizeof(struct DirEntry));
+    void* block_ptr = fs_get_data_blocks_ptr(addr) + (blockNumber * fs_get_data_block_size(addr));
     struct DirEntry toRead;
     uint32_t nextBlockIndex = blockNumber;
 
@@ -308,7 +308,7 @@ int8_t fs_occupy_free_dir_entry(uint32_t blockNumber, uint32_t* dirEntryIndex, s
                 return 0;
             }
         }
-        uint8_t retVal = inner_fs_next_block_with_allocate(&nextBlockIndex, addr);
+        int8_t retVal = inner_fs_next_block_with_allocate(&nextBlockIndex, addr);
         if(retVal == -1) return -1;
         if(retVal == 1){ // new block was allocated
             // create empty structures
