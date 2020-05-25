@@ -1,6 +1,7 @@
 #include "simplefs_utils.h"
 #include "open_files.h"
 #include "inode.h"
+#include "init.h"
 #include "block_links.h"
 #include <string.h>
 #include <stdlib.h>
@@ -97,6 +98,15 @@ void free_string_array(char*** entries, int count)
     *entries = NULL;
 }
 
+uint32_t get_entries_count(uint32_t dir_file_block, void* shm_addr){
+    uint32_t count = 1;
+    while((dir_file_block = fs_get_next_block_number(dir_file_block, shm_addr)) != FS_EMPTY_BLOCK_VALUE){
+        ++count;
+    }
+
+    return count * BLOCK_SIZE / sizeof(struct DirEntry);
+}
+
 int16_t next_inode(uint16_t prev_inode, char* name, void* shm_addr){
     if(!strcmp(name, "/"))
         return 1;
@@ -104,10 +114,11 @@ int16_t next_inode(uint16_t prev_inode, char* name, void* shm_addr){
     struct DirEntry copy;
 
     uint32_t dir_file_block = get_inode_block_index(prev_inode, shm_addr);
+    uint32_t max = 16;//get_entries_count(dir_file_block, shm_addr);
 
     // wait
     uint32_t entry_idx = 0;
-    while(fs_get_dir_entry_copy(dir_file_block, entry_idx, &copy, shm_addr) >= 0){
+    while(fs_get_dir_entry_copy(dir_file_block, entry_idx, &copy, shm_addr) >= 0 && entry_idx < max){
 
         if(copy.inode_number != 0 && !strcmp((char*) copy.name, name)){
             return copy.inode_number;

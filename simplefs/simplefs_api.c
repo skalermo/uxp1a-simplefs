@@ -32,47 +32,52 @@ int simplefs_creat(char *name, int mode) {
     // Init system
     shm_addr = get_ptr_to_fs();
 
-    char* name_copy = strdup(name);
+    // Check if exists
+    int32_t inode_idx = -1;//get_inode_index(name, shm_addr);
+    if(inode_idx < 0) {
+        char *name_copy = strdup(name);
 
-    // Get Filename and dir path
-    char* filename = basename(name);
-    char* dir_path = dirname(name_copy);
+        // Get Filename and dir path
+        char *filename = basename(name);
+        char *dir_path = dirname(name_copy);
 
-    // Get Inode idx for dir
-    int dir_inode = get_inode_index(dir_path, shm_addr);
+        // Get Inode idx for dir
+        int dir_inode = get_inode_index(dir_path, shm_addr);
 
-    if(dir_inode < 0)
-        return ENOTDIR;
+        if (dir_inode < 0)
+            return ENOTDIR;
 
-    // Create inode
-    struct Inode new_inode = {0};
-    new_inode.block_index = allocate_new_chain(shm_addr);
+        // Create inode
+        struct Inode new_inode = {0};
+        new_inode.block_index = allocate_new_chain(shm_addr);
 
-    if(new_inode.block_index < 0)
-        return EIO;
+        if (new_inode.block_index < 0)
+            return EIO;
 
-    // Save inode in FS
-    int32_t inode_idx = save_new_inode(&new_inode, shm_addr);
+        // Save inode in FS
+        inode_idx = save_new_inode(&new_inode, shm_addr);
 
-    if(inode_idx < 0)
-        return ENOSPC;
+        if (inode_idx < 0)
+            return ENOSPC;
 
-    // Create Dir Entry
-    struct DirEntry new_dir_entry;
-    new_dir_entry.inode_number = inode_idx;
-    strcpy(new_dir_entry.name, filename);
-    new_dir_entry.name_len = strlen(filename);
+        // Create Dir Entry
+        struct DirEntry new_dir_entry;
+        new_dir_entry.inode_number = inode_idx;
+        strcpy(new_dir_entry.name, filename);
+        new_dir_entry.name_len = strlen(filename);
 
-    // Get directory block index
-    uint32_t dir_block = get_inode_block_index(dir_inode, shm_addr);
-    if(dir_block == INT32_MAX)
-        return ENOENT;
+        // Get directory block index
+        uint32_t dir_block = get_inode_block_index(dir_inode, shm_addr);
+        if (dir_block == INT32_MAX)
+            return ENOENT;
 
-    // Save dir entry in FS
-    int32_t dir_entry_idx = save_new_dir_entry(dir_block, &new_dir_entry, shm_addr);
-    if(dir_entry_idx < 0)
-        return ENOSPC;
+        // Save dir entry in FS
+        int32_t dir_entry_idx = save_new_dir_entry(dir_block, &new_dir_entry, shm_addr);
+        if (dir_entry_idx < 0)
+            return ENOSPC;
 
+        free(name_copy);
+    }
 
     // Create Open File entry
     struct OpenFile new_open_file;
@@ -83,7 +88,6 @@ int simplefs_creat(char *name, int mode) {
     // Save Open file entry in FS
     int32_t fd = save_new_OpenFile_entry(&new_open_file, shm_addr);
 
-    free(name_copy);
     return fd;
 }
 

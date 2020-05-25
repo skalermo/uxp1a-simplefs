@@ -23,9 +23,9 @@
 
 int main(int argc, char const *argv[])
 {
-//    sem_unlink(CREATE_FS_GUARD);
-//
-//    shm_unlink(FS_SHM_NAME);
+    sem_unlink(CREATE_FS_GUARD);
+
+    shm_unlink(FS_SHM_NAME);
 
 //     create_fs();
 
