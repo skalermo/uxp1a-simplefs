@@ -121,7 +121,7 @@ int16_t next_inode(uint16_t prev_inode, char* name, void* shm_addr){
 }
 
 int32_t get_inode_index(char *path, void* shm_addr){
-    uint16_t current_inode = 1;
+    int16_t current_inode = 1;
 
     char** sub_path = NULL;
     uint32_t sub_path_count = parse_path(path, &sub_path);

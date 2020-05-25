@@ -24,13 +24,13 @@
 int main(int argc, char const *argv[])
 {
     sem_unlink(CREATE_FS_GUARD);
-
     shm_unlink(FS_SHM_NAME);
-
-//     create_fs();
-
+//    create_fs();
+//    int a = get_inode_index("/file", shm_addr);
     int fd1 = simplefs_creat("/file.txt", FS_WRITE);
     void* shm_addr = get_ptr_to_fs();
+
+
 
     char buf[] = "Hello world";
 
@@ -44,6 +44,7 @@ int main(int argc, char const *argv[])
 
     printf("%s\n", read);
 
+    int a = simplefs_unlink("/file.txt");
     unlink_fs();
     return 0;
 }

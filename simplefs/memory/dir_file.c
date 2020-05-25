@@ -97,8 +97,6 @@ int8_t fs_save_data_to_dir_entry_name(uint32_t blockNumber, uint32_t dirEntryInd
 }
 
 int8_t fs_save_data_to_dir_entry_inode_number(uint32_t blockNumber, uint32_t dirEntryIndex, uint16_t inodeNumber, void* addr){
-    if(inodeNumber == 0) return -1;
-
     void* block_ptr;
     uint32_t freeEntryIndexInBlock = dirEntryIndex;
     uint32_t realBlockNumber = blockNumber;
