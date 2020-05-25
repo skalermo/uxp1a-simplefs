@@ -358,8 +358,7 @@ int16_t read_buffer(uint32_t block_num, uint32_t offset, char* buf, int len, voi
     // change in fs_get_data() required
 
     // target inode read semaphore
-    fs_get_data(offset, offset + len, block_num, buf, shm_addr);
-    return -1;
+    return fs_get_data(offset, offset + len, block_num, buf, shm_addr);
 }
 
 int16_t write_buffer(uint32_t block_num, uint32_t offset, char* buf, int len, void* shm_addr) {
@@ -370,8 +369,7 @@ int16_t write_buffer(uint32_t block_num, uint32_t offset, char* buf, int len, vo
     // target inode write semaphore
     // also block_stat semaphore here or inside fs_save_data 
     // because of block allocation
-    fs_save_data(offset, offset + len, block_num, buf, shm_addr);
-    return -1;
+    return fs_save_data(offset, offset + len, block_num, buf, shm_addr);
 }
 
 

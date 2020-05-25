@@ -88,11 +88,59 @@ int simplefs_creat(char *name, int mode) {
 }
 
 int simplefs_read(int fd, char *buf, int len) {
-    return ENOTIMPLEMENTED;
+    // Init system
+    shm_addr = get_ptr_to_fs();
+
+    struct OpenFile openFile = get_open_file(fd, shm_addr);
+    if(openFile.mode != FS_READ){
+        return EBADF;
+    }
+
+    // Set inode mode to READ
+    set_inode_mode(openFile.inode_num, openFile.mode, shm_addr);
+
+    // Get data block
+    uint32_t block_idx = get_inode_block_index(openFile.inode_num, shm_addr);
+
+    // Read Buffer
+    read_buffer(block_idx, openFile.offset, buf, len, shm_addr);
+
+    // Update offset
+    openFile.offset += len;
+    set_offset(fd, openFile.offset, shm_addr);
+
+    // Set inode mode to 0
+    set_inode_mode(openFile.inode_num, 0, shm_addr);
+
+    return 0;
 }
 
 int simplefs_write(int fd, char *buf, int len) {
-    return ENOTIMPLEMENTED;
+    // Init system
+    shm_addr = get_ptr_to_fs();
+
+    struct OpenFile openFile = get_open_file(fd, shm_addr);
+    if(openFile.mode != FS_WRITE){
+        return EBADF;
+    }
+
+    // Set inode mode to WRITE
+    set_inode_mode(openFile.inode_num, openFile.mode, shm_addr);
+
+    // Get data block
+    uint32_t block_idx = get_inode_block_index(openFile.inode_num, shm_addr);
+
+    // Write Buffer
+    write_buffer(block_idx, openFile.offset, buf, len, shm_addr);
+
+    // Update offset
+    openFile.offset += len;
+    set_offset(fd, openFile.offset, shm_addr);
+
+    // Set inode mode to 0
+    set_inode_mode(openFile.inode_num, 0, shm_addr);
+
+    return 0;
 }
 
 int simplefs_lseek(int fd, int whence, int offset) {
