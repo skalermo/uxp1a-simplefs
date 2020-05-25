@@ -100,7 +100,54 @@ int simplefs_lseek(int fd, int whence, int offset) {
 }
 
 int simplefs_unlink(char *name) {
-    return ENOTIMPLEMENTED;
+    // Init system
+    shm_addr = get_ptr_to_fs();
+
+    // Get file inode
+    int file_inode = get_inode_index(name, shm_addr);
+    if(file_inode < 0){
+        return file_inode;
+    }
+
+    // Check ref_count
+    int ref_count = get_ref_count(file_inode, shm_addr);
+    if(ref_count > 0)
+        return EBUSY;
+
+    // Get dir inode
+    char* name_copy = strdup(name);
+    char* dir_path = dirname(name_copy);
+    int dir_inode = get_inode_index(dir_path, shm_addr);
+
+    if(dir_inode < 0){
+        return dir_inode;
+    }
+
+    // Get directory block index
+    uint32_t dir_block = get_inode_block_index(dir_inode, shm_addr);
+    if(dir_block == INT32_MAX)
+        return ENOENT;
+
+    // Remove dir entry from dir file
+    int ret = free_dir_entry(dir_block, file_inode, shm_addr);
+    if(ret < 0){
+        return ret;
+    }
+
+    // Free blocks
+    uint32_t file_block = get_inode_block_index(file_inode, shm_addr);
+    ret = free_data_blocks(file_block, shm_addr);
+    if(ret < 0){
+        return ret;
+    }
+
+    // Set bit in bitmap
+    ret = free_inode(file_inode, shm_addr);
+    if(ret < 0){
+        return ret;
+    }
+
+    return 0;
 }
 
 int simplefs_mkdir(char *name) {
