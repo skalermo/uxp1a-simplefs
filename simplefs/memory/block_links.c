@@ -79,6 +79,66 @@ int8_t fs_get_data(uint32_t from, uint32_t to, uint32_t initialBlockNumber, void
     return 0;
 }
 
+int32_t fs_get_data_count(uint32_t from, uint32_t to, uint32_t initialBlockNumber, void* receivedData, void* addr){
+    uint32_t nextBlockIndex = initialBlockNumber;
+    uint16_t blockSize = fs_get_data_block_size(addr);
+    
+    uint32_t howManyBlocks = (to - from) / blockSize;
+    uint32_t lastBlockOccupancy = to % blockSize;
+
+    uint32_t beginBlock = from / blockSize;
+    uint32_t beginBlockOccupancy = from % blockSize;
+    uint32_t howManyDataLeft = to - from;
+
+    uint32_t receivedData_ptr = 0;
+
+    // loop to the block where you start reading
+    for(uint32_t i = 0; i < beginBlock; ++i){
+        if(inner_fs_next_block_with_error(&nextBlockIndex, addr) == -1) return -1;
+    }
+
+    // first block
+    void* dataBlockReal_ptr = fs_get_data_blocks_ptr(addr) + (nextBlockIndex * blockSize);
+    uint32_t differenceInBlock = blockSize - beginBlockOccupancy;
+
+    // data can fit from one block
+    if(differenceInBlock > howManyDataLeft){
+        memcpy(receivedData, dataBlockReal_ptr + beginBlockOccupancy, howManyDataLeft);
+        return howManyDataLeft;
+    }
+
+    // get all from block
+    memcpy(receivedData, dataBlockReal_ptr + beginBlockOccupancy, differenceInBlock);
+    receivedData_ptr += differenceInBlock;
+    howManyDataLeft -= differenceInBlock;
+    
+    // rest of blocks, all of them will be full
+    differenceInBlock = blockSize; // always like that in the loop below
+    for(uint32_t i = 1; i < howManyBlocks; ++i){
+        int8_t ret = inner_fs_next_block_with_error(&nextBlockIndex, addr);
+
+        if(ret == -1) return receivedData_ptr;
+        dataBlockReal_ptr = fs_get_data_blocks_ptr(addr) + (nextBlockIndex * blockSize);
+
+        memcpy(receivedData + receivedData_ptr, dataBlockReal_ptr, differenceInBlock);
+        receivedData_ptr += differenceInBlock;
+    }
+
+    howManyDataLeft = howManyDataLeft - (blockSize * (howManyBlocks - 1));
+
+
+    // end of read, possibly last block
+    if(lastBlockOccupancy != 0){
+        if(inner_fs_next_block_with_error(&nextBlockIndex, addr) == -1) return receivedData_ptr;
+        differenceInBlock = howManyDataLeft;
+        dataBlockReal_ptr = fs_get_data_blocks_ptr(addr) + (nextBlockIndex * blockSize);
+        memcpy(receivedData + receivedData_ptr, dataBlockReal_ptr, differenceInBlock);
+        receivedData_ptr += differenceInBlock;
+    }
+
+    return receivedData_ptr;
+}
+
 int8_t fs_save_data(uint32_t from, uint32_t to, uint32_t initialBlockNumber, void* dataToSave, void* addr){
     uint32_t nextBlockIndex = initialBlockNumber;
     uint16_t blockSize = fs_get_data_block_size(addr);
@@ -130,6 +190,60 @@ int8_t fs_save_data(uint32_t from, uint32_t to, uint32_t initialBlockNumber, voi
     }
 
     return 0;
+}
+
+int32_t fs_save_data_count(uint32_t from, uint32_t to, uint32_t initialBlockNumber, void* dataToSave, void* addr){
+    uint32_t nextBlockIndex = initialBlockNumber;
+    uint16_t blockSize = fs_get_data_block_size(addr);
+
+    uint32_t beginBlockOccupancy = from % blockSize;
+    uint32_t lastBlockOccupancy = to % blockSize;
+
+    uint32_t beginBlock = from / blockSize;
+    uint32_t howManyBlocks = (to - from) / blockSize;
+    uint32_t howManyDataLeft = to - from;
+
+    uint32_t recordData_ptr = 0;
+
+     // loop to the block where you start reading
+    for(uint32_t i = 0; i < beginBlock; ++i){
+        if(inner_fs_next_block_with_allocate(&nextBlockIndex, addr) == -1) return -1;
+    }
+    
+    // first block
+    uint32_t differenceInBlock = blockSize - beginBlockOccupancy;
+    void* dataBlockReal_ptr = fs_get_data_blocks_ptr(addr) + (nextBlockIndex * blockSize);
+
+    // data can fit from one block
+    if(differenceInBlock > howManyDataLeft){
+        memcpy(dataBlockReal_ptr + beginBlockOccupancy, dataToSave, howManyDataLeft);
+        return howManyDataLeft;
+    }
+
+    // save to the first block
+    memcpy(dataBlockReal_ptr + beginBlockOccupancy, dataToSave, differenceInBlock);
+    recordData_ptr += differenceInBlock;
+
+    // rest of blocks, all of them will be full
+    differenceInBlock = blockSize;
+    for(uint32_t i = 1; i < howManyBlocks; ++i){
+        if(inner_fs_next_block_with_allocate(&nextBlockIndex, addr) == -1) return recordData_ptr;
+        dataBlockReal_ptr = fs_get_data_blocks_ptr(addr) + (nextBlockIndex * blockSize);
+
+        memcpy(dataBlockReal_ptr, dataToSave + recordData_ptr, differenceInBlock);
+        recordData_ptr += differenceInBlock;
+    }
+
+    // end of read, possibly last block
+    if(lastBlockOccupancy != 0){
+        if(inner_fs_next_block_with_allocate(&nextBlockIndex, addr) == -1) return recordData_ptr;
+        differenceInBlock = (to - from) - recordData_ptr;
+        dataBlockReal_ptr = fs_get_data_blocks_ptr(addr) + (nextBlockIndex * blockSize);
+        memcpy(dataBlockReal_ptr, dataToSave + recordData_ptr, differenceInBlock);
+        recordData_ptr += differenceInBlock;
+    }
+
+    return recordData_ptr;
 }
 
 uint32_t fs_get_next_block_number(uint32_t blockNumber, void* addr){
