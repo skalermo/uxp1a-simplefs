@@ -222,7 +222,7 @@ int8_t fs_create_blocks_stuctures_in_shm(void* addr){
     toSaveStat.block_bitmap = malloc(sizeofBitmapAlone);
 
     for(unsigned int i = 0; i < numberOfBlocks; ++i){
-        toSave.block_num[0] = FS_EMPTY_BLOCK_VALUE;
+        toSave.block_num[i] = FS_EMPTY_BLOCK_VALUE;
     }
 
     // first block is for main directory
