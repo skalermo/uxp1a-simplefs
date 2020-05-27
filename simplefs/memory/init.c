@@ -212,7 +212,7 @@ int get_open_file_table_size(uint32_t open_file_count) {
 
 int get_open_file_stat_size(uint32_t open_file_count) {
     // ceil(open_file_count/8)
-    uint32_t bitmaps = open_file_count / 8 + (open_file_count % 8 != 0);
+    uint32_t bitmaps = open_file_count / 8 + 1;
 
     // OpenFileStat struct:
     // uint8_t* open_file_bitmap;
@@ -227,7 +227,7 @@ int get_inode_table_size (uint32_t inode_count) {
 
 uint32_t get_InodeStat_size(uint32_t inode_count){
     // ceil(inode_count/8)
-    uint32_t bitmaps = inode_count / 8 + (inode_count % 8 != 0);
+    uint32_t bitmaps = inode_count / 8 + 1;
 
     // InodeStat struct:
     // uint8_t* inode_bitmap;
@@ -238,7 +238,7 @@ uint32_t get_InodeStat_size(uint32_t inode_count){
 
 uint32_t get_BlockStat_size(uint32_t block_count){
     // ceil(block_count/8)
-    uint32_t bitmaps = block_count / 8 + (block_count % 8 != 0);
+    uint32_t bitmaps = block_count / 8 + 1;
 
     // BlockStat{
     // uint8_t* block_bitmap;

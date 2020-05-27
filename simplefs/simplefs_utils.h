@@ -205,8 +205,6 @@ struct OpenFile get_open_file(uint32_t fd, void* shm_addr);
 int8_t set_inode_num(uint16_t fd, uint16_t inode_num, void* shm_addr);
 int8_t set_offset(uint16_t fd, uint32_t offset, void* shm_addr);
 
-// Synchronised get for DirEntry
-int8_t get_dir_entry(uint32_t dir_file_block, uint32_t entry_idx, struct DirEntry* return_entry, void* shm_addr);
 
 
 #endif // SIMPLEFS_API_H

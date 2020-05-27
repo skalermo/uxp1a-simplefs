@@ -1,6 +1,7 @@
 #include "simplefs_utils.h"
 #include "open_files.h"
 #include "inode.h"
+#include "init.h"
 #include "block_links.h"
 #include <string.h>
 #include <stdlib.h>
@@ -117,9 +118,11 @@ int16_t next_inode(uint16_t prev_inode, char* name, uint8_t type, void* shm_addr
         }   
         ++entry_idx;
     }
+    // signal
 
     return -1;
 }
+
 
 int32_t get_inode_index(char *path, uint8_t type, void* shm_addr){
     uint16_t current_inode = 1;
@@ -301,14 +304,6 @@ uint8_t  get_ref_count(uint16_t inode_idx, void* shm_addr){
     return ref_count;
 }
 
-int8_t get_dir_entry(uint32_t dir_file_block, uint32_t entry_idx, struct DirEntry* return_entry, void* shm_addr){
-    // wait
-    int8_t ret_value = fs_get_dir_entry_copy(dir_file_block, entry_idx, return_entry, shm_addr);
-    // signal
-
-    return ret_value;
-}
-
 uint32_t used_inodes_count(void* shm_addr){
     return fs_get_used_inodes(shm_addr);
 }
@@ -381,8 +376,7 @@ int16_t read_buffer(uint32_t block_num, uint32_t offset, char* buf, int len, voi
     // change in fs_get_data() required
 
     // target inode read semaphore
-    fs_get_data(offset, offset + len, block_num, buf, shm_addr);
-    return -1;
+    return fs_get_data(offset, offset + len, block_num, buf, shm_addr);
 }
 
 int16_t write_buffer(uint32_t block_num, uint32_t offset, char* buf, int len, void* shm_addr) {
@@ -393,8 +387,7 @@ int16_t write_buffer(uint32_t block_num, uint32_t offset, char* buf, int len, vo
     // target inode write semaphore
     // also block_stat semaphore here or inside fs_save_data 
     // because of block allocation
-    fs_save_data(offset, offset + len, block_num, buf, shm_addr);
-    return -1;
+    return fs_save_data(offset, offset + len, block_num, buf, shm_addr);
 }
 
 
@@ -436,4 +429,63 @@ int8_t set_offset(uint16_t fd, uint32_t offset, void* shm_addr) {
     // no sync needed
     int8_t ret_value = fs_save_data_to_open_file_uint32(fd, 2, offset, shm_addr);
     return ret_value;
+}
+
+int16_t free_dir_entry(uint32_t dir_block_number, uint16_t inode, void *shm_addr) {
+    struct DirEntry copy;
+    uint32_t entry_idx = 0;
+    int ret = -1;
+
+    // wait
+    while(fs_get_dir_entry_copy(dir_block_number, entry_idx, &copy, shm_addr) >= 0){
+        if(copy.inode_number == inode){
+            // free dir entry
+            ret = fs_save_data_to_dir_entry_inode_number(dir_block_number, entry_idx, 0, shm_addr);
+            break;
+        }
+        ++entry_idx;
+    }
+    // signal
+
+    // If not found or error
+    if(ret < 0)
+        return -1;
+
+    return 0;
+}
+
+int16_t free_inode(uint16_t inode, void *shm_addr) {
+    // maybe sync
+    int ret = fs_mark_inode_as_free(inode, shm_addr);
+    if(ret < 0){
+        return ret;
+    }
+
+    return 0;
+}
+
+int16_t free_data_blocks(uint32_t block_index, void *shm_addr) {
+    // maybe sync
+    int ret = fs_free_blockchain(block_index, shm_addr);
+    if(ret < 0){
+        return ret;
+    }
+    return 0;
+}
+
+struct OpenFile get_open_file(uint32_t fd, void *shm_addr) {
+    struct OpenFile result;
+
+    fs_get_open_file_copy(fd, &result, shm_addr);
+
+    return result;
+}
+
+void inc_ref_count(uint16_t inode, void *shm_addr) {
+    uint8_t ref_count;
+    fs_get_data_from_inode_uint8(inode, 5, &ref_count, shm_addr);
+
+    ref_count += 1;
+
+    fs_save_data_to_inode_uint8(inode, 5, ref_count, shm_addr);
 }
