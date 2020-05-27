@@ -26,14 +26,14 @@ void tearDown(void) {
 
 void test_get_inode_index(void)
 {
-    int idx = get_inode_index("/file.txt", shm_addr);
+    int idx = get_inode_index("/file.txt", IS_FILE, shm_addr);
 
     TEST_ASSERT_GREATER_THAN(0, idx);
 }
 
 void test_get_inode(void)
 {
-    int idx = get_inode_index("/file.txt", shm_addr);
+    int idx = get_inode_index("/file.txt", IS_FILE, shm_addr);
     TEST_ASSERT_GREATER_THAN(0, idx);
 
 
