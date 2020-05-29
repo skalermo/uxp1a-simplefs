@@ -475,7 +475,7 @@ int simplefs_mkdir(char *name) {
         fs_sem_close_main_folder(&semMainFolder);
         return ENOTDIR;
     }
-
+    
     int32_t does_already_exist = next_inode(dir_inode, filename, IS_DIR, shm_addr);
     if(does_already_exist != -1){
         fs_sem_unlock_write_main_folder(&semMainFolder, shm_addr);
@@ -496,19 +496,17 @@ int simplefs_mkdir(char *name) {
 
     uint16_t inode_idx = save_new_inode(&new_inode, shm_addr);
 
-    fs_sem_unlock_inode_stat(&semInodeStat);
-    fs_sem_close_inode_stat(&semInodeStat);
 
     if(inode_idx == UINT16_MAX){
         fs_sem_unlock_write_main_folder(&semMainFolder, shm_addr);
         fs_sem_close_main_folder(&semMainFolder);
         fs_sem_unlock_inode_stat(&semInodeStat);
         fs_sem_close_inode_stat(&semInodeStat);
-        fs_sem_unlock_block_stat(&semInodeStat);
-        fs_sem_close_block_stat(&semInodeStat);
+        fs_sem_unlock_block_stat(&semBlock);
+        fs_sem_close_block_stat(&semBlock);
         return ENOSPC;
     }
-        
+   
 
     structHelp.prevoiusDirInode = dir_inode;
     structHelp.prevoiusDirInodeName = filenamePrev;
@@ -523,8 +521,8 @@ int simplefs_mkdir(char *name) {
         fs_sem_close_main_folder(&semMainFolder);
         fs_sem_unlock_inode_stat(&semInodeStat);
         fs_sem_close_inode_stat(&semInodeStat);
-        fs_sem_unlock_block_stat(&semInodeStat);
-        fs_sem_close_block_stat(&semInodeStat);
+        fs_sem_unlock_block_stat(&semBlock);
+        fs_sem_close_block_stat(&semBlock);
         return ENOSPC;
     }
         
@@ -544,22 +542,26 @@ int simplefs_mkdir(char *name) {
         fs_sem_close_main_folder(&semMainFolder);
         fs_sem_unlock_inode_stat(&semInodeStat);
         fs_sem_close_inode_stat(&semInodeStat);
-        fs_sem_unlock_block_stat(&semInodeStat);
-        fs_sem_close_block_stat(&semInodeStat);
+        fs_sem_unlock_block_stat(&semBlock);
+        fs_sem_close_block_stat(&semBlock);
         return ENOENT;
     }
         
-
     // Modify previous Dir File and save dir entry in FS
     int32_t dir_entry_idx = save_new_dir_entry(dir_block, &new_dir_entry, shm_addr);
-
+puts("AA");
     fs_sem_unlock_write_main_folder(&semMainFolder, shm_addr);
+puts("BB");
     fs_sem_close_main_folder(&semMainFolder);
+    puts("CC");
     fs_sem_unlock_inode_stat(&semInodeStat);
+    puts("DD");
     fs_sem_close_inode_stat(&semInodeStat);
-    fs_sem_unlock_block_stat(&semInodeStat);
-    fs_sem_close_block_stat(&semInodeStat);
-
+    puts("EE");
+    fs_sem_unlock_block_stat(&semBlock);
+    puts("FF");
+    fs_sem_close_block_stat(&semBlock);
+puts("AA");
     if(dir_entry_idx < 0)
         return ENOSPC;
 
