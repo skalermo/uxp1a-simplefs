@@ -1,5 +1,5 @@
 /*
- * fs_synchronization.h
+ * simplefs_synchronization.h
  *
  *      Author: Kordowski Mateusz
  */
@@ -122,7 +122,7 @@ int8_t fs_sem_lock_open_file_stat(struct Semaphore* openFileStat);
 
 int8_t fs_sem_unlock_open_file_stat(struct Semaphore* openFileStat);
 
-int8_t fs_sem_init_close_file_stat(struct Semaphore* openFileStat);
+int8_t fs_sem_close_open_file_stat(struct Semaphore* openFileStat);
 
 int8_t fs_sem_unlink_open_file_stat();
 
