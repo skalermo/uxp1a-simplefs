@@ -98,7 +98,7 @@ void free_string_array(char*** entries, int count)
     *entries = NULL;
 }
 
-int16_t next_inode(uint16_t prev_inode, char* name, uint8_t type, void* shm_addr){
+int32_t next_inode(uint16_t prev_inode, char* name, uint8_t type, void* shm_addr){
     if(!strcmp(name, "/"))
         return 1;
 
@@ -108,13 +108,13 @@ int16_t next_inode(uint16_t prev_inode, char* name, uint8_t type, void* shm_addr
     uint32_t dir_file_block = get_inode_block_index(prev_inode, shm_addr);
 
     uint32_t entry_idx = 2;
-    while(get_dir_entry(dir_file_block, entry_idx, &copy, shm_addr) >= 0){
+    while(fs_get_dir_entry_copy(dir_file_block, entry_idx, &copy, shm_addr) >= 0){
 
         if(copy.inode_number != 0 && !strcmp((char*) copy.name, name)){
             fs_get_data_from_inode_uint8(copy.inode_number, 4, &inodeMode, shm_addr);
             if(inodeMode & type != 0)
                 return copy.inode_number;
-            return -1;
+            return -2;
         }   
         ++entry_idx;
     }
@@ -142,14 +142,23 @@ int32_t get_inode_index(char *path, uint8_t type, void* shm_addr){
     }
 
     if(type == IS_DIR){
+        struct ReadWriteSem semInode;
+        fs_sem_init_inode(&semInode, current_inode);
+        fs_sem_lock_read_inode(&semInode, shm_addr);
         current_inode = next_inode(current_inode, sub_path[loopMax], IS_DIR, shm_addr);
+        fs_sem_unlock_read_inode(&semInode, shm_addr);
+        fs_sem_close_inode(&semInode);
     }
     else if(type == IS_FILE){
         current_inode = next_inode(current_inode, sub_path[loopMax], IS_FILE, shm_addr);
     }
     else return -1;
 
-    if(current_inode < 0) {
+    if(current_inode == -2) {
+        return -2;
+    }
+
+    if(current_inode == -1) {
         return -1;
     }
 

@@ -1,11 +1,11 @@
 /*
- * fs_synchronization.c
+ * simplefs_synchronization.c
  *
  *      Author: Kordowski Mateusz
  */
 
 
-#include "fs_synchronization.h"
+#include "simplefs_synchronization.h"
 
 //////////////////////////////////////
 // Hidden functions
@@ -371,7 +371,7 @@ int8_t fs_sem_unlock_open_file_stat(struct Semaphore* openFileStat){
     return 0;
 }
 
-int8_t fs_sem_init_close_file_stat(struct Semaphore* openFileStat){
+int8_t fs_sem_close_open_file_stat(struct Semaphore* openFileStat){
     int tmp = sem_close(openFileStat->semaphore);
     if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_CLOSE_OPEN_FILE_STAT;
     return 0;

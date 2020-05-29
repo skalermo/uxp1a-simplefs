@@ -56,6 +56,21 @@ struct BlockStat{
 int8_t fs_get_data(uint32_t from, uint32_t to, uint32_t initialBlockNumber, void* receivedData, void* addr);
 
 /**
+ * @brief Get data that was saved in the file system.
+ * It does not allocate any more memory.
+ * It count how maby bytes was read.
+ * 
+ * @param from - starting place in blockchain in bytes.
+ * @param to - ending place in blockchain in bytes.
+ * @param initialBlockNumber - initial block number where the file's data is stored.
+ * @param receivedData - pointer where the read data was saved. The allocated memory should be big enough to store read data.
+ * @param addr - address of the mapped shared memory.
+ * @return int32_t - number of bytes read or
+ * -1 if it went beyond the allocated memory and cannot read anything.
+ */
+int32_t fs_get_data_count(uint32_t from, uint32_t to, uint32_t initialBlockNumber, void* receivedData, void* addr);
+
+/**
  * @brief Save data to the file.
  * @details The data in dataToRecord pointer will be read form the beginning and if the data size is bigger than difference 
  * of the pointers in blockchain then the next blocks will be allocated. The blocks will be allocated too if the 'from' variable points
@@ -71,6 +86,25 @@ int8_t fs_get_data(uint32_t from, uint32_t to, uint32_t initialBlockNumber, void
  * -1 if it failed to allocate the next block in blockchain.
  */
 int8_t fs_save_data(uint32_t from, uint32_t to, uint32_t initialBlockNumber, void* dataToSave, void* addr);
+
+
+/**
+ * @brief Save data to the file.
+ * @details The data in dataToRecord pointer will be read form the beginning and if the data size is bigger than difference 
+ * of the pointers in blockchain then the next blocks will be allocated. The blocks will be allocated too if the 'from' variable points
+ * to the yet unallocated memory.
+ * The first block must be already allocated.
+ * It counts how many bytes was wrote.
+ * 
+ * @param from - starting place in blockchain.
+ * @param to - ending place in blockchain.
+ * @param initialBlockNumber - initial block number where the file's data is stored.
+ * @param dataToSave - pointer where the data to save is stored. 
+ * @param addr - address of the mapped shared memory.
+ * @return int32_t - number of bytes wrote or
+ * -1 if it went beyond the allocated memory and cannot write anything.
+ */
+int32_t fs_save_data_count(uint32_t from, uint32_t to, uint32_t initialBlockNumber, void* dataToSave, void* addr);
 
 /**
  * @brief Get the index of the next block in blockchain.

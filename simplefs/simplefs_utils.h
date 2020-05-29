@@ -8,6 +8,7 @@
 #include "memory/inode.h"
 #include "memory/open_files.h"
 #include "memory/utils.h"
+#include "simplefs_synchronization.h"
 #include <stdint.h>
 #include <stdio.h>
 
@@ -82,6 +83,9 @@ void create_file();
 void create_dir();
 
 // Level 2 functions
+
+int32_t next_inode(uint16_t prev_inode, char* name, uint8_t type, void* shm_addr);
+
 /**
  * @param path
  * @return Inode index or Error code
