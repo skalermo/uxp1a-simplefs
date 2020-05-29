@@ -549,19 +549,13 @@ int simplefs_mkdir(char *name) {
         
     // Modify previous Dir File and save dir entry in FS
     int32_t dir_entry_idx = save_new_dir_entry(dir_block, &new_dir_entry, shm_addr);
-puts("AA");
     fs_sem_unlock_write_main_folder(&semMainFolder, shm_addr);
-puts("BB");
     fs_sem_close_main_folder(&semMainFolder);
-    puts("CC");
     fs_sem_unlock_inode_stat(&semInodeStat);
-    puts("DD");
     fs_sem_close_inode_stat(&semInodeStat);
-    puts("EE");
     fs_sem_unlock_block_stat(&semBlock);
-    puts("FF");
     fs_sem_close_block_stat(&semBlock);
-puts("AA");
+
     if(dir_entry_idx < 0)
         return ENOSPC;
 
