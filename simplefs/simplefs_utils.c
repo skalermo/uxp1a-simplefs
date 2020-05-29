@@ -108,7 +108,7 @@ int16_t next_inode(uint16_t prev_inode, char* name, uint8_t type, void* shm_addr
     uint32_t dir_file_block = get_inode_block_index(prev_inode, shm_addr);
 
     uint32_t entry_idx = 2;
-    while(get_dir_entry(dir_file_block, entry_idx, &copy, shm_addr) >= 0){
+    while(fs_get_dir_entry_copy(dir_file_block, entry_idx, &copy, shm_addr) >= 0){
 
         if(copy.inode_number != 0 && !strcmp((char*) copy.name, name)){
             fs_get_data_from_inode_uint8(copy.inode_number, 4, &inodeMode, shm_addr);

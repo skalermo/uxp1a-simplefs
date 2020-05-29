@@ -200,7 +200,7 @@ int simplefs_unlink(char *name) {
     shm_addr = get_ptr_to_fs();
 
     // Get file inode
-    int file_inode = get_inode_index(name, shm_addr);
+    int file_inode = get_inode_index(name, IS_FILE, shm_addr);
     if(file_inode < 0){
         return file_inode;
     }
@@ -213,7 +213,7 @@ int simplefs_unlink(char *name) {
     // Get dir inode
     char* name_copy = strdup(name);
     char* dir_path = dirname(name_copy);
-    int dir_inode = get_inode_index(dir_path, shm_addr);
+    int dir_inode = get_inode_index(dir_path, IS_DIR, shm_addr);
 
     if(dir_inode < 0){
         return dir_inode;
