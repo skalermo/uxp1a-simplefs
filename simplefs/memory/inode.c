@@ -155,8 +155,8 @@ int8_t fs_get_inode_copy(uint32_t inodeIndex, struct Inode* inodeCopy, void* add
     return 0;
 }
 
-uint32_t fs_get_used_inodes(void* addr){
-    uint32_t ret;
+uint16_t fs_get_used_inodes(void* addr){
+    uint16_t ret;
     memcpy(&ret, fs_get_inode_bitmap_ptr(addr) + inner_fs_get_sizeof_bitmap_alone(fs_get_max_number_of_inodes(addr)), inner_fs_get_InodeStat_used_sizeof());
     return ret;
 }
