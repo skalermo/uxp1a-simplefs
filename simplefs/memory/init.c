@@ -127,29 +127,29 @@ void create_fs_custom(const char *path, const unsigned fs_size) {
     uint32_t total_size = 0;
 
     total_size += get_superblock_size();
-    sblock.inode_stat_pointer = total_size + 1;
+    sblock.inode_stat_pointer = total_size;
 
     total_size += get_InodeStat_size(sblock.max_number_of_inodes);
-    sblock.inode_table_pointer = total_size + 1;
+    sblock.inode_table_pointer = total_size;
 
     total_size += get_inode_table_size(sblock.max_number_of_inodes);
-    sblock.open_file_stat_pointer = total_size + 1;
+    sblock.open_file_stat_pointer = total_size;
 
     total_size += get_open_file_stat_size(sblock.max_number_of_open_files);
-    sblock.open_file_table_pointer = total_size + 1;
+    sblock.open_file_table_pointer = total_size;
 
     total_size += get_open_file_table_size(sblock.max_number_of_open_files);
-    sblock.block_stat_pointer = total_size + 1;
+    sblock.block_stat_pointer = total_size;
 
     const uint32_t size_without_blocks = total_size;
     const uint32_t block_count = get_data_block_count(fs_size, size_without_blocks, sblock.data_block_size);
     sblock.number_of_data_blocks = block_count;
 
     total_size += get_BlockStat_size(sblock.number_of_data_blocks);
-    sblock.block_links_pointer = total_size + 1;
+    sblock.block_links_pointer = total_size;
 
     total_size += get_block_links_size(sblock.number_of_data_blocks);
-    sblock.data_blocks_pointer = total_size + 1;
+    sblock.data_blocks_pointer = total_size;
 
 
     // create the most important structure
@@ -212,7 +212,7 @@ int get_open_file_table_size(uint32_t open_file_count) {
 
 int get_open_file_stat_size(uint32_t open_file_count) {
     // ceil(open_file_count/8)
-    uint32_t bitmaps = open_file_count / 8 + 1;
+    uint32_t bitmaps = open_file_count / 8 + (open_file_count % 8 != 0);
 
     // OpenFileStat struct:
     // uint8_t* open_file_bitmap;
@@ -227,7 +227,7 @@ int get_inode_table_size (uint32_t inode_count) {
 
 uint32_t get_InodeStat_size(uint32_t inode_count){
     // ceil(inode_count/8)
-    uint32_t bitmaps = inode_count / 8 + 1;
+    uint32_t bitmaps = inode_count / 8 + (inode_count % 8 != 0);
 
     // InodeStat struct:
     // uint8_t* inode_bitmap;
@@ -238,7 +238,7 @@ uint32_t get_InodeStat_size(uint32_t inode_count){
 
 uint32_t get_BlockStat_size(uint32_t block_count){
     // ceil(block_count/8)
-    uint32_t bitmaps = block_count / 8 + 1;
+    uint32_t bitmaps = block_count / 8 + (block_count % 8 != 0);
 
     // BlockStat{
     // uint8_t* block_bitmap;
