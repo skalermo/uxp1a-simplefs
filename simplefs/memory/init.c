@@ -186,6 +186,7 @@ void unlink_fs_custom(const char *path) {
 		perror("shm_unlink");
 		exit(EXIT_FAILURE);
 	};
+	PTR_TO_FS = NULL;
 }
 
 uint32_t get_data_block_count(uint32_t fs_size, uint32_t size_without_blocks, uint32_t block_size) {
