@@ -15,10 +15,13 @@ void tearDown(void) {
 
 void make_one_dir() {
     void *ptr = get_ptr_to_fs();
-    uint32_t inode_count = fs_get_used_inodes(ptr);
+    uint16_t inode_count = fs_get_used_inodes(ptr);
     printf("%u\n", inode_count);
 
-    int ret_val = simplefs_mkdir("a");
+    int ret_val = simplefs_mkdir("/a");
+    printf("%d\n", ret_val);
+    ret_val = simplefs_mkdir("/a");
+    printf("%d\n", ret_val);
     inode_count = fs_get_used_inodes(ptr);
     printf("%u\n", inode_count);
 
