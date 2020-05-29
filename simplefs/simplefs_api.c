@@ -32,7 +32,6 @@ int simplefs_open(char *name, int mode) {
     if(inode_idx < 0)
         return ENOTDIR;
         
-
     // Create Open File entry
     struct OpenFile new_open_file;
     new_open_file.mode = mode;
@@ -40,11 +39,13 @@ int simplefs_open(char *name, int mode) {
     new_open_file.offset = 0;
     new_open_file.parent_pid = getpid();
 
+    fs_sem_init_open_file_stat(&openFile);
+    fs_sem_init_inode(&semInode, inode_idx);
+
     fs_sem_lock_open_file_stat(&openFile);
     fs_sem_lock_write_inode(&semInode, shm_addr);
 
-    fs_sem_init_open_file_stat(&openFile);
-    fs_sem_init_inode(&semInode, inode_idx);
+    
 
     // Save Open file entry in FS
     int32_t fd = save_new_OpenFile_entry(&new_open_file, shm_addr);
@@ -75,6 +76,7 @@ int simplefs_creat(char *name, int mode) {
 
     fs_sem_init_main_folder(&semMainDir);
     fs_sem_lock_write_main_folder(&semMainDir, shm_addr);
+
     // Check if exists
     int32_t inode_idx = -1;//get_inode_index(name, shm_addr);
     if(inode_idx < 0) {
@@ -94,7 +96,6 @@ int simplefs_creat(char *name, int mode) {
                 fs_sem_close_main_folder(&semMainDir);
                 return ENOTDIR;
             }
-                
 
         // Create inode
         struct Inode new_inode = {0};
