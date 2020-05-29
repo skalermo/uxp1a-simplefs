@@ -11,11 +11,9 @@
 #include <unistd.h>
 
 
-void* shm_addr = NULL;
-
 int simplefs_open(char *name, int mode) {
     // Init system
-    shm_addr = get_ptr_to_fs();
+    void *shm_addr = get_ptr_to_fs();
 
     struct ReadWriteSem mainFolder;
     struct Semaphore openFile;
@@ -45,8 +43,6 @@ int simplefs_open(char *name, int mode) {
     fs_sem_lock_open_file_stat(&openFile);
     fs_sem_lock_write_inode(&semInode, shm_addr);
 
-    
-
     // Save Open file entry in FS
     int32_t fd = save_new_OpenFile_entry(&new_open_file, shm_addr);
     fs_sem_unlock_open_file_stat(&openFile);
@@ -66,7 +62,7 @@ int simplefs_open(char *name, int mode) {
  */
 int simplefs_creat(char *name, int mode) {
     // Init system
-    shm_addr = get_ptr_to_fs();
+    void *shm_addr = get_ptr_to_fs();
 
     struct ReadWriteSem semMainDir;
     struct ReadWriteSem semInode;
@@ -211,7 +207,7 @@ int simplefs_creat(char *name, int mode) {
  */
 int simplefs_read(int fd, char *buf, int len) {
     // Init system
-    shm_addr = get_ptr_to_fs();
+    void *shm_addr = get_ptr_to_fs();
 
     struct OpenFile openFile = get_open_file(fd, shm_addr);
     if(openFile.mode != FS_READ){
@@ -251,7 +247,7 @@ int simplefs_read(int fd, char *buf, int len) {
  */
 int simplefs_write(int fd, char *buf, int len) {
     // Init system
-    shm_addr = get_ptr_to_fs();
+    void *shm_addr = get_ptr_to_fs();
 
     struct OpenFile openFile = get_open_file(fd, shm_addr);
     if(openFile.mode != FS_WRITE){
@@ -324,7 +320,7 @@ int simplefs_lseek(int fd, int whence, int offset) {
  */
 int simplefs_unlink(char *name) {
     // Init system
-    shm_addr = get_ptr_to_fs();
+    void *shm_addr = get_ptr_to_fs();
 
     struct ReadWriteSem semMainFolder;
     struct ReadWriteSem semInode;
@@ -441,11 +437,7 @@ int simplefs_mkdir(char *name) {
         return ENAMETOOLONG;
     }
         
-
-    if(shm_addr == NULL){
-        shm_addr = get_ptr_to_fs();
-    }
-        
+    void *shm_addr = get_ptr_to_fs();
 
     char* name_copy = strdup(name);
 
@@ -577,8 +569,7 @@ int simplefs_rmdir(char *name) {
  * Usunięcie w open file.
  */
 int simplefs_close(int fd) {
-    if(shm_addr == NULL)
-        shm_addr = get_ptr_to_fs();
+    void *shm_addr = get_ptr_to_fs();
 
     struct ReadWriteSem semInode;
     struct Semaphore semOpenFile;
