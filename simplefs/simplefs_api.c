@@ -429,7 +429,11 @@ int simplefs_unlink(char *name) {
  */
 int simplefs_mkdir(char *name) {
     int name_size = strlen(name);
-    if(name_size < 2){
+
+    // ord("/") == 47
+    // if name is / itself or doesn't contain /
+    // at the beginning then return ENOENT
+    if(name_size < 2 || name[0] != 47){
         return ENOENT;
     }
 
