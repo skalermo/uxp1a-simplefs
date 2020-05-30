@@ -99,20 +99,24 @@ void free_string_array(char*** entries, int count)
 }
 
 int32_t next_inode(uint16_t prev_inode, char* name, uint8_t type, void* shm_addr){
+    // if subpath is root return 1
     if(!strcmp(name, "/"))
         return 1;
 
     struct DirEntry copy;
     uint8_t inodeMode;
 
+    // get dir file with its dir entries
     uint32_t dir_file_block = get_inode_block_index(prev_inode, shm_addr);
 
     uint32_t entry_idx = 2;
+
+    // loop over all dir entries, break if arg name found in one of the entries
     while(fs_get_dir_entry_copy(dir_file_block, entry_idx, &copy, shm_addr) >= 0){
 
         if(copy.inode_number != 0 && !strcmp((char*) copy.name, name)){
             fs_get_data_from_inode_uint8(copy.inode_number, 4, &inodeMode, shm_addr);
-            if(inodeMode & type != 0)
+            if((inodeMode & type) != 0)
                 return copy.inode_number;
             return -2;
         }   
@@ -133,7 +137,7 @@ int32_t get_inode_index(char *path, uint8_t type, void* shm_addr){
     if(sub_path_count < 0)
         return sub_path_count;
 
-    int loopMax = sub_path_count - 1;
+    long loopMax = sub_path_count - 1;
     for(int i = 0; i < loopMax; ++i){
         current_inode = next_inode(current_inode, sub_path[i], IS_DIR, shm_addr);
         if(current_inode < 0) {
