@@ -437,7 +437,7 @@ int simplefs_mkdir(char *name) {
         return ENOENT;
     }
 
-    if(name_size >= PATH_MAX){
+    if(name_size > FS_PATH_MAX){
         return ENAMETOOLONG;
     }
         
@@ -447,7 +447,8 @@ int simplefs_mkdir(char *name) {
 
     // Get Filename and dir path
     char* filename = basename(name);
-    if(strlen(filename) >= NAME_MAX){
+    if(strlen(filename) > FS_NAME_SIZE){
+        free(name_copy);
         return ENAMETOOLONG;
     }
 
@@ -569,7 +570,6 @@ int simplefs_mkdir(char *name) {
     if(dir_entry_idx < 0)
         return ENOSPC;
 
-//    free(name_copy);
     return 0;
 }
 
