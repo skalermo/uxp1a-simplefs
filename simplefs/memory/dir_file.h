@@ -20,6 +20,7 @@
 //////////////////////////////////
 
 #define FS_NAME_SIZE 61
+#define FS_PATH_MAX 255
 #define FS_MAIN_DIRECTORY_NAME "/"
 #define FS_MAIN_DIRECTORY_NAME_SIZE 2
 
@@ -28,9 +29,9 @@
 //////////////////////////////////
 
 struct DirEntry{
-    uint8_t name[FS_NAME_SIZE];
-    uint8_t name_len; // in bytes
     uint16_t inode_number;
+    uint8_t name_len; // in bytes
+    uint8_t name[FS_NAME_SIZE];
 };
 
 struct DirFile{
