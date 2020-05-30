@@ -206,7 +206,7 @@ int8_t fs_mark_inode_as_free(uint16_t inodeIndex,void* addr);
  * @return uint32_t - the number of used inodes.
  * No other errors.
  */
-uint32_t fs_get_used_inodes(void* addr);
+uint16_t fs_get_used_inodes(void* addr);
 
 /**
  * @brief Set the number of currently used inodes.

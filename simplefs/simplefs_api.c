@@ -11,11 +11,9 @@
 #include <unistd.h>
 
 
-void* shm_addr = NULL;
-
 int simplefs_open(char *name, int mode) {
     // Init system
-    shm_addr = get_ptr_to_fs();
+    void *shm_addr = get_ptr_to_fs();
 
     struct ReadWriteSem mainFolder;
     struct Semaphore openFile;
@@ -32,7 +30,6 @@ int simplefs_open(char *name, int mode) {
     if(inode_idx < 0)
         return ENOTDIR;
         
-
     // Create Open File entry
     struct OpenFile new_open_file;
     new_open_file.mode = mode;
@@ -40,11 +37,11 @@ int simplefs_open(char *name, int mode) {
     new_open_file.offset = 0;
     new_open_file.parent_pid = getpid();
 
-    fs_sem_lock_open_file_stat(&openFile);
-    fs_sem_lock_write_inode(&semInode, shm_addr);
-
     fs_sem_init_open_file_stat(&openFile);
     fs_sem_init_inode(&semInode, inode_idx);
+
+    fs_sem_lock_open_file_stat(&openFile);
+    fs_sem_lock_write_inode(&semInode, shm_addr);
 
     // Save Open file entry in FS
     int32_t fd = save_new_OpenFile_entry(&new_open_file, shm_addr);
@@ -65,7 +62,7 @@ int simplefs_open(char *name, int mode) {
  */
 int simplefs_creat(char *name, int mode) {
     // Init system
-    shm_addr = get_ptr_to_fs();
+    void *shm_addr = get_ptr_to_fs();
 
     struct ReadWriteSem semMainDir;
     struct ReadWriteSem semInode;
@@ -75,6 +72,7 @@ int simplefs_creat(char *name, int mode) {
 
     fs_sem_init_main_folder(&semMainDir);
     fs_sem_lock_write_main_folder(&semMainDir, shm_addr);
+
     // Check if exists
     int32_t inode_idx = -1;//get_inode_index(name, shm_addr);
     if(inode_idx < 0) {
@@ -94,7 +92,6 @@ int simplefs_creat(char *name, int mode) {
                 fs_sem_close_main_folder(&semMainDir);
                 return ENOTDIR;
             }
-                
 
         // Create inode
         struct Inode new_inode = {0};
@@ -210,7 +207,7 @@ int simplefs_creat(char *name, int mode) {
  */
 int simplefs_read(int fd, char *buf, int len) {
     // Init system
-    shm_addr = get_ptr_to_fs();
+    void *shm_addr = get_ptr_to_fs();
 
     struct OpenFile openFile = get_open_file(fd, shm_addr);
     if(openFile.mode != FS_READ){
@@ -250,7 +247,7 @@ int simplefs_read(int fd, char *buf, int len) {
  */
 int simplefs_write(int fd, char *buf, int len) {
     // Init system
-    shm_addr = get_ptr_to_fs();
+    void *shm_addr = get_ptr_to_fs();
 
     struct OpenFile openFile = get_open_file(fd, shm_addr);
     if(openFile.mode != FS_WRITE){
@@ -323,7 +320,7 @@ int simplefs_lseek(int fd, int whence, int offset) {
  */
 int simplefs_unlink(char *name) {
     // Init system
-    shm_addr = get_ptr_to_fs();
+    void *shm_addr = get_ptr_to_fs();
 
     struct ReadWriteSem semMainFolder;
     struct ReadWriteSem semInode;
@@ -432,25 +429,26 @@ int simplefs_unlink(char *name) {
  */
 int simplefs_mkdir(char *name) {
     int name_size = strlen(name);
-    if(name_size < 2){
+
+    // ord("/") == 47
+    // if name is / itself or doesn't contain /
+    // at the beginning then return ENOENT
+    if(name_size < 2 || name[0] != 47){
         return ENOENT;
     }
 
-    if(name_size >= PATH_MAX){
+    if(name_size > FS_PATH_MAX){
         return ENAMETOOLONG;
     }
         
-
-    if(shm_addr == NULL){
-        shm_addr = get_ptr_to_fs();
-    }
-        
+    void *shm_addr = get_ptr_to_fs();
 
     char* name_copy = strdup(name);
 
     // Get Filename and dir path
     char* filename = basename(name);
-    if(strlen(filename) >= NAME_MAX){
+    if(strlen(filename) > FS_NAME_SIZE){
+        free(name_copy);
         return ENAMETOOLONG;
     }
 
@@ -472,13 +470,17 @@ int simplefs_mkdir(char *name) {
     if(dir_inode < 0){
         fs_sem_unlock_write_main_folder(&semMainFolder, shm_addr);
         fs_sem_close_main_folder(&semMainFolder);
+
+        free(name_copy);
         return ENOTDIR;
     }
-
+    
     int32_t does_already_exist = next_inode(dir_inode, filename, IS_DIR, shm_addr);
     if(does_already_exist != -1){
         fs_sem_unlock_write_main_folder(&semMainFolder, shm_addr);
         fs_sem_close_main_folder(&semMainFolder);
+
+        free(name_copy);
         return EEXIST;
     }
 
@@ -495,24 +497,26 @@ int simplefs_mkdir(char *name) {
 
     uint16_t inode_idx = save_new_inode(&new_inode, shm_addr);
 
-    fs_sem_unlock_inode_stat(&semInodeStat);
-    fs_sem_close_inode_stat(&semInodeStat);
 
     if(inode_idx == UINT16_MAX){
         fs_sem_unlock_write_main_folder(&semMainFolder, shm_addr);
         fs_sem_close_main_folder(&semMainFolder);
         fs_sem_unlock_inode_stat(&semInodeStat);
         fs_sem_close_inode_stat(&semInodeStat);
-        fs_sem_unlock_block_stat(&semInodeStat);
-        fs_sem_close_block_stat(&semInodeStat);
+        fs_sem_unlock_block_stat(&semBlock);
+        fs_sem_close_block_stat(&semBlock);
+
+        free(name_copy);
         return ENOSPC;
     }
-        
+   
 
     structHelp.prevoiusDirInode = dir_inode;
     structHelp.prevoiusDirInodeName = filenamePrev;
+    structHelp.prevoiusDirInodeLen = strlen(filenamePrev);
     structHelp.thisDirInode = inode_idx;
     structHelp.thisDirName = filename;
+    structHelp.thisDirNameLen = strlen(filename);
 
     // it only creates dir file in one data block. It does not modify inodes
     int8_t ret = fs_create_dir_file(&new_inode.block_index, &structHelp, shm_addr);
@@ -522,8 +526,10 @@ int simplefs_mkdir(char *name) {
         fs_sem_close_main_folder(&semMainFolder);
         fs_sem_unlock_inode_stat(&semInodeStat);
         fs_sem_close_inode_stat(&semInodeStat);
-        fs_sem_unlock_block_stat(&semInodeStat);
-        fs_sem_close_block_stat(&semInodeStat);
+        fs_sem_unlock_block_stat(&semBlock);
+        fs_sem_close_block_stat(&semBlock);
+
+        free(name_copy);
         return ENOSPC;
     }
         
@@ -543,26 +549,27 @@ int simplefs_mkdir(char *name) {
         fs_sem_close_main_folder(&semMainFolder);
         fs_sem_unlock_inode_stat(&semInodeStat);
         fs_sem_close_inode_stat(&semInodeStat);
-        fs_sem_unlock_block_stat(&semInodeStat);
-        fs_sem_close_block_stat(&semInodeStat);
+        fs_sem_unlock_block_stat(&semBlock);
+        fs_sem_close_block_stat(&semBlock);
+
+        free(name_copy);
         return ENOENT;
     }
         
-
     // Modify previous Dir File and save dir entry in FS
     int32_t dir_entry_idx = save_new_dir_entry(dir_block, &new_dir_entry, shm_addr);
-
     fs_sem_unlock_write_main_folder(&semMainFolder, shm_addr);
     fs_sem_close_main_folder(&semMainFolder);
     fs_sem_unlock_inode_stat(&semInodeStat);
     fs_sem_close_inode_stat(&semInodeStat);
-    fs_sem_unlock_block_stat(&semInodeStat);
-    fs_sem_close_block_stat(&semInodeStat);
+    fs_sem_unlock_block_stat(&semBlock);
+    fs_sem_close_block_stat(&semBlock);
+
+    free(name_copy);
 
     if(dir_entry_idx < 0)
         return ENOSPC;
 
-    free(name_copy);
     return 0;
 }
 
@@ -580,8 +587,7 @@ int simplefs_rmdir(char *name) {
  * Usunięcie w open file.
  */
 int simplefs_close(int fd) {
-    if(shm_addr == NULL)
-        shm_addr = get_ptr_to_fs();
+    void *shm_addr = get_ptr_to_fs();
 
     struct ReadWriteSem semInode;
     struct Semaphore semOpenFile;
