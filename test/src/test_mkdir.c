@@ -81,21 +81,68 @@ void make_duplicate_dir() {
 
     unlink_fs();
 }
-//
-//void nested_dirs() {
-//    void *ptr = get_ptr_to_fs();
-//
-//    int ret_value = simplefs_mkdir("/a");
-//    uint16_t inode_count = fs_get_used_inodes(ptr);
-//    TEST_ASSERT_EQUAL(0, ret_value);
-//    TEST_ASSERT_EQUAL(3, inode_count);
-//
-//    // create dir "b" inside dir "a"
-//    ret_value = simplefs_mkdir("/a/b");
-//    inode_count = fs_get_used_inodes(ptr);
-//    TEST_ASSERT_EQUAL(0, ret_value);
-//    TEST_ASSERT_EQUAL(4, inode_count);
-//}
+
+void nested_dirs() {
+    void *ptr = get_ptr_to_fs();
+
+    int ret_value = simplefs_mkdir("/a");
+    uint16_t inode_count = fs_get_used_inodes(ptr);
+    TEST_ASSERT_EQUAL(0, ret_value);
+    TEST_ASSERT_EQUAL(3, inode_count);
+
+    // create dir "b" inside dir "a"
+    ret_value = simplefs_mkdir("/a/b");
+    inode_count = fs_get_used_inodes(ptr);
+    TEST_ASSERT_EQUAL(0, ret_value);
+    TEST_ASSERT_EQUAL(4, inode_count);
+
+    // create dir "c" inside dir "a"
+    ret_value = simplefs_mkdir("/a/c");
+    inode_count = fs_get_used_inodes(ptr);
+    TEST_ASSERT_EQUAL(0, ret_value);
+    TEST_ASSERT_EQUAL(5, inode_count);
+
+    // create dir "d" inside dir "c"
+    ret_value = simplefs_mkdir("/a/c/d");
+    inode_count = fs_get_used_inodes(ptr);
+    TEST_ASSERT_EQUAL(0, ret_value);
+    TEST_ASSERT_EQUAL(6, inode_count);
+
+    unlink_fs();
+}
+
+void make_duplicate_in_nested_dir() {
+    void *ptr = get_ptr_to_fs();
+
+    int ret_value = simplefs_mkdir("/a");
+    uint16_t inode_count = fs_get_used_inodes(ptr);
+    TEST_ASSERT_EQUAL(0, ret_value);
+    TEST_ASSERT_EQUAL(3, inode_count);
+
+    // create dir "b" inside dir "a"
+    ret_value = simplefs_mkdir("/a/b");
+    inode_count = fs_get_used_inodes(ptr);
+    TEST_ASSERT_EQUAL(0, ret_value);
+    TEST_ASSERT_EQUAL(4, inode_count);
+
+    // try to create dup dir "b" inside dir "a"
+    ret_value = simplefs_mkdir("/a/b");
+    inode_count = fs_get_used_inodes(ptr);
+    TEST_ASSERT_EQUAL(EEXIST, ret_value);
+    TEST_ASSERT_EQUAL(4, inode_count);
+
+    // create dir "c" inside dir "b"
+    ret_value = simplefs_mkdir("/a/b/c");
+    inode_count = fs_get_used_inodes(ptr);
+    TEST_ASSERT_EQUAL(0, ret_value);
+    TEST_ASSERT_EQUAL(5, inode_count);
+
+    // try to create dup dir "c" inside dir "b"
+    ret_value = simplefs_mkdir("/a/b/c");
+    inode_count = fs_get_used_inodes(ptr);
+    TEST_ASSERT_EQUAL(EEXIST, ret_value);
+    TEST_ASSERT_EQUAL(5, inode_count);
+}
 
 
 int main(void) {
@@ -104,8 +151,8 @@ int main(void) {
     RUN_TEST(make_one_dir);
     RUN_TEST(make_three_dirs);
     RUN_TEST(make_duplicate_dir);
-//    RUN_TEST(nested_dirs);
-
+    RUN_TEST(nested_dirs);
+    RUN_TEST(make_duplicate_in_nested_dir);
 
     return UNITY_END();
 }
