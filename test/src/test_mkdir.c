@@ -142,6 +142,21 @@ void make_duplicate_in_nested_dir() {
     inode_count = fs_get_used_inodes(ptr);
     TEST_ASSERT_EQUAL(EEXIST, ret_value);
     TEST_ASSERT_EQUAL(5, inode_count);
+
+    unlink_fs();
+}
+
+
+void try_to_create_dir_not_in_root_subdir() {
+    void *ptr = get_ptr_to_fs();
+
+    int ret_value = simplefs_mkdir("some_dirname");
+    uint16_t inode_count = fs_get_used_inodes(ptr);
+
+    TEST_ASSERT_EQUAL(ENOENT, ret_value);
+    TEST_ASSERT_EQUAL(2, inode_count);
+
+    unlink_fs();
 }
 
 
@@ -153,6 +168,7 @@ int main(void) {
     RUN_TEST(make_duplicate_dir);
     RUN_TEST(nested_dirs);
     RUN_TEST(make_duplicate_in_nested_dir);
+    RUN_TEST(try_to_create_dir_not_in_root_subdir);
 
     return UNITY_END();
 }
