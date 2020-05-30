@@ -465,6 +465,8 @@ int simplefs_mkdir(char *name) {
     if(dir_inode < 0){
         fs_sem_unlock_write_main_folder(&semMainFolder, shm_addr);
         fs_sem_close_main_folder(&semMainFolder);
+
+        free(name_copy);
         return ENOTDIR;
     }
     
@@ -472,6 +474,8 @@ int simplefs_mkdir(char *name) {
     if(does_already_exist != -1){
         fs_sem_unlock_write_main_folder(&semMainFolder, shm_addr);
         fs_sem_close_main_folder(&semMainFolder);
+
+        free(name_copy);
         return EEXIST;
     }
 
@@ -496,14 +500,18 @@ int simplefs_mkdir(char *name) {
         fs_sem_close_inode_stat(&semInodeStat);
         fs_sem_unlock_block_stat(&semBlock);
         fs_sem_close_block_stat(&semBlock);
+
+        free(name_copy);
         return ENOSPC;
     }
    
 
     structHelp.prevoiusDirInode = dir_inode;
     structHelp.prevoiusDirInodeName = filenamePrev;
+    structHelp.prevoiusDirInodeLen = strlen(filenamePrev);
     structHelp.thisDirInode = inode_idx;
     structHelp.thisDirName = filename;
+    structHelp.thisDirNameLen = strlen(filename);
 
     // it only creates dir file in one data block. It does not modify inodes
     int8_t ret = fs_create_dir_file(&new_inode.block_index, &structHelp, shm_addr);
@@ -515,6 +523,8 @@ int simplefs_mkdir(char *name) {
         fs_sem_close_inode_stat(&semInodeStat);
         fs_sem_unlock_block_stat(&semBlock);
         fs_sem_close_block_stat(&semBlock);
+
+        free(name_copy);
         return ENOSPC;
     }
         
@@ -536,6 +546,8 @@ int simplefs_mkdir(char *name) {
         fs_sem_close_inode_stat(&semInodeStat);
         fs_sem_unlock_block_stat(&semBlock);
         fs_sem_close_block_stat(&semBlock);
+
+        free(name_copy);
         return ENOENT;
     }
         
@@ -548,10 +560,12 @@ int simplefs_mkdir(char *name) {
     fs_sem_unlock_block_stat(&semBlock);
     fs_sem_close_block_stat(&semBlock);
 
+    free(name_copy);
+
     if(dir_entry_idx < 0)
         return ENOSPC;
 
-    free(name_copy);
+//    free(name_copy);
     return 0;
 }
 
