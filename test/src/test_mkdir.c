@@ -240,6 +240,16 @@ void try_to_create_dir_with_too_long_path() {
 
 }
 
+//void test_max_number_of_subdirs_in_dir() {
+//    int n = 1024, i = 1;
+//    char dirname[7*sizeof(char)];
+//
+//    for (; i <= n; i++) {
+//        sprintf(dirname, "/%d", i);
+//        simplefs_mkdir(dirname);
+//        printf("%s\n", dirname);
+//    }
+//}
 
 int main(void) {
     UNITY_BEGIN();
@@ -252,6 +262,7 @@ int main(void) {
     RUN_TEST(try_to_create_dir_not_in_root_subdir);
     RUN_TEST(try_to_create_dir_with_too_long_name);
     RUN_TEST(try_to_create_dir_with_too_long_path);
+//    RUN_TEST(test_max_number_of_subdirs_in_dir);
 
     return UNITY_END();
 }
