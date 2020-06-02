@@ -150,6 +150,8 @@ int8_t fs_get_dir_entry_copy(uint32_t blockNumber, uint32_t dirEntryIndex, struc
     if(inner_fs_find_block_through_index_with_error(&realBlockNumber, &freeEntryIndexInBlock, addr) == -1) return -1;
 
     block_ptr = fs_get_data_blocks_ptr(addr) + (realBlockNumber * fs_get_data_block_size(addr));
+    int inOneBlock = fs_get_data_block_size(addr) / sizeof(struct DirEntry);
+    freeEntryIndexInBlock = freeEntryIndexInBlock % inOneBlock;
     uint32_t offsetInBlock = freeEntryIndexInBlock * sizeof(struct DirEntry);
 
     memcpy(dirEntryCopy, block_ptr + offsetInBlock, sizeof(struct DirEntry));
