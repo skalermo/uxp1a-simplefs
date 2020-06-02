@@ -262,6 +262,9 @@ int8_t fs_create_main_folder(void* addr){
     }
 
     free(toSave);
+
+    fs_set_used_blocks(1, addr);
+
     return 0;
 }
 
