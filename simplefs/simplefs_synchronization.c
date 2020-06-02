@@ -11,12 +11,14 @@
 // Hidden functions
 //////////////////////////////////////
 
-int8_t inner_fs_increment_inode(uint16_t inodeIndex, uint16_t index, uint16_t *data, void *addr){ 
+int8_t inner_fs_increment_inode(uint16_t inodeIndex, uint16_t index, uint16_t *data, void *addr){
+    return 0;
     if(fs_get_data_from_inode_uint16(inodeIndex, index, data, addr) < 0) return SIMPLEFS_ERROR_SYNCH_GET_DATA;
     if(fs_save_data_to_inode_uint16(inodeIndex, index, ++(*data), addr) < 0) return SIMPLEFS_ERROR_SYNCH_SAVE_DATA;
 }
 
 int8_t inner_fs_decrement_inode(uint16_t inodeIndex, uint16_t index, uint16_t *data, void *addr){
+    return 0;
 
     if(fs_get_data_from_inode_uint16(inodeIndex, index, data, addr) < 0) return SIMPLEFS_ERROR_SYNCH_GET_DATA;
     if(fs_save_data_to_inode_uint16(inodeIndex, index, --(*data), addr) < 0) return SIMPLEFS_ERROR_SYNCH_SAVE_DATA;
@@ -53,6 +55,8 @@ char* inner_fs_generate_inode_name(uint16_t inodeIndex, char* suffix){
 //////////////////////////////////////
 
 int8_t fs_sem_init_main_folder(struct ReadWriteSem* sem){
+    return 0;
+
     sem->inodeIndex = 1;
 
     sem->readTry = sem_open(MAIN_FOLDER_SEM_READ_TRY_NAME, O_CREAT, SEMAPHORE_MODE, 1);
@@ -68,22 +72,32 @@ int8_t fs_sem_init_main_folder(struct ReadWriteSem* sem){
 }
 
 int8_t fs_sem_lock_read_main_folder(struct ReadWriteSem* sem, void* addr){
+    return 0;
+
     return fs_sem_lock_read_inode(sem, addr);
 }
 
 int8_t fs_sem_lock_write_main_folder(struct ReadWriteSem* sem, void* addr){
+    return 0;
+
     return fs_sem_lock_write_inode(sem, addr);
 }
 
 int8_t fs_sem_unlock_read_main_folder(struct ReadWriteSem* sem, void* addr){
+    return 0;
+
     return fs_sem_unlock_read_inode(sem, addr);
 }
 
 int8_t fs_sem_unlock_write_main_folder(struct ReadWriteSem* sem, void* addr){
+    return 0;
+
     return fs_sem_unlock_write_inode(sem, addr);
 }
 
 int8_t fs_sem_close_main_folder(struct ReadWriteSem* sem){
+    return 0;
+
     int tmp;
     tmp = sem_close(sem->readTry);
     if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_CLOSE_READ_TRY;
@@ -98,6 +112,8 @@ int8_t fs_sem_close_main_folder(struct ReadWriteSem* sem){
 }
 
 int8_t fs_sem_unlink_main_folder(){
+    return 0;
+
     int tmp;
     tmp = sem_unlink(MAIN_FOLDER_SEM_READ_TRY_NAME);
     if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_UNLINK_READ_TRY;
@@ -117,6 +133,8 @@ int8_t fs_sem_unlink_main_folder(){
 
 
 int8_t fs_sem_init_inode(struct ReadWriteSem* sem, uint16_t inodeIndex){
+    return 0;
+
     char* tmp;
 
     sem->inodeIndex = inodeIndex;
@@ -142,6 +160,8 @@ int8_t fs_sem_init_inode(struct ReadWriteSem* sem, uint16_t inodeIndex){
 }
 
 int8_t fs_sem_lock_read_inode(struct ReadWriteSem* sem, void* addr){
+    return 0;
+
     // P
     int tmp = sem_wait(sem->readTry);
     if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_WAIT_READ_TRY;
@@ -170,6 +190,7 @@ int8_t fs_sem_lock_read_inode(struct ReadWriteSem* sem, void* addr){
 }
 
 int8_t fs_sem_lock_write_inode(struct ReadWriteSem* sem, void* addr){
+    return 0;
 
     // P
     int tmp = sem_wait(sem->writeMutex);
@@ -198,6 +219,7 @@ int8_t fs_sem_lock_write_inode(struct ReadWriteSem* sem, void* addr){
 }
 
 int8_t fs_sem_unlock_read_inode(struct ReadWriteSem* sem, void* addr){
+    return 0;
 
     // P
     int tmp = sem_wait(sem->readMutex);
@@ -221,6 +243,7 @@ int8_t fs_sem_unlock_read_inode(struct ReadWriteSem* sem, void* addr){
 }
 
 int8_t fs_sem_unlock_write_inode(struct ReadWriteSem* sem, void* addr){
+    return 0;
 
     int tmp = sem_post(sem->resource);
     if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_POST_RESOURCE;
@@ -246,6 +269,8 @@ int8_t fs_sem_unlock_write_inode(struct ReadWriteSem* sem, void* addr){
 }
 
 int8_t fs_sem_close_inode(struct ReadWriteSem* sem){
+    return 0;
+
     int intTmp;
 
     intTmp = sem_close(sem->readTry);
@@ -262,6 +287,8 @@ int8_t fs_sem_close_inode(struct ReadWriteSem* sem){
 }
 
 int8_t fs_sem_unlink_inode(struct ReadWriteSem* sem){
+    return 0;
+
     char* tmp;
     int intTmp;
 
@@ -286,12 +313,16 @@ int8_t fs_sem_unlink_inode(struct ReadWriteSem* sem){
 
 
 int8_t fs_sem_init_inode_stat(struct Semaphore* inodeStat){
+    return 0;
+
     inodeStat->semaphore = sem_open(INODE_STAT_SEM_NAME, O_CREAT, SEMAPHORE_MODE, 1);
     if(inodeStat->semaphore < 0) return SIMPLEFS_ERROR_SYNCH_SEM_OPEN_INODE_STAT;
     return 0;
 }
 
 int8_t fs_sem_lock_inode_stat(struct Semaphore* inodeStat){
+    return 0;
+
     int tmp = sem_wait(inodeStat->semaphore);
     if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_WAIT_INODE_STAT;
 
@@ -299,6 +330,8 @@ int8_t fs_sem_lock_inode_stat(struct Semaphore* inodeStat){
 }
 
 int8_t fs_sem_unlock_inode_stat(struct Semaphore* inodeStat){
+    return 0;
+
     int tmp = sem_post(inodeStat->semaphore);
     if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_POST_INODE_STAT;
 
@@ -306,12 +339,16 @@ int8_t fs_sem_unlock_inode_stat(struct Semaphore* inodeStat){
 }
 
 int8_t fs_sem_close_inode_stat(struct Semaphore* inodeStat){
+    return 0;
+
     int tmp = sem_close(inodeStat->semaphore);
     if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_CLOSE_INODE_STAT;
     return 0;
 }
 
 int8_t fs_sem_unlink_inode_stat(){
+    return 0;
+
     int tmp = sem_unlink(INODE_STAT_SEM_NAME);
     if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_UNLINK_INODE_STAT;
     return 0;
@@ -319,12 +356,16 @@ int8_t fs_sem_unlink_inode_stat(){
 
 
 int8_t fs_sem_init_block_stat(struct Semaphore* blockStat){
+    return 0;
+
     blockStat->semaphore = sem_open(BLOCK_STAT_SEM_NAME, O_CREAT, SEMAPHORE_MODE, 1);
     if(blockStat->semaphore < 0) return SIMPLEFS_ERROR_SYNCH_SEM_OPEN_BLOCK_STAT;
     return 0;
 }
 
 int8_t fs_sem_lock_block_stat(struct Semaphore* blockStat){
+    return 0;
+
     int tmp = sem_wait(blockStat->semaphore);
     if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_WAIT_BLOCK_STAT;
 
@@ -332,6 +373,8 @@ int8_t fs_sem_lock_block_stat(struct Semaphore* blockStat){
 }
 
 int8_t fs_sem_unlock_block_stat(struct Semaphore* blockStat){
+    return 0;
+
     int tmp = sem_post(blockStat->semaphore);
     if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_POST_BLOCK_STAT;
 
@@ -339,12 +382,16 @@ int8_t fs_sem_unlock_block_stat(struct Semaphore* blockStat){
 }
 
 int8_t fs_sem_close_block_stat(struct Semaphore* blockStat){
+    return 0;
+
     int tmp = sem_close(blockStat->semaphore);
     if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_CLOSE_BLOCK_STAT;
     return 0;
 }
 
 int8_t fs_sem_unlink_block_stat(){
+    return 0;
+
     int tmp = sem_unlink(BLOCK_STAT_SEM_NAME);
     if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_UNLINK_BLOCK_STAT;
     return 0;
@@ -352,12 +399,16 @@ int8_t fs_sem_unlink_block_stat(){
 
 
 int8_t fs_sem_init_open_file_stat(struct Semaphore* openFileStat){
+    return 0;
+
     openFileStat->semaphore = sem_open(OPEN_FILE_STAT_SEM_NAME, O_CREAT, SEMAPHORE_MODE, 1);
     if(openFileStat->semaphore < 0) return SIMPLEFS_ERROR_SYNCH_SEM_OPEN_OPEN_FILE_STAT;
     return 0;
 }
 
 int8_t fs_sem_lock_open_file_stat(struct Semaphore* openFileStat){
+    return 0;
+
     int tmp = sem_wait(openFileStat->semaphore);
     if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_WAIT_OPEN_FILE_STAT;
 
@@ -365,6 +416,8 @@ int8_t fs_sem_lock_open_file_stat(struct Semaphore* openFileStat){
 }
 
 int8_t fs_sem_unlock_open_file_stat(struct Semaphore* openFileStat){
+    return 0;
+
     int tmp = sem_post(openFileStat->semaphore);
     if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_POST_OPEN_FILE_STAT;
 
@@ -372,12 +425,16 @@ int8_t fs_sem_unlock_open_file_stat(struct Semaphore* openFileStat){
 }
 
 int8_t fs_sem_close_open_file_stat(struct Semaphore* openFileStat){
+    return 0;
+
     int tmp = sem_close(openFileStat->semaphore);
     if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_CLOSE_OPEN_FILE_STAT;
     return 0;
 }
 
 int8_t fs_sem_unlink_open_file_stat(){
+    return 0;
+
     int tmp = sem_unlink(OPEN_FILE_STAT_SEM_NAME);
     if(tmp < 0) return SIMPLEFS_ERROR_SYNCH_SEM_UNLINK_OPEN_FILE_STAT;
     return 0;
