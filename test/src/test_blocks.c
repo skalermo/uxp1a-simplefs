@@ -16,7 +16,7 @@ void setUp(void) {
 
 
 void tearDown(void) {
-//    unlink_fs();
+    unlink_fs();
 }
 
 void dump_block(void *block_ptr) {
@@ -60,6 +60,7 @@ void data_blocks_ptr() {
             + get_BlockStat_size(fs_get_max_number_data_blocks(shm_addr))
             + get_block_links_size(fs_get_max_number_data_blocks(shm_addr));
     TEST_ASSERT_EQUAL(block_ptr_calculated, fs_get_data_blocks_ptr(shm_addr));
+    TEST_ASSERT_EQUAL(block_ptr_calculated, sblock->data_blocks_pointer+shm_addr);
 }
 
 void get_zeroth_block() {
