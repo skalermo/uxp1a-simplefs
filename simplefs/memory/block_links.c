@@ -400,3 +400,9 @@ int8_t inner_fs_next_block_with_error(uint32_t* blockIndex, void* addr){
     return 0;
 }
 
+
+void *get_block_ptr_by_index(uint32_t idx, void *addr) {
+    if ((idx < 0) || (idx >= fs_get_max_number_data_blocks(addr)))
+        return NULL;
+    return fs_get_data_blocks_ptr(addr) + fs_get_data_block_size(addr) * idx;
+}

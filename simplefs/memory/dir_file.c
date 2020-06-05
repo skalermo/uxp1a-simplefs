@@ -219,8 +219,8 @@ int8_t fs_create_dir_file(uint32_t* blockNumber, struct FS_create_dir_data* inod
     }
     toSave->name_len = 0;
 
-    for(uint16_t i = sizeof(struct DirEntry) * 2; i < fs_get_data_block_size(addr) / sizeof(struct DirEntry); i += sizeof(struct DirEntry)) {
-        memcpy(block_ptr + i, toSave, sizeof(struct DirEntry));
+    for(int i = 2; i < fs_get_data_block_size(addr) / sizeof(struct DirEntry); i++) {
+        memcpy(block_ptr + i * sizeof(struct DirEntry), toSave, sizeof(struct DirEntry));
     }
 
     free(toSave);
@@ -262,6 +262,9 @@ int8_t fs_create_main_folder(void* addr){
     }
 
     free(toSave);
+
+    fs_set_used_blocks(1, addr);
+
     return 0;
 }
 
