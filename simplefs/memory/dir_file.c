@@ -31,8 +31,8 @@ int8_t inner_fs_create_empty_dir_file_struct_in_block(uint32_t* blockNumber, voi
     }
     toSave->name_len = 0;
 
-    for(uint16_t i = 0; i < fs_get_data_block_size(addr) / sizeof(struct DirEntry); i += sizeof(struct DirEntry)) {
-        memcpy(block_ptr + i, toSave, sizeof(struct DirEntry));
+    for(uint16_t i = 0; i < fs_get_data_block_size(addr) / sizeof(struct DirEntry); i++) {
+        memcpy(block_ptr + i*sizeof(struct DirEntry), toSave, sizeof(struct DirEntry));
     }
 
     free(toSave);
@@ -57,7 +57,7 @@ int8_t inner_fs_find_block_through_index_with_error(uint32_t* blockNumber, uint3
     uint32_t freeEntryIndexInBlock = *dirEntryIndex;
     uint32_t realBlockNumber = *blockNumber;
 
-    if(freeEntryIndexInBlock * sizeof(struct DirEntry) > fs_get_data_block_size(addr)){
+    if(freeEntryIndexInBlock * sizeof(struct DirEntry) >= fs_get_data_block_size(addr)){
         // find block where this entry index is
         uint32_t howManyBlocks = (freeEntryIndexInBlock * sizeof(struct DirEntry)) / fs_get_data_block_size(addr);
         uint32_t indexDifference = fs_get_data_block_size(addr) / sizeof(struct DirEntry);
@@ -147,7 +147,8 @@ int8_t fs_get_dir_entry_copy(uint32_t blockNumber, uint32_t dirEntryIndex, struc
     uint32_t freeEntryIndexInBlock = dirEntryIndex;
     uint32_t realBlockNumber = blockNumber;
 
-    if(inner_fs_find_block_through_index_with_error(&realBlockNumber, &freeEntryIndexInBlock, addr) == -1) return -1;
+    if(inner_fs_find_block_through_index_with_error(&realBlockNumber, &freeEntryIndexInBlock, addr) == -1)
+        return -1;
 
     block_ptr = fs_get_data_blocks_ptr(addr) + (realBlockNumber * fs_get_data_block_size(addr));
     int inOneBlock = fs_get_data_block_size(addr) / sizeof(struct DirEntry);
@@ -318,7 +319,7 @@ int8_t fs_occupy_free_dir_entry(uint32_t blockNumber, uint32_t* dirEntryIndex, s
             inner_fs_create_empty_dir_file_struct_in_block(&nextBlockIndex, addr);
         }
 
-        block_ptr = fs_get_data_blocks_ptr(addr) + (nextBlockIndex * sizeof(struct DirEntry));
+        block_ptr = fs_get_data_blocks_ptr(addr) + (nextBlockIndex * fs_get_data_block_size(addr));
     }
     while(1); // either it must return success or fail.
     
