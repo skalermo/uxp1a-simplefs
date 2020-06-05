@@ -116,6 +116,23 @@ int8_t inner_fs_mark_bitmap_bit(void* bitmap_ptr, uint32_t bitmapIndex){
     return 0;
 }
 
+uint32_t is_bit_set(void* bitmap_ptr, uint32_t bitmapIndex){
+    bitmap_ptr += bitmapIndex / 8;
+    uint8_t smallBitmapOffset = bitmapIndex % 8;
+
+    uint8_t bitmapCopy;
+    memcpy(&bitmapCopy, bitmap_ptr, sizeof(uint8_t));
+
+
+    uint8_t setBit = 0b00000001;
+    setBit = setBit <<  smallBitmapOffset;
+    uint8_t bitmapTmp = bitmapCopy | setBit;
+    if(bitmapTmp - bitmapCopy == setBit){
+        return 1;                               //bit is set
+    }
+    return 0;                                   //bit is not set
+}
+
 int8_t inner_fs_free_bitmap_bit(void* bitmap_ptr, uint32_t bitmapIndex){
     bitmap_ptr += bitmapIndex / 8;
     uint32_t smallBitmapOffset = bitmapIndex % 8;
