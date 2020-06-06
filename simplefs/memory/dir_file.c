@@ -89,9 +89,11 @@ int8_t fs_save_data_to_dir_entry_name(uint32_t blockNumber, uint32_t dirEntryInd
 
     // save new data
     block_ptr = fs_get_data_blocks_ptr(addr) + (realBlockNumber * fs_get_data_block_size(addr));
+    int inOneBlock = fs_get_data_block_size(addr) / sizeof(struct DirEntry);
+    freeEntryIndexInBlock = freeEntryIndexInBlock % inOneBlock;
     uint32_t offsetInBlock = freeEntryIndexInBlock * sizeof(struct DirEntry);
-    memcpy(block_ptr + offsetInBlock, name, nameSize);
-    memcpy(block_ptr + offsetInBlock + (FS_NAME_SIZE * sizeof(uint8_t)), &nameSize, sizeof(uint8_t));
+    memcpy(block_ptr + offsetInBlock + 3, name, nameSize);
+    memcpy(block_ptr + offsetInBlock + 2, &nameSize, sizeof(uint8_t));
 
     return 0;
 }
@@ -101,6 +103,8 @@ int8_t fs_save_data_to_dir_entry_inode_number(uint32_t blockNumber, uint32_t dir
 
     // save new data
     void* block_ptr = fs_get_data_blocks_ptr(addr) + (blockNumber * fs_get_data_block_size(addr));
+    int inOneBlock = fs_get_data_block_size(addr) / sizeof(struct DirEntry);
+    dirEntryIndex = dirEntryIndex % inOneBlock;
     uint32_t offsetInBlock = dirEntryIndex * sizeof(struct DirEntry);
 
     memcpy(block_ptr + offsetInBlock, &inodeNumber, sizeof(uint16_t));
@@ -116,10 +120,12 @@ int8_t fs_get_data_from_dir_entry_name(uint32_t blockNumber, uint32_t dirEntryIn
     if(inner_fs_find_block_through_index_with_error(&realBlockNumber, &freeEntryIndexInBlock, addr) == -1) return -1;
 
     block_ptr = fs_get_data_blocks_ptr(addr) + (realBlockNumber * fs_get_data_block_size(addr));
+    int inOneBlock = fs_get_data_block_size(addr) / sizeof(struct DirEntry);
+    freeEntryIndexInBlock = freeEntryIndexInBlock % inOneBlock;
     uint32_t offsetInBlock = freeEntryIndexInBlock * sizeof(struct DirEntry);
 
-    memcpy(nameSize, block_ptr + offsetInBlock + (FS_NAME_SIZE * sizeof(uint8_t)), sizeof(uint8_t));
-    memcpy(name, block_ptr + offsetInBlock, *nameSize);
+    memcpy(nameSize, block_ptr + offsetInBlock + 2, sizeof(uint8_t));
+    memcpy(name, block_ptr + offsetInBlock + 3, *nameSize);
 
     return 0;
 }
@@ -132,9 +138,11 @@ int8_t fs_get_data_from_dir_entry_inode_number(uint32_t blockNumber, uint32_t di
     if(inner_fs_find_block_through_index_with_error(&realBlockNumber, &freeEntryIndexInBlock, addr) == -1) return -1;
 
     block_ptr = fs_get_data_blocks_ptr(addr) + (realBlockNumber * fs_get_data_block_size(addr));
+    int inOneBlock = fs_get_data_block_size(addr) / sizeof(struct DirEntry);
+    freeEntryIndexInBlock = freeEntryIndexInBlock % inOneBlock;
     uint32_t offsetInBlock = freeEntryIndexInBlock * sizeof(struct DirEntry);
 
-    memcpy(inodeNumber, block_ptr + offsetInBlock + (FS_NAME_SIZE * sizeof(uint8_t)) + sizeof(uint8_t), sizeof(uint16_t));
+    memcpy(inodeNumber, block_ptr + offsetInBlock, sizeof(uint16_t));
 
     return 0;
 }

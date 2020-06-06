@@ -111,14 +111,27 @@ void dir_file_only_test(void){
     uint8_t recNameSize;
     uint16_t recInodeNumber;
 
-    TEST_ASSERT_TRUE(fs_create_dir_file(&blockDirFile, &inodeInfo, shm_addr) == 0);
+    TEST_ASSERT_EQUAL(0, fs_create_dir_file(&blockDirFile, &inodeInfo, shm_addr));
 
-    TEST_ASSERT_TRUE(fs_save_data_to_dir_entry_name(blockDirFile, 3, testName, sizeof(testName), shm_addr) == 0);
-    TEST_ASSERT_TRUE(fs_save_data_to_dir_entry_inode_number(blockDirFile, 3, 9, shm_addr) == 0);
-    TEST_ASSERT_TRUE(fs_get_data_from_dir_entry_name(blockDirFile, 3, recName, &recNameSize, shm_addr) == 0);
-    TEST_ASSERT_TRUE(fs_get_data_from_dir_entry_inode_number(blockDirFile, 3, &recInodeNumber, shm_addr) == 0);
-    TEST_ASSERT_TRUE(memcmp(recName, testName, recNameSize) == 0);
-    TEST_ASSERT_TRUE(recInodeNumber == 9);
+    struct DirEntry dirCopy;
+
+    TEST_ASSERT_EQUAL(0, fs_get_dir_entry_copy(blockDirFile, 0, &dirCopy, shm_addr));
+    TEST_ASSERT_EQUAL(inodeInfo.thisDirInode, dirCopy.inode_number);
+    TEST_ASSERT_EQUAL_STRING(inodeInfo.thisDirName, dirCopy.name);
+    TEST_ASSERT_EQUAL(inodeInfo.thisDirNameLen, dirCopy.name_len);
+
+    TEST_ASSERT_EQUAL(0, fs_get_dir_entry_copy(blockDirFile, 1, &dirCopy, shm_addr));
+    TEST_ASSERT_EQUAL(inodeInfo.prevoiusDirInode, dirCopy.inode_number);
+    TEST_ASSERT_EQUAL_STRING(inodeInfo.prevoiusDirInodeName, dirCopy.name);
+    TEST_ASSERT_EQUAL(inodeInfo.prevoiusDirInodeLen, dirCopy.name_len);
+
+    TEST_ASSERT_EQUAL(0, fs_save_data_to_dir_entry_name(blockDirFile, 3, testName, sizeof(testName), shm_addr));
+    TEST_ASSERT_EQUAL(0, fs_save_data_to_dir_entry_inode_number(blockDirFile, 3, 9, shm_addr));
+    TEST_ASSERT_EQUAL(0, fs_get_data_from_dir_entry_name(blockDirFile, 3, recName, &recNameSize, shm_addr));
+    TEST_ASSERT_EQUAL(0, fs_get_data_from_dir_entry_inode_number(blockDirFile, 3, &recInodeNumber, shm_addr));
+    TEST_ASSERT_EQUAL(9, recInodeNumber);
+    TEST_ASSERT_EQUAL(0, memcmp(recName, testName, recNameSize));
+    
 
     free(recName);
     free(inodeInfo.prevoiusDirInodeName);
