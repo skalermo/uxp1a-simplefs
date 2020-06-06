@@ -106,7 +106,7 @@ int8_t fs_save_data_to_dir_entry_inode_number(uint32_t blockNumber, uint32_t dir
     // save new data
     block_ptr = fs_get_data_blocks_ptr(addr) + (realBlockNumber * fs_get_data_block_size(addr));
     uint32_t offsetInBlock = freeEntryIndexInBlock * sizeof(struct DirEntry);
-    memcpy(block_ptr + offsetInBlock + (FS_NAME_SIZE * sizeof(uint8_t)) + sizeof(uint8_t), &inodeNumber, sizeof(uint16_t));
+    memcpy(block_ptr + offsetInBlock, &inodeNumber, sizeof(uint16_t));
 
     return 0;
 }
@@ -258,8 +258,8 @@ int8_t fs_create_main_folder(void* addr){
     }
     toSave->name_len = 0;
 
-    for(uint16_t i = sizeof(struct DirEntry) * 2; i < fs_get_data_block_size(addr) / sizeof(struct DirEntry); i += sizeof(struct DirEntry)) {
-        memcpy(block_ptr + i, toSave, sizeof(struct DirEntry));
+    for(uint16_t i = 2; i < fs_get_data_block_size(addr) / sizeof(struct DirEntry); i++) {
+        memcpy(block_ptr + i*sizeof(struct DirEntry), toSave, sizeof(struct DirEntry));
     }
 
     free(toSave);
@@ -270,7 +270,7 @@ int8_t fs_create_main_folder(void* addr){
 }
 
 int8_t fs_get_free_dir_entry(uint32_t blockNumber, uint32_t* dirEntryIndex, void* addr){
-    void* block_ptr = fs_get_data_blocks_ptr(addr) + (blockNumber * sizeof(struct DirEntry));
+    void* block_ptr = fs_get_data_blocks_ptr(addr) + (blockNumber * fs_get_data_block_size(addr));
     struct DirEntry toRead;
     uint32_t nextBlockIndex = blockNumber;
 
@@ -290,7 +290,7 @@ int8_t fs_get_free_dir_entry(uint32_t blockNumber, uint32_t* dirEntryIndex, void
             inner_fs_create_empty_dir_file_struct_in_block(&nextBlockIndex, addr);
         }
 
-        block_ptr = fs_get_data_blocks_ptr(addr) + (nextBlockIndex * sizeof(struct DirEntry));
+        block_ptr = fs_get_data_blocks_ptr(addr) + (nextBlockIndex * fs_get_data_block_size(addr));
     }
     while(1); // either it must return success or fail.
     

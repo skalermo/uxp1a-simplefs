@@ -579,7 +579,82 @@ int simplefs_mkdir(char *name) {
  * 
  */
 int simplefs_rmdir(char *name) {
-    return ENOTIMPLEMENTED;
+    int name_length = strlen(name);
+
+    // ord("/") == 47
+    // if name is / itself or doesn't contain /
+    // at the beginning then return ENOENT
+    if(name_length < 2 || name[0] != 47){
+        return ENOENT;
+    }
+
+    if(name_length > FS_PATH_MAX){
+        return ENAMETOOLONG;
+    }
+
+    char* name_copy = strdup(name);
+
+    // Get Filename and dir path
+    char* filename = basename(name);
+    if(strlen(filename) > FS_NAME_SIZE){
+        free(name_copy);
+        return ENAMETOOLONG;
+    }
+
+    char* dir_path = dirname(name_copy);
+    char* filenamePrev = basename(dir_path);
+
+    void *shm_addr = get_ptr_to_fs();
+
+    // Get Inode idx for dir
+    int dir_inode = get_inode_index(dir_path, IS_DIR, shm_addr);
+
+    // if path is wrong
+    // or if the last inode should not be dir / file
+    if(dir_inode < 0){
+        free(name_copy);
+        return ENOTDIR;
+    }
+
+    int32_t inode = next_inode(dir_inode, filename, IS_DIR, shm_addr);
+    if (inode == -1) {
+        free(name_copy);
+        return ENOENT;
+    }
+
+    if (inode == -2) {
+        free(name_copy);
+        return ENOTDIR;
+    }
+
+    if (!is_dir_empty(inode, shm_addr)) {
+        free(name_copy);
+        return ENOTEMPTY;
+    }
+
+    // Get directory block index
+    uint32_t dir_block = get_inode_block_index(dir_inode, shm_addr);
+    if(dir_block == INT32_MAX){
+        free(name_copy);
+        return ENOENT;
+    }
+
+    // Remove dir entry from dir file
+    int ret_value = free_dir_entry(dir_block, inode, shm_addr);
+    if(ret_value < 0){
+        return ret_value;
+    }
+
+    ret_value = free_inode(inode, shm_addr);
+    if (ret_value < 0) {
+        return ret_value;
+    }
+    uint32_t file_block = get_inode_block_index(inode, shm_addr);
+    ret_value = free_data_blocks(file_block, shm_addr);
+    if (ret_value < 0) {
+        return ret_value;
+    }
+    return 0;
 }
 
 
