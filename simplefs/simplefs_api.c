@@ -74,24 +74,23 @@ int simplefs_creat(char *name, int mode) {
     fs_sem_lock_write_main_folder(&semMainDir, shm_addr);
 
     // Check if exists
-    int32_t inode_idx = -1;//get_inode_index(name, shm_addr);
-    if(inode_idx < 0) {
+    int32_t inode_idx = get_inode_index(name, IS_FILE, shm_addr);
+    if(inode_idx < 0) {     // Skip inode creation for existing files
         char *name_copy = strdup(name);
 
         // Get Filename and dir path
         char* filename = basename(name);
         char* dir_path = dirname(name_copy);
-        char* filenamePrev = basename(dir_path);
 
         // Get Inode idx for dir
         int dir_inode = get_inode_index(dir_path, IS_DIR, shm_addr);
 
 
-            if (dir_inode < 0){
-                fs_sem_unlock_write_main_folder(&semMainDir, shm_addr);
-                fs_sem_close_main_folder(&semMainDir);
-                return ENOTDIR;
-            }
+        if (dir_inode < 0){
+            fs_sem_unlock_write_main_folder(&semMainDir, shm_addr);
+            fs_sem_close_main_folder(&semMainDir);
+            return ENOTDIR;
+        }
 
         // Create inode
         struct Inode new_inode = {0};

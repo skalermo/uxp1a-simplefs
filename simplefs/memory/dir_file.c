@@ -97,15 +97,12 @@ int8_t fs_save_data_to_dir_entry_name(uint32_t blockNumber, uint32_t dirEntryInd
 }
 
 int8_t fs_save_data_to_dir_entry_inode_number(uint32_t blockNumber, uint32_t dirEntryIndex, uint16_t inodeNumber, void* addr){
-    void* block_ptr;
-    uint32_t freeEntryIndexInBlock = dirEntryIndex;
-    uint32_t realBlockNumber = blockNumber;
-
-    if(inner_fs_find_block_through_index_with_error(&realBlockNumber, &freeEntryIndexInBlock, addr) == -1) return -1;
+    if(inner_fs_find_block_through_index_with_error(&blockNumber, &dirEntryIndex, addr) == -1) return -1;
 
     // save new data
-    block_ptr = fs_get_data_blocks_ptr(addr) + (realBlockNumber * fs_get_data_block_size(addr));
-    uint32_t offsetInBlock = freeEntryIndexInBlock * sizeof(struct DirEntry);
+    void* block_ptr = fs_get_data_blocks_ptr(addr) + (blockNumber * fs_get_data_block_size(addr));
+    uint32_t offsetInBlock = dirEntryIndex * sizeof(struct DirEntry);
+
     memcpy(block_ptr + offsetInBlock, &inodeNumber, sizeof(uint16_t));
 
     return 0;
