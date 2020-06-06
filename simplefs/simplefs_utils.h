@@ -179,6 +179,7 @@ int16_t read_buffer(uint32_t block_num, uint32_t offset, char* buf, int len, voi
  */
 int16_t write_buffer(uint32_t block_num, uint32_t offset, char* buf, int len, void* shm_addr);
 
+int is_dir_empty(uint16_t dir_inode, void *shm_addr);
 
 // Synchronised getters for inode_idx
 struct Inode get_inode(uint16_t inode_idx, void* shm_addr);
