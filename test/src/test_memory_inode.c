@@ -196,14 +196,13 @@ void inode_bitmap(){
     TEST_ASSERT_EQUAL(0, fs_get_free_inode(&inodeIndex, shm_addr));
     TEST_ASSERT_EQUAL(MAX_INODES - 1, inodeIndex);
     TEST_ASSERT_EQUAL(0, fs_occupy_free_inode(&inodeIndex, &inode, shm_addr));
+    TEST_ASSERT_EQUAL(MAX_INODES, fs_get_used_inodes(shm_addr));
     TEST_ASSERT_EQUAL(-1, fs_get_free_inode(&inodeIndex, shm_addr));
 
     for(uint32_t i = 2; i < MAX_INODES - 1; ++i){
         TEST_ASSERT_EQUAL(0, fs_mark_inode_as_free(i, shm_addr));
         TEST_ASSERT_EQUAL(0, fs_get_free_inode(&inodeIndex, shm_addr));
         TEST_ASSERT_EQUAL(i, inodeIndex);
-
-        TEST_ASSERT_EQUAL(MAX_INODES - 1, fs_get_used_inodes(shm_addr));
 
         TEST_ASSERT_EQUAL(0, fs_mark_inode_as_used(i, shm_addr));
         TEST_ASSERT_EQUAL(-1, fs_get_free_inode(&inodeIndex, shm_addr));
@@ -214,6 +213,13 @@ void inode_bitmap(){
     TEST_ASSERT_EQUAL(0, fs_set_used_inodes(569, shm_addr));
     TEST_ASSERT_EQUAL(569, fs_get_used_inodes(shm_addr));
     TEST_ASSERT_EQUAL(0, fs_set_used_inodes(MAX_INODES, shm_addr));
+    TEST_ASSERT_EQUAL(MAX_INODES, fs_get_used_inodes(shm_addr));
+
+    for(uint32_t i = MAX_INODES - 1; i >= 2; --i){
+        TEST_ASSERT_EQUAL(0, fs_mark_inode_as_free(i, shm_addr));
+        TEST_ASSERT_EQUAL(0, fs_get_free_inode(&inodeIndex, shm_addr));
+        TEST_ASSERT_EQUAL(i, inodeIndex);
+    }
 }
 
 void inode_bitmap_test(void){

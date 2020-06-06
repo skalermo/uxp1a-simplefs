@@ -1,6 +1,11 @@
-
+/*
+ * utils.c
+ *
+ *      Author: Kordowski Mateusz
+ */
 #include "utils.h"
-#include <stdio.h>
+
+
 
 uint32_t inner_fs_get_position_in_8bit(uint8_t bits){
     uint8_t shift = 0x01;
@@ -69,7 +74,9 @@ uint32_t inner_fs_find_free_index(void* bitmap_ptr, uint32_t maxOffset){
     uint32_t incrementOffsetMax = 4;
     uint32_t incrementOffsetMin = 1;
 
-    for(; offset <= maxOffset - incrementOffsetMax; offset += incrementOffsetMax){
+    uint32_t forMax = maxOffset - (incrementOffsetMax);
+
+    for(; offset < forMax; offset += incrementOffsetMax){
         memcpy(&test32, bitmap_ptr + offset, sizeof(uint32_t));
         if(test32 != 0) {
             found = 1;
@@ -77,11 +84,8 @@ uint32_t inner_fs_find_free_index(void* bitmap_ptr, uint32_t maxOffset){
         }
     }
 
-    //printf("offset: %u maxOffset: %u\n", offset, maxOffset);
-
     if(!found) {    // there still might be free inode somewhere at the end
-        offset -= incrementOffsetMax;
-        for(; offset <= maxOffset - incrementOffsetMin; offset += incrementOffsetMin){
+        for(; offset < maxOffset; offset += incrementOffsetMin){
             memcpy(&test8, bitmap_ptr + offset, sizeof(uint8_t));
             if(test8 != 0) {
                 ret = inner_fs_get_position_in_8bit(test8);
@@ -89,9 +93,8 @@ uint32_t inner_fs_find_free_index(void* bitmap_ptr, uint32_t maxOffset){
                 return offset * 8 + ret;
             }
         }
-
+        
         // not found
-
         return UINT32_MAX;
     }
     else{
@@ -109,14 +112,12 @@ int8_t inner_fs_mark_bitmap_bit(void* bitmap_ptr, uint32_t bitmapIndex){
 
     uint8_t bitmapCopy;
     memcpy(&bitmapCopy, bitmap_ptr, sizeof(uint8_t));
-    //printf("bitmapCopy: %X\n", bitmapCopy);
 
     uint8_t setBit = 0x01;
     setBit = setBit <<  smallBitmapOffset;
     bitmapCopy = bitmapCopy | setBit; // set bit
     bitmapCopy = bitmapCopy & (~setBit); // unset bit (0 means it is used)
 
-    //printf("Bitmap_ptr: %p BitmapOffset: %u bitmapCopy: %X\n\n", bitmap_ptr, (uint32_t)smallBitmapOffset, bitmapCopy);
     memcpy(bitmap_ptr, &bitmapCopy, sizeof(uint8_t));
 
     return 0;
