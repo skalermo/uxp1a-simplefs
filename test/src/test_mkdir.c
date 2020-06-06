@@ -21,13 +21,17 @@ void tearDown(void) {
 void make_one_dir() {
 
     uint16_t inode_count = fs_get_used_inodes(shm_addr);
+    uint32_t block_count = fs_get_used_blocks(shm_addr);
     TEST_ASSERT_EQUAL(2, inode_count);
+    TEST_ASSERT_EQUAL(1, block_count);
 
     int ret_value = simplefs_mkdir("/a");
     inode_count = fs_get_used_inodes(shm_addr);
     TEST_ASSERT_EQUAL(3, inode_count);
     TEST_ASSERT_EQUAL(0, ret_value);
 
+    block_count = fs_get_used_blocks(shm_addr);
+    TEST_ASSERT_EQUAL(2, block_count);
 }
 
 
@@ -240,16 +244,45 @@ void try_to_create_dir_with_too_long_path() {
 
 }
 
-//void test_max_number_of_subdirs_in_dir() {
-//    int n = 1024, i = 1;
-//    char dirname[7*sizeof(char)];
-//
-//    for (; i <= n; i++) {
-//        sprintf(dirname, "/%d", i);
-//        simplefs_mkdir(dirname);
-//        printf("%s\n", dirname);
-//    }
-//}
+void create_dir_in_extended_dirfile() {
+    int i = 1;
+    char dirname[8*sizeof(char)];
+
+    for (; i <= 14; i++) {
+        sprintf(dirname, "/%d", i);
+        simplefs_mkdir(dirname);
+        printf("%s\n", dirname);
+        uint32_t block_count = fs_get_used_blocks(shm_addr);
+        printf("%u\n", block_count);
+    }
+
+    int ret_value = simplefs_mkdir("/15");
+    TEST_ASSERT_EQUAL(0, ret_value);
+    ret_value = simplefs_mkdir("/15");
+    TEST_ASSERT_EQUAL(EEXIST, ret_value);
+}
+
+void test_max_number_of_subdirs_in_dir() {
+    int n = 30, i = 1, ret_value;
+    char dirname[12*sizeof(char)];
+
+    for (; i <= n; i++) {
+        sprintf(dirname, "/%d", i);
+        printf("%s\n", dirname);
+        ret_value = simplefs_mkdir(dirname);
+        uint32_t block_count = fs_get_used_blocks(shm_addr);
+        printf("%u\n", block_count);
+    }
+
+    ret_value = simplefs_mkdir("/31");
+    TEST_ASSERT_EQUAL(0, ret_value);
+
+    ret_value = simplefs_mkdir("/32");
+    TEST_ASSERT_EQUAL(0, ret_value);
+
+    ret_value = simplefs_mkdir("/33");
+    TEST_ASSERT_EQUAL(0, ret_value);
+}
 
 int main(void) {
     UNITY_BEGIN();
@@ -262,6 +295,7 @@ int main(void) {
     RUN_TEST(try_to_create_dir_not_in_root_subdir);
     RUN_TEST(try_to_create_dir_with_too_long_name);
     RUN_TEST(try_to_create_dir_with_too_long_path);
+    RUN_TEST(create_dir_in_extended_dirfile);
 //    RUN_TEST(test_max_number_of_subdirs_in_dir);
 
     return UNITY_END();

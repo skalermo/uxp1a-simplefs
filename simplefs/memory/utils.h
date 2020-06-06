@@ -45,4 +45,6 @@ int8_t inner_fs_free_bitmap_bit(void* bitmap_ptr, uint32_t bitmapIndex);
 
 uint32_t inner_fs_get_sizeof_bitmap_alone(uint32_t numberOfIndexes);
 
+int is_bit_set(uint32_t bitmapIndex, void* bitmap_ptr);
+
 #endif

@@ -35,7 +35,7 @@ int simplefs_open(char *name, int mode) {
     new_open_file.mode = mode;
     new_open_file.inode_num = inode_idx;
     new_open_file.offset = 0;
-    new_open_file.parent_pid = getpid();
+    new_open_file.pid = getpid();
 
     fs_sem_init_open_file_stat(&openFile);
     fs_sem_init_inode(&semInode, inode_idx);
@@ -169,7 +169,7 @@ int simplefs_creat(char *name, int mode) {
     new_open_file.mode = mode;
     new_open_file.inode_num = inode_idx;
     new_open_file.offset = 0;
-    new_open_file.parent_pid = getpid();
+    new_open_file.pid = getpid();
 
     fs_sem_init_inode(&semInode, inode_idx);
     fs_sem_lock_write_inode(&semInode, shm_addr);
@@ -596,7 +596,7 @@ int simplefs_close(int fd) {
     struct OpenFile file;
     fs_get_open_file_copy(fd, &file, shm_addr);
 
-    if(file.parent_pid != getpid()){
+    if(file.pid != getpid()){
         return EBADF;
     }
 

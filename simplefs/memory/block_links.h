@@ -222,6 +222,8 @@ void* fs_get_block_bitmap_ptr(void* addr);
 
 void* fs_get_data_blocks_ptr(void* addr);
 
+void *get_block_ptr_by_index(uint32_t idx, void *addr);
+
 uint16_t fs_get_data_block_size(void* addr);
 
 uint32_t fs_get_max_number_data_blocks(void* addr);
