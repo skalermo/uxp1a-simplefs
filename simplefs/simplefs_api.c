@@ -290,16 +290,24 @@ int simplefs_write(int fd, char *buf, int len) {
         write_buffer(block_idx, openFile.offset, buf, len, shm_addr);
     }
     */
+
+
     // Write Buffer
     int32_t len_wrote = write_buffer(block_idx, openFile.offset, buf, len, shm_addr);
+    if(len_wrote < 0){
+        return EFBIG;
+    }
     uint16_t file_size = get_inode_file_size(openFile.inode_num, shm_addr);
-    file_size += len_wrote;
-    set_inode_file_size(openFile.inode_num,  file_size, shm_addr);
+    openFile.offset += len_wrote;
+    if(file_size < openFile.offset){
+        file_size =  openFile.offset;
+        set_inode_file_size(openFile.inode_num,  file_size, shm_addr);
+    }
     fs_sem_unlock_write_inode(&semInode, shm_addr);
     fs_sem_close_inode(&semInode);
 
     // Update offset
-    openFile.offset += len;
+
     set_offset(fd, openFile.offset, shm_addr);
 
     // Set inode mode to 0
