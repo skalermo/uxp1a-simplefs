@@ -116,7 +116,7 @@ int8_t inner_fs_mark_bitmap_bit(void* bitmap_ptr, uint32_t bitmapIndex){
     return 0;
 }
 
-uint32_t is_bit_set(void* bitmap_ptr, uint32_t bitmapIndex){
+int is_bit_set(uint32_t bitmapIndex, void* bitmap_ptr){
     bitmap_ptr += bitmapIndex / 8;
     uint8_t smallBitmapOffset = bitmapIndex % 8;
 
