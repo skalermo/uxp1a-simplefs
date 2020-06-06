@@ -86,9 +86,75 @@ void block_links_allocate_chain(void){
         TEST_ASSERT_EQUAL(0, fs_free_blockchain(chains[i], shm_addr));
         if(usedBlocks >= chainSize + 1) usedBlocks -= chainSize + 1;
         else usedBlocks = 1;
-        
+
         TEST_ASSERT_EQUAL(usedBlocks, fs_get_used_blocks(shm_addr));
     }
+
+    free(chains);
+}
+
+void block_links_saving(){
+    uint32_t numberOfInt = 943;
+    uint32_t sizeofData = sizeof(uint32_t) * numberOfInt;
+    uint32_t* dataToSave = malloc(sizeofData);
+    uint32_t* receivedData = malloc(sizeofData);
+    uint32_t numberOfFiles = 6510;
+    uint32_t offsetBytes = 9863;
+    uint32_t* chains = malloc(numberOfFiles * sizeof(uint32_t));
+
+    for(uint32_t i = 0; i < numberOfInt; ++i){
+        dataToSave[i] = i;
+    }
+
+    for(uint32_t i = 0; i < numberOfFiles; ++i){
+        chains[i] = fs_allocate_new_chain(shm_addr);
+        TEST_ASSERT_EQUAL(0, fs_save_data(0, sizeofData, chains[i], dataToSave, shm_addr));
+        TEST_ASSERT_EQUAL(0, fs_save_data(offsetBytes, offsetBytes + sizeofData, chains[i], dataToSave, shm_addr));
+    }
+
+    for(uint32_t i = 0; i < numberOfFiles; ++i){
+        chains[i] = fs_allocate_new_chain(shm_addr);
+        TEST_ASSERT_EQUAL(0, fs_get_data(0, sizeofData, chains[i], receivedData, shm_addr));
+        TEST_ASSERT_EQUAL_UINT32_ARRAY(dataToSave, receivedData, sizeofData);
+        TEST_ASSERT_EQUAL(0, fs_get_data(offsetBytes, offsetBytes + sizeofData, chains[i], receivedData, shm_addr));
+        TEST_ASSERT_EQUAL_UINT32_ARRAY(dataToSave, receivedData, sizeofData);
+    }
+
+    free(chains);
+    free(dataToSave);
+    free(receivedData);
+}
+
+void block_links_saving_count(){
+    uint32_t numberOfInt = 943;
+    uint32_t sizeofData = sizeof(uint32_t) * numberOfInt;
+    uint32_t* dataToSave = malloc(sizeofData);
+    uint32_t* receivedData = malloc(sizeofData);
+    uint32_t numberOfFiles = 6510;
+    uint32_t offsetBytes = 9863;
+    uint32_t* chains = malloc(numberOfFiles * sizeof(uint32_t));
+
+    for(uint32_t i = 0; i < numberOfInt; ++i){
+        dataToSave[i] = i;
+    }
+
+    for(uint32_t i = 0; i < numberOfFiles; ++i){
+        chains[i] = fs_allocate_new_chain(shm_addr);
+        TEST_ASSERT_EQUAL(sizeofData, fs_save_data_count(0, sizeofData, chains[i], dataToSave, shm_addr));
+        TEST_ASSERT_EQUAL(sizeofData, fs_save_data_count(offsetBytes, offsetBytes + sizeofData, chains[i], dataToSave, shm_addr));
+    }
+
+    for(uint32_t i = 0; i < numberOfFiles; ++i){
+        chains[i] = fs_allocate_new_chain(shm_addr);
+        TEST_ASSERT_EQUAL(sizeofData, fs_get_data_count(0, sizeofData, chains[i], receivedData, shm_addr));
+        TEST_ASSERT_EQUAL_UINT32_ARRAY(dataToSave, receivedData, sizeofData);
+        TEST_ASSERT_EQUAL(sizeofData, fs_get_data_count(offsetBytes, offsetBytes + sizeofData, chains[i], receivedData, shm_addr));
+        TEST_ASSERT_EQUAL_UINT32_ARRAY(dataToSave, receivedData, sizeofData);
+    }
+
+    free(chains);
+    free(dataToSave);
+    free(receivedData);
 }
 
 int main(void){
@@ -96,6 +162,8 @@ int main(void){
 
     RUN_TEST(block_links_allocate);
     RUN_TEST(block_links_allocate_chain);
+    RUN_TEST(block_links_saving);
+    RUN_TEST(block_links_saving_count);
     
     return UNITY_END();
 }
