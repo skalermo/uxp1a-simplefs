@@ -113,11 +113,11 @@ int32_t next_inode(uint16_t prev_inode, char* name, uint8_t type, void* shm_addr
 
     // loop over all dir entries, break if arg name found in one of the entries
     while(fs_get_dir_entry_copy(dir_file_block, entry_idx, &copy, shm_addr) >= 0){
-
-        if(copy.inode_number != 0 && !strcmp((char*) copy.name, name)){
+//        printf("%d %d %s\n", entry_idx, copy.inode_number, copy.name);
+        if((copy.inode_number != 0) && !strcmp((char*) copy.name, name)){
             fs_get_data_from_inode_uint8(copy.inode_number, 4, &inodeMode, shm_addr);
             if((inodeMode & type) != 0)
-                return copy.inode_number;
+                return (int32_t) copy.inode_number;
             return -2;
         }   
         ++entry_idx;
@@ -473,6 +473,8 @@ int16_t free_inode(uint16_t inode, void *shm_addr) {
     if(ret < 0){
         return ret;
     }
+    uint16_t used_inodes = fs_get_used_inodes(shm_addr);
+    fs_set_used_inodes(used_inodes - 1, shm_addr);
 
     return 0;
 }
@@ -501,4 +503,28 @@ void inc_ref_count(uint16_t inode, void *shm_addr) {
     ref_count += 1;
 
     fs_save_data_to_inode_uint8(inode, 5, ref_count, shm_addr);
+}
+
+int is_dir_empty(uint16_t dir_inode, void *shm_addr) {
+    uint32_t dir_block_number, next_block_number;
+    fs_get_data_from_inode_uint32(dir_inode, 0, &dir_block_number, shm_addr);
+    next_block_number = dir_block_number;
+
+    void* block_ptr = fs_get_data_blocks_ptr(shm_addr) +
+            dir_block_number * fs_get_data_block_size(shm_addr);
+    do{
+        struct DirEntry toRead;
+        for (uint32_t i = 2; i < fs_get_data_block_size(shm_addr) / sizeof(struct DirEntry); ++i) {
+            memcpy(&toRead, block_ptr + (i * sizeof(struct DirEntry)), sizeof(struct DirEntry));
+            if(toRead.inode_number != 0){
+                return 0;
+            }
+        }
+
+        next_block_number = fs_get_next_block_number(next_block_number, shm_addr);
+        block_ptr = fs_get_data_blocks_ptr(shm_addr) + next_block_number*fs_get_data_block_size(shm_addr);
+    }
+    while(next_block_number != FS_EMPTY_BLOCK_VALUE);
+
+    return 1;
 }
