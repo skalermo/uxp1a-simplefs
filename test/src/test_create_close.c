@@ -72,6 +72,39 @@ void test_unlink(void){
     TEST_ASSERT_GREATER_OR_EQUAL(0, simplefs_unlink("/test_open_close6"));
 }
 
+void test_mix(void){
+    // open not existing
+    int fd = simplefs_open("/file.txt", FS_READ); //ENOTDIR
+    TEST_ASSERT_EQUAL(ENOTDIR, fd);
+
+    fd = simplefs_creat("/file.txt", FS_READ); // 0
+    TEST_ASSERT_EQUAL(0, fd);
+
+    int ret = simplefs_close(fd);   // 0
+    TEST_ASSERT_EQUAL(0, ret);
+
+    fd = simplefs_open("/file.txt", FS_READ); // 0
+    TEST_ASSERT_EQUAL(0, fd);
+
+    ret = simplefs_unlink("/file.txt"); //EBUSY
+    TEST_ASSERT_EQUAL(EBUSY, ret);
+
+    ret = simplefs_close(fd);               // 0
+    TEST_ASSERT_EQUAL(0, ret);
+
+    ret = simplefs_unlink("/file.txt"); // 0
+    TEST_ASSERT_EQUAL(0, ret);
+
+    fd = simplefs_open("/file.txt", FS_READ); // ENOTDIR
+    TEST_ASSERT_EQUAL(ENOTDIR, fd);
+
+    fd = simplefs_creat("/file.txt", FS_READ); //0
+    TEST_ASSERT_EQUAL(0, fd);
+
+    ret = simplefs_close(fd);                       // 0
+    TEST_ASSERT_EQUAL(0, ret);
+}
+
 
 int main(void) {
     UNITY_BEGIN();
@@ -79,6 +112,7 @@ int main(void) {
     RUN_TEST(test_creat_close);
     RUN_TEST(test_open);
     RUN_TEST(test_unlink);
+    RUN_TEST(test_mix);
 
     return UNITY_END();
 }
