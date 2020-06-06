@@ -20,7 +20,7 @@ uint8_t inner_fs_get_open_file_offsetof(uint8_t index){
         case 2:
             return offsetof(struct OpenFile, offset);
         case 3:
-            return offsetof(struct OpenFile, parent_pid);
+            return offsetof(struct OpenFile, pid);
         default:
             return UINT8_MAX;
     }
@@ -35,7 +35,7 @@ uint8_t inner_fs_get_open_file_variable_size(uint8_t index){
         case 2:
             return member_size(struct OpenFile, offset);
         case 3:
-            return member_size(struct OpenFile, parent_pid);
+            return member_size(struct OpenFile, pid);
         default:
             return UINT8_MAX;
     }
@@ -150,7 +150,7 @@ int8_t fs_create_open_file_table_stuctures_in_shm(void* addr){
     toSave.mode = 0;
     toSave.inode_num = 0;
     toSave.offset = 0;
-    toSave.parent_pid = 0;
+    toSave.pid = 0;
 
     for(unsigned int i = 0; i < maxNumberOfOpenFiles; ++i, offset += sizeof(struct OpenFile)){
         memcpy(openFileTable_ptr + offset, &toSave, sizeof(struct OpenFile));
