@@ -1,5 +1,5 @@
 /*
- * test_inode.c
+ * test_memory_inode.c
  *
  *      Author: Kordowski Mateusz
  */
