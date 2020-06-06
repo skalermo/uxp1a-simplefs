@@ -62,16 +62,18 @@ void successfully_read_file_and_return_read_bytes_count(){
 
 void read_file_twice_gives_correct_result(){
     char buf[] = "123456789";
+    char buf2[] = "987654321";
     char buf_read_1[100];
-    char buf_read_2[100];
+    char buf_read_2[100] = {0};
     int fd = simplefs_creat("/read_mode_twice", FS_WRITE);
-    int result = simplefs_write(fd, &buf, sizeof(buf));
+    simplefs_write(fd, buf, sizeof(buf));
+    simplefs_write(fd, buf2, sizeof(buf));
     int fd_open = simplefs_open("/read_mode_twice", FS_READ);
-    int read_result_1 = simplefs_read(fd_open, &buf_read_1, 100);
-    int read_result_2 = simplefs_read(fd_open, &buf_read_2, 100);
+    int read_result_1 = simplefs_read(fd_open, buf_read_1, 100);
+    int read_result_2 = simplefs_read(fd_open, buf_read_2, 100);
     TEST_ASSERT(!strcmp(buf_read_1, "123456789"));
-    TEST_ASSERT(!strcmp(buf_read_2, ""));
-    TEST_ASSERT_EQUAL(read_result_1, read_result_2);
+    TEST_ASSERT_EQUAL(read_result_1, 20);
+    TEST_ASSERT_EQUAL(read_result_2, 0);
 }
 
 void read_file_more_bytes_than_file_size(){

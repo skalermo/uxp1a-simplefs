@@ -225,7 +225,15 @@ int simplefs_read(int fd, char *buf, int len) {
     uint32_t block_idx = get_inode_block_index(openFile.inode_num, shm_addr);
 
     // Read Buffer
-    int32_t len_read = read_buffer(block_idx, openFile.offset, buf, len, shm_addr);
+    uint16_t filesize = get_inode_file_size(openFile.inode_num, shm_addr);
+    int32_t len_read = 0;
+    if(filesize >= openFile.offset + len ){
+        len_read = read_buffer(block_idx, openFile.offset, buf, len, shm_addr);
+    }
+    else{
+        len = filesize-openFile.offset;
+        len_read = read_buffer(block_idx, openFile.offset, buf, len, shm_addr);
+    }
     fs_sem_unlock_read_inode(&semInode, shm_addr);
     fs_sem_close_inode(&semInode);
 
@@ -284,7 +292,9 @@ int simplefs_write(int fd, char *buf, int len) {
     */
     // Write Buffer
     int32_t len_wrote = write_buffer(block_idx, openFile.offset, buf, len, shm_addr);
-
+    uint16_t file_size = get_inode_file_size(openFile.inode_num, shm_addr);
+    file_size += len_wrote;
+    set_inode_file_size(openFile.inode_num,  file_size, shm_addr);
     fs_sem_unlock_write_inode(&semInode, shm_addr);
     fs_sem_close_inode(&semInode);
 
