@@ -222,9 +222,6 @@ void inode_bitmap(){
     }
 }
 
-void inode_bitmap_test(void){
-    
-}
 
 int main(void){
     UNITY_BEGIN();

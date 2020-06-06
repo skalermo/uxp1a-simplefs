@@ -350,7 +350,7 @@ int8_t fs_create_blocks_stuctures_in_shm(void* addr){
     // last 8 bit 
     int32_t modulo = numberOfBlocks % 8;
     uint8_t lastBits = 0xFF;
-    lastBits = lastBits << (8 - modulo);
+    lastBits = lastBits >> (8 - modulo);
     toSaveStat.block_bitmap[sizeofBitmapAlone - 1] = lastBits;
 
     memcpy(blockLinks_ptr, toSave.block_num, sizeofBlockLinks);
