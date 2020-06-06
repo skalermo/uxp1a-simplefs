@@ -23,12 +23,12 @@ uint8_t inner_fs_get_used_data_blocks_sizeof(){
 int8_t fs_get_data(uint32_t from, uint32_t to, uint32_t initialBlockNumber, void* receivedData, void* addr){
     uint32_t nextBlockIndex = initialBlockNumber;
     uint16_t blockSize = fs_get_data_block_size(addr);
-    
-    uint32_t howManyBlocks = (to - from) / blockSize;
+
+    uint32_t beginBlockOccupancy = from % blockSize;
     uint32_t lastBlockOccupancy = to % blockSize;
 
     uint32_t beginBlock = from / blockSize;
-    uint32_t beginBlockOccupancy = from % blockSize;
+    uint32_t howManyBlocks = (to / blockSize) - beginBlock;
     uint32_t howManyDataLeft = to - from;
 
     uint32_t receivedData_ptr = 0;
@@ -82,12 +82,12 @@ int8_t fs_get_data(uint32_t from, uint32_t to, uint32_t initialBlockNumber, void
 int32_t fs_get_data_count(uint32_t from, uint32_t to, uint32_t initialBlockNumber, void* receivedData, void* addr){
     uint32_t nextBlockIndex = initialBlockNumber;
     uint16_t blockSize = fs_get_data_block_size(addr);
-    
-    uint32_t howManyBlocks = (to - from) / blockSize;
+
     uint32_t lastBlockOccupancy = to % blockSize;
+    uint32_t beginBlockOccupancy = from % blockSize;
 
     uint32_t beginBlock = from / blockSize;
-    uint32_t beginBlockOccupancy = from % blockSize;
+    uint32_t howManyBlocks = (to / blockSize) - beginBlock;
     uint32_t howManyDataLeft = to - from;
 
     uint32_t receivedData_ptr = 0;
@@ -100,6 +100,8 @@ int32_t fs_get_data_count(uint32_t from, uint32_t to, uint32_t initialBlockNumbe
     // first block
     void* dataBlockReal_ptr = fs_get_data_blocks_ptr(addr) + (nextBlockIndex * blockSize);
     uint32_t differenceInBlock = blockSize - beginBlockOccupancy;
+
+    
 
     // data can fit from one block
     if(differenceInBlock > howManyDataLeft){
@@ -147,7 +149,7 @@ int8_t fs_save_data(uint32_t from, uint32_t to, uint32_t initialBlockNumber, voi
     uint32_t lastBlockOccupancy = to % blockSize;
 
     uint32_t beginBlock = from / blockSize;
-    uint32_t howManyBlocks = (to - from) / blockSize;
+    uint32_t howManyBlocks = (to / blockSize) - beginBlock;
     uint32_t howManyDataLeft = to - from;
 
     uint32_t recordData_ptr = 0;
@@ -200,7 +202,7 @@ int32_t fs_save_data_count(uint32_t from, uint32_t to, uint32_t initialBlockNumb
     uint32_t lastBlockOccupancy = to % blockSize;
 
     uint32_t beginBlock = from / blockSize;
-    uint32_t howManyBlocks = (to - from) / blockSize;
+    uint32_t howManyBlocks = (to / blockSize) - beginBlock;
     uint32_t howManyDataLeft = to - from;
 
     uint32_t recordData_ptr = 0;

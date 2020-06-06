@@ -50,7 +50,7 @@ void block_links_allocate_chain(void){
     uint32_t block;
     uint32_t chainSize = 80;
     uint32_t prevBlock;
-    uint32_t* chains = malloc((fs_get_max_number_data_blocks(shm_addr) / chainSize) + 1);
+    uint32_t* chains = malloc(fs_get_max_number_data_blocks(shm_addr));
     uint32_t chainIndex = 0;
 
     for(uint32_t i = 1; i < fs_get_max_number_data_blocks(shm_addr); ++i){
@@ -106,18 +106,20 @@ void block_links_saving(){
         dataToSave[i] = i;
     }
 
-    for(uint32_t i = 0; i < numberOfFiles; ++i){
+    for(uint32_t i = 0; i < numberOfFiles - 1; ++i){
         chains[i] = fs_allocate_new_chain(shm_addr);
         TEST_ASSERT_EQUAL(0, fs_save_data(0, sizeofData, chains[i], dataToSave, shm_addr));
+        ++i;
+        chains[i] = fs_allocate_new_chain(shm_addr);
         TEST_ASSERT_EQUAL(0, fs_save_data(offsetBytes, offsetBytes + sizeofData, chains[i], dataToSave, shm_addr));
     }
 
-    for(uint32_t i = 0; i < numberOfFiles; ++i){
-        chains[i] = fs_allocate_new_chain(shm_addr);
+    for(uint32_t i = 0; i < numberOfFiles - 1; ++i){
         TEST_ASSERT_EQUAL(0, fs_get_data(0, sizeofData, chains[i], receivedData, shm_addr));
-        TEST_ASSERT_EQUAL_UINT32_ARRAY(dataToSave, receivedData, sizeofData);
+        TEST_ASSERT_EQUAL_UINT32_ARRAY(dataToSave, receivedData, numberOfInt);
+        ++i;
         TEST_ASSERT_EQUAL(0, fs_get_data(offsetBytes, offsetBytes + sizeofData, chains[i], receivedData, shm_addr));
-        TEST_ASSERT_EQUAL_UINT32_ARRAY(dataToSave, receivedData, sizeofData);
+        TEST_ASSERT_EQUAL_UINT32_ARRAY(dataToSave, receivedData, numberOfInt);
     }
 
     free(chains);
@@ -126,36 +128,52 @@ void block_links_saving(){
 }
 
 void block_links_saving_count(){
-    uint32_t numberOfInt = 943;
+    uint32_t numberOfInt = 769; // 943
     uint32_t sizeofData = sizeof(uint32_t) * numberOfInt;
     uint32_t* dataToSave = malloc(sizeofData);
     uint32_t* receivedData = malloc(sizeofData);
     uint32_t numberOfFiles = 6510;
     uint32_t offsetBytes = 9863;
     uint32_t* chains = malloc(numberOfFiles * sizeof(uint32_t));
+    uint32_t boolean = ((sizeofData % BLOCK_SIZE) != 0);
+    uint32_t boolean2 = (((offsetBytes + sizeofData) % BLOCK_SIZE) != 0);
 
     for(uint32_t i = 0; i < numberOfInt; ++i){
         dataToSave[i] = i;
     }
 
-    for(uint32_t i = 0; i < numberOfFiles; ++i){
+    for(uint32_t i = 0; i < numberOfFiles - 1; ++i){
         chains[i] = fs_allocate_new_chain(shm_addr);
         TEST_ASSERT_EQUAL(sizeofData, fs_save_data_count(0, sizeofData, chains[i], dataToSave, shm_addr));
+
+        uint32_t block = chains[i];
+        for(uint32_t j = 0; j < (sizeofData / BLOCK_SIZE) + boolean - 1; ++j){
+            TEST_ASSERT_NOT_EQUAL(FS_EMPTY_BLOCK_VALUE, block = fs_get_next_block_number(block, shm_addr));
+        }
+        TEST_ASSERT_EQUAL(FS_EMPTY_BLOCK_VALUE, block = fs_get_next_block_number(block, shm_addr));
+
+        chains[++i] = fs_allocate_new_chain(shm_addr);
+        block = chains[i];
         TEST_ASSERT_EQUAL(sizeofData, fs_save_data_count(offsetBytes, offsetBytes + sizeofData, chains[i], dataToSave, shm_addr));
+        for(uint32_t j = 0; j < ((offsetBytes + sizeofData) / BLOCK_SIZE) + boolean2 - 1; ++j){
+            TEST_ASSERT_NOT_EQUAL(FS_EMPTY_BLOCK_VALUE, block = fs_get_next_block_number(block, shm_addr));
+        }
+        TEST_ASSERT_EQUAL(FS_EMPTY_BLOCK_VALUE, block = fs_get_next_block_number(block, shm_addr));
     }
 
-    for(uint32_t i = 0; i < numberOfFiles; ++i){
-        chains[i] = fs_allocate_new_chain(shm_addr);
+    for(uint32_t i = 0; i < numberOfFiles - 1; ++i){
         TEST_ASSERT_EQUAL(sizeofData, fs_get_data_count(0, sizeofData, chains[i], receivedData, shm_addr));
-        TEST_ASSERT_EQUAL_UINT32_ARRAY(dataToSave, receivedData, sizeofData);
+        TEST_ASSERT_EQUAL_UINT32_ARRAY(dataToSave, receivedData, numberOfInt);
+        ++i;
         TEST_ASSERT_EQUAL(sizeofData, fs_get_data_count(offsetBytes, offsetBytes + sizeofData, chains[i], receivedData, shm_addr));
-        TEST_ASSERT_EQUAL_UINT32_ARRAY(dataToSave, receivedData, sizeofData);
+        TEST_ASSERT_EQUAL_UINT32_ARRAY(dataToSave, receivedData, numberOfInt);
     }
 
     free(chains);
     free(dataToSave);
     free(receivedData);
 }
+
 
 int main(void){
     UNITY_BEGIN();
