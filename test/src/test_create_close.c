@@ -26,64 +26,66 @@ void tearDown(void){
 
 }
 
+const unsigned int max = 32;
+
 void test_creat_close(void){
-    int fd[6];
+    int fd[max];
 
-    TEST_ASSERT_GREATER_OR_EQUAL(0, fd[0] = simplefs_creat("/test_open_close1", 0));
-    TEST_ASSERT_GREATER_OR_EQUAL(0, fd[1] = simplefs_creat("/test_open_close2", 0));
-    TEST_ASSERT_GREATER_OR_EQUAL(0, fd[2] = simplefs_creat("/test_open_close3", 0));
-    TEST_ASSERT_GREATER_OR_EQUAL(0, fd[3] = simplefs_creat("/test_open_close4", 0));
-    TEST_ASSERT_GREATER_OR_EQUAL(0, fd[4] = simplefs_creat("/test_open_close5", 0));
-    TEST_ASSERT_GREATER_OR_EQUAL(0, fd[5] = simplefs_creat("/test_open_close6", 0));
+    for(int i = 0; i < max; ++i){
+        char file[256];
+        snprintf(file, sizeof file, "%s%d%s", "/file", i, ".txt");
+        fd[i] = simplefs_creat(file, 0);
 
-    TEST_ASSERT_GREATER_OR_EQUAL(0, simplefs_close(fd[0]));
-    TEST_ASSERT_GREATER_OR_EQUAL(0, simplefs_close(fd[1]));
-    TEST_ASSERT_GREATER_OR_EQUAL(0, simplefs_close(fd[2]));
-    TEST_ASSERT_GREATER_OR_EQUAL(0, simplefs_close(fd[3]));
-    TEST_ASSERT_GREATER_OR_EQUAL(0, simplefs_close(fd[4]));
-    TEST_ASSERT_GREATER_OR_EQUAL(0, simplefs_close(fd[5]));
+        TEST_ASSERT_GREATER_OR_EQUAL(0, fd[i]);
+    }
 
+    for(int i = 0; i < max; ++i){
+        TEST_ASSERT_GREATER_OR_EQUAL(0, simplefs_close(fd[i]));
+    }
 }
 
 void test_open(void){
-    int fd[6];
+    int fd[max];
 
-    TEST_ASSERT_GREATER_OR_EQUAL(0, fd[0] = simplefs_open("/test_open_close1", 0));
-    TEST_ASSERT_GREATER_OR_EQUAL(0, fd[1] = simplefs_open("/test_open_close2", 0));
-    TEST_ASSERT_GREATER_OR_EQUAL(0, fd[2] = simplefs_open("/test_open_close3", 0));
-    TEST_ASSERT_GREATER_OR_EQUAL(0, fd[3] = simplefs_open("/test_open_close4", 0));
-    TEST_ASSERT_GREATER_OR_EQUAL(0, fd[4] = simplefs_open("/test_open_close5", 0));
-    TEST_ASSERT_GREATER_OR_EQUAL(0, fd[5] = simplefs_open("/test_open_close6", 0));
+    for(int i = 0; i < max; ++i){
+        char file[256];
+        snprintf(file, sizeof file, "%s%d%s", "/file", i, ".txt");
+        fd[i] = simplefs_open(file, 0);
 
-    TEST_ASSERT_GREATER_OR_EQUAL(0, simplefs_close(fd[0]));
-    TEST_ASSERT_GREATER_OR_EQUAL(0, simplefs_close(fd[1]));
-    TEST_ASSERT_GREATER_OR_EQUAL(0, simplefs_close(fd[2]));
-    TEST_ASSERT_GREATER_OR_EQUAL(0, simplefs_close(fd[3]));
-    TEST_ASSERT_GREATER_OR_EQUAL(0, simplefs_close(fd[4]));
-    TEST_ASSERT_GREATER_OR_EQUAL(0, simplefs_close(fd[5]));
+        TEST_ASSERT_GREATER_OR_EQUAL(0, fd[i]);
+    }
+
+    for(int i = 0; i < max; ++i){
+        TEST_ASSERT_GREATER_OR_EQUAL(0, simplefs_close(fd[i]));
+    }
 }
 
 void test_unlink(void){
-    TEST_ASSERT_GREATER_OR_EQUAL(0, simplefs_unlink("/test_open_close1"));
-    TEST_ASSERT_GREATER_OR_EQUAL(0, simplefs_unlink("/test_open_close2"));
-    TEST_ASSERT_GREATER_OR_EQUAL(0, simplefs_unlink("/test_open_close3"));
-    TEST_ASSERT_GREATER_OR_EQUAL(0, simplefs_unlink("/test_open_close4"));
-    TEST_ASSERT_GREATER_OR_EQUAL(0, simplefs_unlink("/test_open_close5"));
-    TEST_ASSERT_GREATER_OR_EQUAL(0, simplefs_unlink("/test_open_close6"));
+    for(int i = 0; i < max; ++i){
+        char file[256];
+        snprintf(file, sizeof file, "%s%d%s", "/file", i, ".txt");
+
+        int ret = simplefs_unlink(file);
+        if(ret < 0){
+            printf("%s\n", file);
+        }
+
+        TEST_ASSERT_GREATER_OR_EQUAL(0, ret);
+    }
 }
 
 void test_mix(void){
     // open not existing
-    int fd = simplefs_open("/file.txt", FS_READ); //ENOTDIR
+    int fd = simplefs_open("/file.txt", 0); //ENOTDIR
     TEST_ASSERT_EQUAL(ENOTDIR, fd);
 
-    fd = simplefs_creat("/file.txt", FS_READ); // 0
+    fd = simplefs_creat("/file.txt", 0); // 0
     TEST_ASSERT_EQUAL(0, fd);
 
     int ret = simplefs_close(fd);   // 0
     TEST_ASSERT_EQUAL(0, ret);
 
-    fd = simplefs_open("/file.txt", FS_READ); // 0
+    fd = simplefs_open("/file.txt", 0); // 0
     TEST_ASSERT_EQUAL(0, fd);
 
     ret = simplefs_unlink("/file.txt"); //EBUSY
@@ -95,13 +97,16 @@ void test_mix(void){
     ret = simplefs_unlink("/file.txt"); // 0
     TEST_ASSERT_EQUAL(0, ret);
 
-    fd = simplefs_open("/file.txt", FS_READ); // ENOTDIR
+    fd = simplefs_open("/file.txt", 0); // ENOTDIR
     TEST_ASSERT_EQUAL(ENOTDIR, fd);
 
-    fd = simplefs_creat("/file.txt", FS_READ); //0
+    fd = simplefs_creat("/file.txt", 0); //0
     TEST_ASSERT_EQUAL(0, fd);
 
     ret = simplefs_close(fd);                       // 0
+    TEST_ASSERT_EQUAL(0, ret);
+
+    ret = simplefs_unlink("/file.txt"); // 0
     TEST_ASSERT_EQUAL(0, ret);
 }
 
