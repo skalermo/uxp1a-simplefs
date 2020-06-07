@@ -1,5 +1,11 @@
-
+/*
+ * utils.c
+ *
+ *      Author: Kordowski Mateusz
+ */
 #include "utils.h"
+
+
 
 uint32_t inner_fs_get_position_in_8bit(uint8_t bits){
     uint8_t shift = 0x01;
@@ -65,8 +71,12 @@ uint32_t inner_fs_find_free_index(void* bitmap_ptr, uint32_t maxOffset){
     char found = 0;
 
     uint32_t ret = 0;
+    uint32_t incrementOffsetMax = 4;
+    uint32_t incrementOffsetMin = 1;
 
-    for(; offset <= maxOffset - 32; offset += 32){
+    uint32_t forMax = maxOffset - (incrementOffsetMax);
+
+    for(; offset < forMax; offset += incrementOffsetMax){
         memcpy(&test32, bitmap_ptr + offset, sizeof(uint32_t));
         if(test32 != 0) {
             found = 1;
@@ -75,25 +85,23 @@ uint32_t inner_fs_find_free_index(void* bitmap_ptr, uint32_t maxOffset){
     }
 
     if(!found) {    // there still might be free inode somewhere at the end
-        offset -= 32;
-        for(; offset <= maxOffset - 8; offset += 8){
+        for(; offset < maxOffset; offset += incrementOffsetMin){
             memcpy(&test8, bitmap_ptr + offset, sizeof(uint8_t));
             if(test8 != 0) {
                 ret = inner_fs_get_position_in_8bit(test8);
                 if(ret == UINT32_MAX) return UINT32_MAX; // error
-                return offset + ret;
+                return offset * 8 + ret;
             }
         }
-
+        
         // not found
-
         return UINT32_MAX;
     }
     else{
         ret = inner_fs_get_position_in_32bit(test32);
         if(ret == UINT32_MAX) return UINT32_MAX; // error
 
-        return offset + ret;
+        return offset * 8 + ret;
     }
 
 }
@@ -104,7 +112,6 @@ int8_t inner_fs_mark_bitmap_bit(void* bitmap_ptr, uint32_t bitmapIndex){
 
     uint8_t bitmapCopy;
     memcpy(&bitmapCopy, bitmap_ptr, sizeof(uint8_t));
-    
 
     uint8_t setBit = 0x01;
     setBit = setBit <<  smallBitmapOffset;

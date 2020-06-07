@@ -50,10 +50,10 @@ void test_get_inode(void)
     TEST_ASSERT_EQUAL(0, writers);
 
     char mode = get_inode_mode(idx,shm_addr);
-    TEST_ASSERT_EQUAL(0, mode);
+    TEST_ASSERT_EQUAL(IS_FILE, mode);
 
     char ref_count =  get_ref_count(idx,shm_addr);
-    TEST_ASSERT_EQUAL(0, ref_count);
+    TEST_ASSERT_EQUAL(1, ref_count);
 
     struct Inode inode = get_inode(idx, shm_addr);
     TEST_ASSERT_EQUAL(block_idx, inode.block_index);

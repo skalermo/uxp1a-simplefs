@@ -168,7 +168,7 @@ int8_t fs_set_used_inodes(uint32_t saveUsedInodes, void* addr){
 }
 
 int8_t fs_get_free_inode(uint16_t* inodeIndex, void* addr){
-    uint16_t ret = inner_fs_find_free_index(fs_get_inode_bitmap_ptr(addr), fs_get_max_number_of_inodes(addr));
+    uint32_t ret = inner_fs_find_free_index(fs_get_inode_bitmap_ptr(addr), inner_fs_get_sizeof_bitmap_alone(fs_get_max_number_of_inodes(addr)));
 
     if(ret == UINT32_MAX) return -1;
 
@@ -178,7 +178,7 @@ int8_t fs_get_free_inode(uint16_t* inodeIndex, void* addr){
 
 int8_t fs_occupy_free_inode(uint16_t* inodeIndex, struct Inode* inodeToSave, void* addr){
     void* inodeTable_ptr = fs_get_inode_table_ptr(addr);
-    uint32_t ret = inner_fs_find_free_index(fs_get_inode_bitmap_ptr(addr), fs_get_max_number_of_inodes(addr));
+    uint32_t ret = inner_fs_find_free_index(fs_get_inode_bitmap_ptr(addr), inner_fs_get_sizeof_bitmap_alone(fs_get_max_number_of_inodes(addr)));
 
     if(ret == UINT32_MAX) return -1;
 
@@ -214,7 +214,7 @@ int8_t fs_create_inode_structures_in_shm(void* addr){
     toSave.file_size = fs_get_data_block_size(addr);
     toSave.readers = 0;
     toSave.writers = 0;
-    toSave.mode = 0;
+    toSave.mode = IS_DIR;
     toSave.ref_count = 0;
     toSave.padding[0] = 0;
     toSave.padding[1] = 0;
@@ -245,7 +245,7 @@ int8_t fs_create_inode_structures_in_shm(void* addr){
     // last 8 bits
     int32_t modulo = maxNumberOfInodes % 8;
     uint8_t lastBits = 0xFF;
-    lastBits = lastBits << (8 - modulo);
+    lastBits = lastBits >> (8 - modulo);
     toSaveStat.inode_bitmap[sizeofBitmapAlone - 1] = lastBits;
 
     memcpy(inoteStat_ptr, toSaveStat.inode_bitmap, sizeofBitmapAlone);
