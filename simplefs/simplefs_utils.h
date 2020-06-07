@@ -166,7 +166,7 @@ int16_t free_OpenFile(uint32_t fd, void* shm_addr);
  * @param shm_addr FS address
  * @return 0 or Error code
  */
-int16_t read_buffer(uint32_t block_num, uint32_t offset, char* buf, int len, void* shm_addr);
+int32_t read_buffer(uint32_t block_num, uint32_t offset, char* buf, int len, void* shm_addr);
 
 /***
  * @brief Synchronised write
@@ -177,7 +177,7 @@ int16_t read_buffer(uint32_t block_num, uint32_t offset, char* buf, int len, voi
  * @param shm_addr FS address
  * @return 0 or Error code
  */
-int16_t write_buffer(uint32_t block_num, uint32_t offset, char* buf, int len, void* shm_addr);
+int32_t write_buffer(uint32_t block_num, uint32_t offset, char* buf, int len, void* shm_addr);
 
 int is_dir_empty(uint16_t dir_inode, void *shm_addr);
 
