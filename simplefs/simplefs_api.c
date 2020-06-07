@@ -57,9 +57,7 @@ int simplefs_open(char *name, int mode) {
     return fd;
 }
 
-/**
- * Trzeba dodać do mode, czy to co tworzymy jest plikiem, czy też katalogiem w inode
- */
+
 int simplefs_creat(char *name, int mode) {
     // Init system
     void *shm_addr = get_ptr_to_fs();
@@ -195,15 +193,7 @@ int simplefs_creat(char *name, int mode) {
     return fd;
 }
 
-/**
- * Zmienia w inode mode, czeka, jeżeli mode jest niekompatybilny z tym, co chce zrobić
- * lub nie zmienia nic, bo już dany mode jest taki jaki chce (tylko mode do read)
- * 
- * Zmienia offset w open file
- * 
- * Po wyjściu zmienia mode w inode na 0, jeżeli nikt inny nie czyta. Jeżeli czytają, to nie zmieniamy.
- * Jeżeli write, to i tak inne read czekają, więc można mode wyzerować.
- */
+
 int simplefs_read(int fd, char *buf, int len) {
     // Init system
     void *shm_addr = get_ptr_to_fs();
@@ -248,10 +238,7 @@ int simplefs_read(int fd, char *buf, int len) {
 }
 
 
-/**
- * To samo co w read tylko z sprawdzaniem, czy alokujemy nowe bloki, czy też nie.
- * Ważne przy synchronizacji.
- */
+
 int simplefs_write(int fd, char *buf, int len) {
     // Init system
     void *shm_addr = get_ptr_to_fs();
@@ -317,24 +304,14 @@ int simplefs_write(int fd, char *buf, int len) {
 }
 
 
-/**
- * Zmiana offset w open file.
- * 
- * Sprawdzenie czy offset nie przekracza file size
- */
+
 int simplefs_lseek(int fd, int whence, int offset) {
     // this does not need synchronization
     return ENOTIMPLEMENTED;
 }
 
 
-/**
- * Oznaczenie w bitmapie jako pusty w inode stat.
- * 
- * Usunięcie w dir file struktury odwołującej się do danego inoda
- * 
- * Sprawdzenie ref count.
- */
+
 int simplefs_unlink(char *name) {
     // Init system
     void *shm_addr = get_ptr_to_fs();
@@ -441,9 +418,6 @@ int simplefs_unlink(char *name) {
 }
 
 
-/**
- * Trzeba jeszcze usunąć zmiany, jeżeli operacja się nie udała
- */
 int simplefs_mkdir(char *name) {
     int name_size = strlen(name);
 
@@ -591,10 +565,6 @@ int simplefs_mkdir(char *name) {
 }
 
 
-/**
- * Podobne do simplefs_unlink, tylko zmieniamy dir file zamiast inodow
- * 
- */
 int simplefs_rmdir(char *name) {
     int name_length = strlen(name);
 
@@ -623,56 +593,108 @@ int simplefs_rmdir(char *name) {
 
     void *shm_addr = get_ptr_to_fs();
 
+    struct ReadWriteSem mainFolder_sem;
+    struct Semaphore inoseStat_sem;
+    struct Semaphore blockStat_sem;
+
+    fs_sem_init_main_folder(&mainFolder_sem);
+    fs_sem_lock_write_main_folder(&mainFolder_sem, shm_addr);
+
     // Get Inode idx for dir
     int dir_inode = get_inode_index(dir_path, IS_DIR, shm_addr);
     free(name_copy);
     // if path is wrong
     // or if the last inode should not be dir / file
     if(dir_inode < 0){
+        fs_sem_unlock_write_main_folder(&mainFolder_sem, shm_addr);
+        fs_sem_close_main_folder(&mainFolder_sem);
         return ENOTDIR;
     }
 
     int32_t inode = next_inode(dir_inode, filename, IS_DIR, shm_addr);
     if (inode == -1) {
+        fs_sem_unlock_write_main_folder(&mainFolder_sem, shm_addr);
+        fs_sem_close_main_folder(&mainFolder_sem);
         return ENOENT;
     }
 
     if (inode == -2) {
+        fs_sem_unlock_write_main_folder(&mainFolder_sem, shm_addr);
+        fs_sem_close_main_folder(&mainFolder_sem);
         return ENOTDIR;
     }
 
     if (!is_dir_empty(inode, shm_addr)) {
+        fs_sem_unlock_write_main_folder(&mainFolder_sem, shm_addr);
+        fs_sem_close_main_folder(&mainFolder_sem);
         return ENOTEMPTY;
     }
+
+    fs_sem_init_inode_stat(&inoseStat_sem);
+    fs_sem_lock_inode_stat(&inoseStat_sem);
+
+    fs_sem_init_block_stat(&blockStat_sem);
+    fs_sem_lock_block_stat(&blockStat_sem);
 
     // Get directory block index
     uint32_t dir_block = get_inode_block_index(dir_inode, shm_addr);
     if(dir_block == INT32_MAX){
+        fs_sem_unlock_write_main_folder(&mainFolder_sem, shm_addr);
+        fs_sem_close_main_folder(&mainFolder_sem);
+
+        fs_sem_unlock_inode_stat(&inoseStat_sem);
+        fs_sem_close_inode_stat(&inoseStat_sem);
+
+        fs_sem_unlock_block_stat(&blockStat_sem);
+        fs_sem_close_block_stat(&blockStat_sem);
         return ENOENT;
     }
 
     // Remove dir entry from dir file
     int ret_value = free_dir_entry(dir_block, inode, shm_addr);
     if(ret_value < 0){
+        fs_sem_unlock_write_main_folder(&mainFolder_sem, shm_addr);
+        fs_sem_close_main_folder(&mainFolder_sem);
+
+        fs_sem_unlock_inode_stat(&inoseStat_sem);
+        fs_sem_close_inode_stat(&inoseStat_sem);
+
+        fs_sem_unlock_block_stat(&blockStat_sem);
+        fs_sem_close_block_stat(&blockStat_sem);
         return ret_value;
     }
 
+    fs_sem_unlock_write_main_folder(&mainFolder_sem, shm_addr);
+    fs_sem_close_main_folder(&mainFolder_sem);
+
     ret_value = free_inode(inode, shm_addr);
     if (ret_value < 0) {
+        fs_sem_unlock_inode_stat(&inoseStat_sem);
+        fs_sem_close_inode_stat(&inoseStat_sem);
+
+        fs_sem_unlock_block_stat(&blockStat_sem);
+        fs_sem_close_block_stat(&blockStat_sem);
         return ret_value;
     }
     uint32_t file_block = get_inode_block_index(inode, shm_addr);
     ret_value = free_data_blocks(file_block, shm_addr);
+
+    fs_sem_unlock_inode_stat(&inoseStat_sem);
+    fs_sem_close_inode_stat(&inoseStat_sem);
+
+    fs_sem_unlock_block_stat(&blockStat_sem);
+    fs_sem_close_block_stat(&blockStat_sem);
+
     if (ret_value < 0) {
         return ret_value;
     }
+
+    
+
     return 0;
 }
 
 
-/**
- * Usunięcie w open file.
- */
 int simplefs_close(int fd) {
     void *shm_addr = get_ptr_to_fs();
 
