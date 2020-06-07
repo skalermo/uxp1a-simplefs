@@ -111,6 +111,7 @@ void try_to_remove_removed_dir() {
 void try_to_remove_not_dir() {
     int ret_value = simplefs_creat("/notdir", 0);
     TEST_ASSERT_EQUAL(0, ret_value);
+    simplefs_close(ret_value);
 
     ret_value = simplefs_rmdir("/notdir");
     TEST_ASSERT_EQUAL(ENOTDIR, ret_value);
@@ -152,7 +153,7 @@ int main(void) {
     RUN_TEST(remove_not_empty_dir);
     RUN_TEST(remove_one_dir);
     RUN_TEST(try_to_remove_removed_dir);
-//    RUN_TEST(try_to_remove_not_dir);
+    RUN_TEST(try_to_remove_not_dir);
     RUN_TEST(remove_nested_dirs);
 
     return UNITY_END();

@@ -296,7 +296,7 @@ int main(void) {
     RUN_TEST(try_to_create_dir_with_too_long_name);
     RUN_TEST(try_to_create_dir_with_too_long_path);
     RUN_TEST(create_dir_in_extended_dirfile);
-//    RUN_TEST(test_max_number_of_subdirs_in_dir);
+   RUN_TEST(test_max_number_of_subdirs_in_dir);
 
     return UNITY_END();
 }

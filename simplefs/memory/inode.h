@@ -23,10 +23,10 @@
 
 // RDONLY | WRONLY == O_RDWR
 
-#define IS_DIR      0x10
-#define IS_FILE     0x30
 
-// IS_DIR | IS_FILE == IS_FILE
+#define IS_DIR      0x10
+#define IS_FILE     0x20
+
 
 
 ///////////////////////////////////
