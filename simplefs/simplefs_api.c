@@ -224,7 +224,15 @@ int simplefs_read(int fd, char *buf, int len) {
     uint32_t block_idx = get_inode_block_index(openFile.inode_num, shm_addr);
 
     // Read Buffer
-    read_buffer(block_idx, openFile.offset, buf, len, shm_addr);
+    uint16_t filesize = get_inode_file_size(openFile.inode_num, shm_addr);
+    int32_t len_read = 0;
+    if(filesize >= openFile.offset + len ){
+        len_read = read_buffer(block_idx, openFile.offset, buf, len, shm_addr);
+    }
+    else{
+        len = filesize-openFile.offset;
+        len_read = read_buffer(block_idx, openFile.offset, buf, len, shm_addr);
+    }
     fs_sem_unlock_read_inode(&semInode, shm_addr);
     fs_sem_close_inode(&semInode);
 
@@ -236,7 +244,7 @@ int simplefs_read(int fd, char *buf, int len) {
     // not neccesary
     //set_inode_mode(openFile.inode_num, 0, shm_addr);
 
-    return 0;
+    return len_read;
 }
 
 
@@ -281,21 +289,31 @@ int simplefs_write(int fd, char *buf, int len) {
         write_buffer(block_idx, openFile.offset, buf, len, shm_addr);
     }
     */
-    // Write Buffer
-    write_buffer(block_idx, openFile.offset, buf, len, shm_addr);
 
+
+    // Write Buffer
+    int32_t len_wrote = write_buffer(block_idx, openFile.offset, buf, len, shm_addr);
+    if(len_wrote < 0){
+        return EFBIG;
+    }
+    uint16_t file_size = get_inode_file_size(openFile.inode_num, shm_addr);
+    openFile.offset += len_wrote;
+    if(file_size < openFile.offset){
+        file_size =  openFile.offset;
+        set_inode_file_size(openFile.inode_num,  file_size, shm_addr);
+    }
     fs_sem_unlock_write_inode(&semInode, shm_addr);
     fs_sem_close_inode(&semInode);
 
     // Update offset
-    openFile.offset += len;
+
     set_offset(fd, openFile.offset, shm_addr);
 
     // Set inode mode to 0
     // not needed
     //set_inode_mode(openFile.inode_num, 0, shm_addr);
 
-    return 0;
+    return len_wrote;
 }
 
 
