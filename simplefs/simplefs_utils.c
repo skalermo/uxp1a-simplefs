@@ -383,7 +383,7 @@ void free_row(uint16_t openFileIndex, void* shm_addr) {
     fs_mark_open_file_as_free(openFileIndex, shm_addr);
 }
 
-int16_t read_buffer(uint32_t block_num, uint32_t offset, char* buf, int len, void* shm_addr) {
+int32_t read_buffer(uint32_t block_num, uint32_t offset, char* buf, int len, void* shm_addr) {
 
     // this function has to return number of bytes that were read
     // change in fs_get_data() required
@@ -393,7 +393,7 @@ int16_t read_buffer(uint32_t block_num, uint32_t offset, char* buf, int len, voi
     return fs_get_data_count(offset, offset + len, block_num, buf, shm_addr);
 }
 
-int16_t write_buffer(uint32_t block_num, uint32_t offset, char* buf, int len, void* shm_addr) {
+int32_t write_buffer(uint32_t block_num, uint32_t offset, char* buf, int len, void* shm_addr) {
 
     // this function has to return number of bytes that were written
     // change in fs_save_data() required
