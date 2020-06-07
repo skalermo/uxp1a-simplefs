@@ -169,7 +169,7 @@ int8_t fs_create_open_file_table_stuctures_in_shm(void* addr){
     // last 8 bits
     int32_t modulo = maxNumberOfOpenFiles % 8;
     uint8_t lastBits = 0xFF;
-    lastBits = lastBits << modulo;
+    lastBits = lastBits >> (8 - modulo);
 
     toSaveStat.open_file_bitmap[sizeofBitmapAlone - 1] = lastBits;
 
