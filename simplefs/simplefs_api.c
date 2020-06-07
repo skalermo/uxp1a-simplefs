@@ -205,6 +205,9 @@ int simplefs_creat(char *name, int mode) {
  * Jeżeli write, to i tak inne read czekają, więc można mode wyzerować.
  */
 int simplefs_read(int fd, char *buf, int len) {
+    if (fd < 0)
+        return EBADF;
+
     // Init system
     void *shm_addr = get_ptr_to_fs();
 
@@ -253,6 +256,9 @@ int simplefs_read(int fd, char *buf, int len) {
  * Ważne przy synchronizacji.
  */
 int simplefs_write(int fd, char *buf, int len) {
+    if (fd < 0)
+        return EBADF;
+
     // Init system
     void *shm_addr = get_ptr_to_fs();
 
@@ -323,6 +329,8 @@ int simplefs_write(int fd, char *buf, int len) {
  * Sprawdzenie czy offset nie przekracza file size
  */
 int simplefs_lseek(int fd, int whence, int offset) {
+    if (fd < 0)
+        return EBADF;
 
     if (whence != SEEK_CUR && whence != SEEK_SET)
         return EINVAL;
@@ -699,11 +707,12 @@ int simplefs_rmdir(char *name) {
  * Usunięcie w open file.
  */
 int simplefs_close(int fd) {
+    if (fd < 0)
+        return EBADF;
     void *shm_addr = get_ptr_to_fs();
 
     struct ReadWriteSem semInode;
     struct Semaphore semOpenFile;
-
 
     struct OpenFile file;
     fs_get_open_file_copy(fd, &file, shm_addr);
