@@ -195,11 +195,14 @@ int simplefs_creat(char *name, int mode) {
 
 
 int simplefs_read(int fd, char *buf, int len) {
+    if (fd < 0)
+        return EBADF;
+
     // Init system
     void *shm_addr = get_ptr_to_fs();
 
     struct OpenFile openFile = get_open_file(fd, shm_addr);
-    if(openFile.mode != FS_READ){
+    if((openFile.pid != getpid()) || (openFile.mode != FS_READ)){
         return EBADF;
     }
 
@@ -240,11 +243,14 @@ int simplefs_read(int fd, char *buf, int len) {
 
 
 int simplefs_write(int fd, char *buf, int len) {
+    if (fd < 0)
+        return EBADF;
+
     // Init system
     void *shm_addr = get_ptr_to_fs();
 
     struct OpenFile openFile = get_open_file(fd, shm_addr);
-    if(openFile.mode != FS_WRITE){
+    if((openFile.pid != getpid()) || (openFile.mode != FS_WRITE)){
         return EBADF;
     }
 
@@ -306,8 +312,35 @@ int simplefs_write(int fd, char *buf, int len) {
 
 
 int simplefs_lseek(int fd, int whence, int offset) {
-    // this does not need synchronization
-    return ENOTIMPLEMENTED;
+    if (fd < 0)
+        return EBADF;
+
+    if (whence != SEEK_CUR && whence != SEEK_SET)
+        return EINVAL;
+
+    void *shm_addr = get_ptr_to_fs();
+
+    struct OpenFile file;
+    fs_get_open_file_copy(fd, &file, shm_addr);
+
+    if(file.pid != getpid()){
+        return EBADF;
+    }
+
+    uint32_t current_offset;
+    int8_t ret_value = fs_get_data_from_open_file_uint32(fd, 2, &current_offset, shm_addr);
+    if (ret_value == -1)
+        return ret_value;
+
+    // if whence is SEEK_SET then just assign
+    // otherwise it is SEEK_CUR, add relative offset to current offset
+    uint32_t offset_to_set = whence == SEEK_SET ? offset : current_offset + offset;
+    if (offset_to_set < 0)
+        return EINVAL;
+
+    set_offset(fd, offset_to_set, shm_addr);
+
+    return offset_to_set;
 }
 
 
@@ -696,11 +729,12 @@ int simplefs_rmdir(char *name) {
 
 
 int simplefs_close(int fd) {
+    if (fd < 0)
+        return EBADF;
     void *shm_addr = get_ptr_to_fs();
 
     struct ReadWriteSem semInode;
     struct Semaphore semOpenFile;
-
 
     struct OpenFile file;
     fs_get_open_file_copy(fd, &file, shm_addr);
