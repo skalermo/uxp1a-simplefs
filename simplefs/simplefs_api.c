@@ -265,7 +265,7 @@ int simplefs_write(int fd, char *buf, int len) {
     // Get data block
     uint32_t block_idx = get_inode_block_index(openFile.inode_num, shm_addr);
 
-    /*
+
     check if it is needed to allocate new block
     {
         struct Semaphor semBlock;
@@ -281,7 +281,7 @@ int simplefs_write(int fd, char *buf, int len) {
     else{
         write_buffer(block_idx, openFile.offset, buf, len, shm_addr);
     }
-    */
+
     if(USHRT_MAX < openFile.offset + len){
         return EFBIG;
     }
