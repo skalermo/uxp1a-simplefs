@@ -153,4 +153,4 @@ distclean:
 
 .SECONDARY:
 .PHONY: all lib clean distclean
-.PHONY: test build_tests run_tests print_last_run_results valgrind
+.PHONY: test build_tests run_tests valgrind
