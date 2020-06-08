@@ -282,7 +282,9 @@ int simplefs_write(int fd, char *buf, int len) {
         write_buffer(block_idx, openFile.offset, buf, len, shm_addr);
     }
     */
-
+    if(USHRT_MAX < openFile.offset + len){
+        return EFBIG;
+    }
 
     // Write Buffer
     int32_t len_wrote = write_buffer(block_idx, openFile.offset, buf, len, shm_addr);
