@@ -1,7 +1,6 @@
 #ifndef SIMPLEFS_UTILS_H
 #define SIMPLEFS_UTILS_H
 
-#include "simplefs_internals.h"
 #include "simplefs_api.h"
 #include "memory/block_links.h"
 #include "memory/dir_file.h"

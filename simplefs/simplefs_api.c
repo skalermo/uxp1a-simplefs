@@ -57,7 +57,9 @@ int simplefs_open(char *name, int mode) {
     return fd;
 }
 
-
+/**
+ * Trzeba dodać do mode, czy to co tworzymy jest plikiem, czy też katalogiem w inode
+ */
 int simplefs_creat(char *name, int mode) {
     // Init system
     void *shm_addr = get_ptr_to_fs();
@@ -193,7 +195,15 @@ int simplefs_creat(char *name, int mode) {
     return fd;
 }
 
-
+/**
+ * Zmienia w inode mode, czeka, jeżeli mode jest niekompatybilny z tym, co chce zrobić
+ * lub nie zmienia nic, bo już dany mode jest taki jaki chce (tylko mode do read)
+ * 
+ * Zmienia offset w open file
+ * 
+ * Po wyjściu zmienia mode w inode na 0, jeżeli nikt inny nie czyta. Jeżeli czytają, to nie zmieniamy.
+ * Jeżeli write, to i tak inne read czekają, więc można mode wyzerować.
+ */
 int simplefs_read(int fd, char *buf, int len) {
     if (fd < 0)
         return EBADF;
@@ -202,7 +212,7 @@ int simplefs_read(int fd, char *buf, int len) {
     void *shm_addr = get_ptr_to_fs();
 
     struct OpenFile openFile = get_open_file(fd, shm_addr);
-    if((openFile.pid != getpid()) || (openFile.mode != FS_READ)){
+    if((openFile.pid != getpid()) || (openFile.mode != FS_READ && openFile.mode != RDWR)){
         return EBADF;
     }
 
@@ -217,8 +227,10 @@ int simplefs_read(int fd, char *buf, int len) {
     uint32_t block_idx = get_inode_block_index(openFile.inode_num, shm_addr);
 
     // Read Buffer
-    uint16_t filesize = get_inode_file_size(openFile.inode_num, shm_addr);
+    uint32_t filesize = get_inode_file_size(openFile.inode_num, shm_addr);
     int32_t len_read = 0;
+    if (filesize < openFile.offset)
+        return 0;
     if(filesize >= openFile.offset + len ){
         len_read = read_buffer(block_idx, openFile.offset, buf, len, shm_addr);
     }
@@ -241,7 +253,10 @@ int simplefs_read(int fd, char *buf, int len) {
 }
 
 
-
+/**
+ * To samo co w read tylko z sprawdzaniem, czy alokujemy nowe bloki, czy też nie.
+ * Ważne przy synchronizacji.
+ */
 int simplefs_write(int fd, char *buf, int len) {
     if (fd < 0)
         return EBADF;
@@ -250,7 +265,7 @@ int simplefs_write(int fd, char *buf, int len) {
     void *shm_addr = get_ptr_to_fs();
 
     struct OpenFile openFile = get_open_file(fd, shm_addr);
-    if((openFile.pid != getpid()) || (openFile.mode != FS_WRITE)){
+    if((openFile.pid != getpid()) || (openFile.mode != FS_WRITE && openFile.mode != RDWR)){
         return EBADF;
     }
 
@@ -265,31 +280,35 @@ int simplefs_write(int fd, char *buf, int len) {
     // Get data block
     uint32_t block_idx = get_inode_block_index(openFile.inode_num, shm_addr);
 
-    /*
-    check if it is needed to allocate new block
+    if(USHRT_MAX < openFile.offset + len){
+        return EFBIG;
+    }
+
+    uint16_t file_size = get_inode_file_size(openFile.inode_num, shm_addr);
+
+    int32_t len_wrote = 0;
+
+    if((BLOCK_SIZE - (file_size % BLOCK_SIZE)) < len )
     {
-        struct Semaphor semBlock;
+        struct Semaphore semBlock;
         fs_sem_init_block_stat(&semBlock);
         fs_sem_lock_block_stat(&semBlock);
 
-        write_buffer(block_idx, openFile.offset, buf, len, shm_addr);
+        len_wrote = write_buffer(block_idx, openFile.offset, buf, len, shm_addr);
 
         fs_sem_unlock_block_stat(&semBlock);
         fs_sem_close_block_stat(&semBlock);
 
     }
     else{
-        write_buffer(block_idx, openFile.offset, buf, len, shm_addr);
+        len_wrote = write_buffer(block_idx, openFile.offset, buf, len, shm_addr);
     }
-    */
 
 
-    // Write Buffer
-    int32_t len_wrote = write_buffer(block_idx, openFile.offset, buf, len, shm_addr);
     if(len_wrote < 0){
         return EFBIG;
     }
-    uint16_t file_size = get_inode_file_size(openFile.inode_num, shm_addr);
+
     openFile.offset += len_wrote;
     if(file_size < openFile.offset){
         file_size =  openFile.offset;
@@ -310,7 +329,11 @@ int simplefs_write(int fd, char *buf, int len) {
 }
 
 
-
+/**
+ * Zmiana offset w open file.
+ * 
+ * Sprawdzenie czy offset nie przekracza file size
+ */
 int simplefs_lseek(int fd, int whence, int offset) {
     if (fd < 0)
         return EBADF;
@@ -334,17 +357,24 @@ int simplefs_lseek(int fd, int whence, int offset) {
 
     // if whence is SEEK_SET then just assign
     // otherwise it is SEEK_CUR, add relative offset to current offset
-    uint32_t offset_to_set = whence == SEEK_SET ? offset : current_offset + offset;
+    long offset_to_set = (whence == SEEK_SET) ? offset : ((long)current_offset + offset);
+
     if (offset_to_set < 0)
         return EINVAL;
 
     set_offset(fd, offset_to_set, shm_addr);
 
-    return offset_to_set;
+    return (uint32_t)offset_to_set;
 }
 
 
-
+/**
+ * Oznaczenie w bitmapie jako pusty w inode stat.
+ * 
+ * Usunięcie w dir file struktury odwołującej się do danego inoda
+ * 
+ * Sprawdzenie ref count.
+ */
 int simplefs_unlink(char *name) {
     // Init system
     void *shm_addr = get_ptr_to_fs();
@@ -447,10 +477,15 @@ int simplefs_unlink(char *name) {
         return ret;
     }
 
+    free(name_copy);
+
     return 0;
 }
 
 
+/**
+ * Trzeba jeszcze usunąć zmiany, jeżeli operacja się nie udała
+ */
 int simplefs_mkdir(char *name) {
     int name_size = strlen(name);
 
@@ -598,6 +633,10 @@ int simplefs_mkdir(char *name) {
 }
 
 
+/**
+ * Podobne do simplefs_unlink, tylko zmieniamy dir file zamiast inodow
+ * 
+ */
 int simplefs_rmdir(char *name) {
     int name_length = strlen(name);
 
@@ -721,13 +760,13 @@ int simplefs_rmdir(char *name) {
     if (ret_value < 0) {
         return ret_value;
     }
-
-    
-
     return 0;
 }
 
 
+/**
+ * Usunięcie w open file.
+ */
 int simplefs_close(int fd) {
     if (fd < 0)
         return EBADF;

@@ -10,17 +10,6 @@
 #include "memory/init.h"
 #include <sys/shm.h>
 
-#define BYTE_TO_BINARY_PATTERN "%c%c%c%c%c%c%c%c\n"
-#define BYTE_TO_BINARY(byte)  \
-  (byte & 0x80 ? '1' : '0'), \
-  (byte & 0x40 ? '1' : '0'), \
-  (byte & 0x20 ? '1' : '0'), \
-  (byte & 0x10 ? '1' : '0'), \
-  (byte & 0x08 ? '1' : '0'), \
-  (byte & 0x04 ? '1' : '0'), \
-  (byte & 0x02 ? '1' : '0'), \
-  (byte & 0x01 ? '1' : '0')
-
 int main(int argc, char const *argv[])
 {
     sem_unlink(CREATE_FS_GUARD);
@@ -30,7 +19,7 @@ int main(int argc, char const *argv[])
 
 
 
-    FILE * f = fopen ("./usr_src/mountain.jpg", "rb");
+    FILE * f = fopen ("./usr_src/cloud.jpg", "rb");
 
     if (f)
     {
