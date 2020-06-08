@@ -280,31 +280,35 @@ int simplefs_write(int fd, char *buf, int len) {
     // Get data block
     uint32_t block_idx = get_inode_block_index(openFile.inode_num, shm_addr);
 
-    /*
-    check if it is needed to allocate new block
+    if(USHRT_MAX < openFile.offset + len){
+        return EFBIG;
+    }
+
+    uint16_t file_size = get_inode_file_size(openFile.inode_num, shm_addr);
+
+    int32_t len_wrote = 0;
+
+    if((BLOCK_SIZE - (file_size % BLOCK_SIZE)) < len )
     {
-        struct Semaphor semBlock;
+        struct Semaphore semBlock;
         fs_sem_init_block_stat(&semBlock);
         fs_sem_lock_block_stat(&semBlock);
 
-        write_buffer(block_idx, openFile.offset, buf, len, shm_addr);
+        len_wrote = write_buffer(block_idx, openFile.offset, buf, len, shm_addr);
 
         fs_sem_unlock_block_stat(&semBlock);
         fs_sem_close_block_stat(&semBlock);
 
     }
     else{
-        write_buffer(block_idx, openFile.offset, buf, len, shm_addr);
+        len_wrote = write_buffer(block_idx, openFile.offset, buf, len, shm_addr);
     }
-    */
 
 
-    // Write Buffer
-    int32_t len_wrote = write_buffer(block_idx, openFile.offset, buf, len, shm_addr);
     if(len_wrote < 0){
         return EFBIG;
     }
-    uint16_t file_size = get_inode_file_size(openFile.inode_num, shm_addr);
+
     openFile.offset += len_wrote;
     if(file_size < openFile.offset){
         file_size =  openFile.offset;
@@ -472,6 +476,8 @@ int simplefs_unlink(char *name) {
     if(ret < 0){
         return ret;
     }
+
+    free(name_copy);
 
     return 0;
 }
