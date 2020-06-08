@@ -202,7 +202,7 @@ int simplefs_read(int fd, char *buf, int len) {
     void *shm_addr = get_ptr_to_fs();
 
     struct OpenFile openFile = get_open_file(fd, shm_addr);
-    if((openFile.pid != getpid()) || (openFile.mode != FS_READ)){
+    if((openFile.pid != getpid()) || (openFile.mode != FS_READ && openFile.mode != RDWR)){
         return EBADF;
     }
 
@@ -250,7 +250,7 @@ int simplefs_write(int fd, char *buf, int len) {
     void *shm_addr = get_ptr_to_fs();
 
     struct OpenFile openFile = get_open_file(fd, shm_addr);
-    if((openFile.pid != getpid()) || (openFile.mode != FS_WRITE)){
+    if((openFile.pid != getpid()) || (openFile.mode != FS_WRITE && openFile.mode != RDWR)){
         return EBADF;
     }
 
@@ -282,7 +282,9 @@ int simplefs_write(int fd, char *buf, int len) {
         write_buffer(block_idx, openFile.offset, buf, len, shm_addr);
     }
     */
-
+    if(USHRT_MAX < openFile.offset + len){
+        return EFBIG;
+    }
 
     // Write Buffer
     int32_t len_wrote = write_buffer(block_idx, openFile.offset, buf, len, shm_addr);
