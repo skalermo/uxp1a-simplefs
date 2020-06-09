@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <time.h>
 
 #include "simplefs_api.h"
 
@@ -24,14 +25,16 @@ int main(int argc, char** argv) {
     } else
         exit(1);
 
-    printf("Reader %d opened file%d with fd=%d\n", pid, file_no, fd);
+    printf("\033[36m [Reader %d] opened file%d with fd=%d\n", pid, file_no, fd);
+
+    srand(time(NULL) - getpid());
 
     while(1) {
-        printf("Reader %d tries to read from file%d\n", pid, file_no);
+        //printf("Reader %d tries to read from file%d\n", pid, file_no);
 
         int bytes_read = simplefs_read(fd, text, sizeof(text));
         simplefs_lseek(fd, SEEK_SET, 0);
-        printf("Reader %d read from file%d '%.*s'\n", pid, file_no, bytes_read, text);
+        printf("\033[36m [Reader %d] read from file%d \033[37m'%.*s'\n", pid, file_no, bytes_read, text);
 
         sleep(1);
     }

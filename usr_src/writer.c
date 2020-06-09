@@ -3,6 +3,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <string.h>
+#include <time.h>
 
 #include "simplefs_api.h"
 
@@ -24,17 +25,19 @@ int main(int argc, char** argv) {
     } else
         exit(1);
 
-    printf("Writer %d opened file%d with fd=%d\n", pid, file_no, fd);
+    printf("\033[32m [Writer %d] opened file%d with fd=%d\n", pid, file_no, fd);
     int to_sleep;
+
+    srand(time(NULL) - getpid());
 
     while(1) {
 //        printf("Writer %d tries to write to file%d\n", pid, file_no);
 
         int bytes_written = simplefs_write(fd, text, strlen(text));
         simplefs_lseek(fd, SEEK_SET, 0);
-//        printf("Writer %d wrote to file%d '%.*s'\n", pid, file_no, bytes_written, text);
+        printf("\033[32m [Writer %d] wrote to file%d \033[37m'%.*s'\n", pid, file_no, bytes_written, text);
 
-        to_sleep = (int) rand() % 5;
+        to_sleep = (rand() % 5);
         sleep(to_sleep);
     }
 }
