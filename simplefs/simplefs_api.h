@@ -21,9 +21,6 @@
 
 #define ENOTIMPLEMENTED -100
 
-#define FS_READ 1
-#define FS_WRITE 2
-
 // Prototypes of API functions
 
 int simplefs_open(char *name, int mode);

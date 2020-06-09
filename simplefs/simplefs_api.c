@@ -212,7 +212,7 @@ int simplefs_read(int fd, char *buf, int len) {
     void *shm_addr = get_ptr_to_fs();
 
     struct OpenFile openFile = get_open_file(fd, shm_addr);
-    if((openFile.pid != getpid()) || (openFile.mode != FS_READ && openFile.mode != RDWR)){
+    if((openFile.pid != getpid()) || (openFile.mode != RDONLY && openFile.mode != RDWR)){
         return EBADF;
     }
 
@@ -265,7 +265,7 @@ int simplefs_write(int fd, char *buf, int len) {
     void *shm_addr = get_ptr_to_fs();
 
     struct OpenFile openFile = get_open_file(fd, shm_addr);
-    if((openFile.pid != getpid()) || (openFile.mode != FS_WRITE && openFile.mode != RDWR)){
+    if((openFile.pid != getpid()) || (openFile.mode != WRONLY && openFile.mode != RDWR)){
         return EBADF;
     }
 
@@ -314,6 +314,7 @@ int simplefs_write(int fd, char *buf, int len) {
         file_size =  openFile.offset;
         set_inode_file_size(openFile.inode_num,  file_size, shm_addr);
     }
+    sleep(2);
     fs_sem_unlock_write_inode(&semInode, shm_addr);
     fs_sem_close_inode(&semInode);
 
