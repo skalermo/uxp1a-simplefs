@@ -1,5 +1,6 @@
 #ifndef SIMPLEFS_API_H
 #define SIMPLEFS_API_H
+#include "inode.h"
 
 // Defines of API errors
 

@@ -18,10 +18,10 @@ int main(int argc, char** argv) {
 
     int fd;
     if (file_no == 1) {
-        fd = simplefs_open("/dir/file1", FS_WRITE);
+        fd = simplefs_open("/dir/file1", RDWR);
     }
     else if (file_no == 2) {
-        fd = simplefs_open("/dir/file2", FS_WRITE);
+        fd = simplefs_open("/dir/file2", RDWR);
     } else
         exit(1);
 
@@ -30,14 +30,15 @@ int main(int argc, char** argv) {
 
     srand(time(NULL) - getpid());
 
+    long i = 0;
+
     while(1) {
-//        printf("Writer %d tries to write to file%d\n", pid, file_no);
+        printf("\033[31m [Writer %d] tries to write to file%d\n", pid, file_no);
 
         int bytes_written = simplefs_write(fd, text, strlen(text));
         simplefs_lseek(fd, SEEK_SET, 0);
         printf("\033[32m [Writer %d] wrote to file%d \033[37m'%.*s'\n", pid, file_no, bytes_written, text);
 
-        to_sleep = (rand() % 5);
-        sleep(to_sleep);
+        sleep(5+rand()%11);
     }
 }

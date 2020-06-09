@@ -18,10 +18,10 @@ int main(int argc, char** argv) {
 
     int fd;
     if (file_no == 1) {
-        fd = simplefs_open("/dir/file1", FS_READ);
+        fd = simplefs_open("/dir/file1", RDONLY);
     }
     else if (file_no == 2) {
-        fd = simplefs_open("/dir/file2", FS_READ);
+        fd = simplefs_open("/dir/file2", RDONLY);
     } else
         exit(1);
 
@@ -30,7 +30,7 @@ int main(int argc, char** argv) {
     srand(time(NULL) - getpid());
 
     while(1) {
-        //printf("Reader %d tries to read from file%d\n", pid, file_no);
+        printf("\033[95m [Reader %d] tries to read from file%d\n", pid, file_no);
 
         int bytes_read = simplefs_read(fd, text, sizeof(text));
         simplefs_lseek(fd, SEEK_SET, 0);

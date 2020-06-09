@@ -314,7 +314,8 @@ int simplefs_write(int fd, char *buf, int len) {
         file_size =  openFile.offset;
         set_inode_file_size(openFile.inode_num,  file_size, shm_addr);
     }
-    sleep(2);
+    // For demonstration purposes
+//    sleep((rand()%2) * 5);
     fs_sem_unlock_write_inode(&semInode, shm_addr);
     fs_sem_close_inode(&semInode);
 
