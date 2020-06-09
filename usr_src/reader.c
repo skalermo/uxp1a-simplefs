@@ -29,6 +29,8 @@ int main(int argc, char** argv) {
 
     srand(time(NULL) - getpid());
 
+    sleep(2);
+
     while(1) {
         printf("\033[95m [Reader %d] tries to read from file%d\n", pid, file_no);
 

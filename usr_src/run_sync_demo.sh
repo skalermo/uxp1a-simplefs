@@ -8,3 +8,4 @@
 
 
 ./build/bin/reader.out 1 &
+./build/bin/reader.out 2 &
