@@ -18,21 +18,21 @@ void tearDown(void) {
 
 void write_file_not_in_write_mode(){
     char buf[100];
-    int fd = simplefs_creat("/read_mode", FS_READ);
+    int fd = simplefs_creat("/read_mode", RDONLY);
     int result = simplefs_write(fd, buf, sizeof(buf));
     TEST_ASSERT_EQUAL(EBADF, result);
 }
 
 void read_file_not_in_read_mode(){
     char buf[100];
-    int fd = simplefs_creat("/write_mode", FS_WRITE);
+    int fd = simplefs_creat("/write_mode", WRONLY);
     int result = simplefs_read(fd, buf, sizeof(buf));
     TEST_ASSERT_EQUAL(EBADF, result);
 }
 
 void successfully_write_file_and_return_written_bytes_count(){
     char buf[] = "123456789";
-    int fd = simplefs_creat("/write_mode_count", FS_WRITE);
+    int fd = simplefs_creat("/write_mode_count", WRONLY);
     int result = simplefs_write(fd, buf, sizeof(buf));
     TEST_ASSERT_EQUAL(sizeof(buf), result);
 }
@@ -40,7 +40,7 @@ void successfully_write_file_and_return_written_bytes_count(){
 void successfully_write_file_twice(){
     char buf_1[10] = "123456789";
     char buf_2[4] = "123";
-    int fd = simplefs_creat("/write_mode_count_twice", FS_WRITE);
+    int fd = simplefs_creat("/write_mode_count_twice", WRONLY);
     int result_1 = simplefs_write(fd, buf_1, sizeof(buf_1));
     int result_2 = simplefs_write(fd, buf_2, sizeof(buf_2));
     TEST_ASSERT_EQUAL(10, result_1);
@@ -53,9 +53,9 @@ void successfully_read_file_and_return_read_bytes_count(){
     char buf[] = "123456789";
     char buf_read[50];
 
-    int fd = simplefs_creat("/read_write_count", FS_WRITE);
+    int fd = simplefs_creat("/read_write_count", WRONLY);
     simplefs_write(fd, buf, sizeof(buf));
-    int fd_open = simplefs_open("/read_write_count", FS_READ);
+    int fd_open = simplefs_open("/read_write_count", RDONLY);
     int read_result = simplefs_read(fd_open, buf_read, sizeof(buf_read));
     TEST_ASSERT(!strcmp(buf_read, "123456789"));
     TEST_ASSERT_EQUAL(sizeof(buf), read_result);
@@ -66,10 +66,10 @@ void read_file_twice_gives_correct_result(){
     char buf2[] = "987654321";
     char buf_read_1[100];
     char buf_read_2[100] = {0};
-    int fd = simplefs_creat("/read_mode_twice", FS_WRITE);
+    int fd = simplefs_creat("/read_mode_twice", WRONLY);
     simplefs_write(fd, buf, sizeof(buf));
     simplefs_write(fd, buf2, sizeof(buf));
-    int fd_open = simplefs_open("/read_mode_twice", FS_READ);
+    int fd_open = simplefs_open("/read_mode_twice", RDONLY);
     int read_result_1 = simplefs_read(fd_open, buf_read_1, 100);
     int read_result_2 = simplefs_read(fd_open, buf_read_2, 100);
     TEST_ASSERT(!strcmp(buf_read_1, "123456789"));
@@ -80,9 +80,9 @@ void read_file_twice_gives_correct_result(){
 void read_file_more_bytes_than_file_size(){
     char buf[] = "123456789";
     char buf_read[2000];
-    int fd = simplefs_creat("/read_mode_buf", FS_WRITE);
+    int fd = simplefs_creat("/read_mode_buf", WRONLY);
     int result = simplefs_write(fd, buf, sizeof(buf));
-    int fd_open = simplefs_open("/read_mode_buf", FS_READ);
+    int fd_open = simplefs_open("/read_mode_buf", RDONLY);
     int read_result = simplefs_read(fd_open, buf_read, 2000);
     TEST_ASSERT(!strcmp(buf_read, "123456789"));
     TEST_ASSERT_EQUAL(sizeof(buf), result);
@@ -95,8 +95,8 @@ void successfully_write_file_twice_and_read_different_content(){
     char buf_2[4] = "123";
     char buf_read_1[100];
     char buf_read_2[100];
-    int fd = simplefs_creat("/write_mode_twice", FS_WRITE);
-    int fd_open = simplefs_open("/write_mode_twice", FS_READ);
+    int fd = simplefs_creat("/write_mode_twice", WRONLY);
+    int fd_open = simplefs_open("/write_mode_twice", RDONLY);
     simplefs_write(fd, buf_1, sizeof(buf_1));
     simplefs_read(fd_open, buf_read_1, 10);
     TEST_ASSERT(!strcmp(buf_read_1, "123456789"));
@@ -167,9 +167,9 @@ void write_read_file_multiple_blocks(){
                     "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789"
                     "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789"; //6001B
     char buf_read[6001];
-    int fd = simplefs_creat("/multiple_blocks", FS_WRITE);
+    int fd = simplefs_creat("/multiple_blocks", WRONLY);
     simplefs_write(fd, buf, sizeof(buf));
-    int fd_open = simplefs_open("/multiple_blocks", FS_READ);
+    int fd_open = simplefs_open("/multiple_blocks", RDONLY);
     int read_result = simplefs_read(fd_open, buf_read, sizeof(buf_read));
     TEST_ASSERT(!strcmp(buf_read, buf));
     TEST_ASSERT_EQUAL(read_result, sizeof(buf_read));

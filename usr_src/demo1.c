@@ -34,7 +34,7 @@ int main(int argc, char const *argv[])
         fclose (f);
     }
     printf("%ld\n", length);
-    int fd = simplefs_creat("/output.jpg", FS_WRITE);
+    int fd = simplefs_creat("/output.jpg", WRONLY);
     int result = 0;
     if (buffer)
     {
@@ -48,7 +48,7 @@ int main(int argc, char const *argv[])
     simplefs_close(fd);
 
     char* result_buffer = malloc(length);
-    int fd2 = simplefs_open("/output.jpg", FS_READ);
+    int fd2 = simplefs_open("/output.jpg", RDONLY);
     int read_result = simplefs_read(fd2, result_buffer, result);
     printf("read result %d\n", read_result);
     FILE * dest = fopen("./usr_src/output.jpg", "wb");
