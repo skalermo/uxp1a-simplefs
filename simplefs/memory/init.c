@@ -13,6 +13,7 @@
 #include "open_files.h"
 #include "dir_file.h"
 #include "block_links.h"
+#include "../simplefs_synchronization.h"
 
 
 void *PTR_TO_FS = NULL;
@@ -186,6 +187,17 @@ void unlink_fs_custom(const char *path) {
 		perror("shm_unlink");
 		exit(EXIT_FAILURE);
 	};
+	fs_sem_unlink_block_stat();
+	fs_sem_unlink_inode_stat();
+	fs_sem_unlink_main_folder();
+	fs_sem_unlink_open_file_stat();
+	for (int i = 0; i < MAX_INODES; i++) {
+	    inner_fs_generate_inode_name(i, READ_TRY_MUTEX_SUFFIX);
+	    shm_unlink(inner_fs_generate_inode_name(i, READ_TRY_MUTEX_SUFFIX));
+        shm_unlink(inner_fs_generate_inode_name(i, READ_MUTEX_SUFFIX));
+        shm_unlink(inner_fs_generate_inode_name(i, WRITE_MUTEX_SUFFIX));
+        shm_unlink(inner_fs_generate_inode_name(i, RESOURCE_SUFFIX));
+	}
 	PTR_TO_FS = NULL;
 }
 
