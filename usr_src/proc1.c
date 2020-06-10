@@ -3,8 +3,6 @@
 #include <memory/superblock.h>
 #include "simplefs_api.h"
 
-
-
 int main(int argc, char const *argv[])
 {
     // Dir creation
@@ -12,7 +10,7 @@ int main(int argc, char const *argv[])
     simplefs_mkdir("/dir2");
     simplefs_mkdir("/dir1/dir3");
     puts("Created dirs");
-
+  
     // File creation
     puts("Created /dir2/file2.txt");
     int fd = simplefs_creat("/dir2/file2.txt", WRONLY);
