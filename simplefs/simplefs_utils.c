@@ -147,11 +147,11 @@ int32_t get_inode_index(char *path, uint8_t type, void* shm_addr){
 
     if(type == IS_DIR){
         struct ReadWriteSem semInode;
-        fs_sem_init_inode(&semInode, current_inode);
-        fs_sem_lock_read_inode(&semInode, shm_addr);
+//        fs_sem_init_inode(&semInode, current_inode);
+//        fs_sem_lock_read_inode(&semInode, shm_addr);
         current_inode = next_inode(current_inode, sub_path[loopMax], IS_DIR, shm_addr);
-        fs_sem_unlock_read_inode(&semInode, shm_addr);
-        fs_sem_close_inode(&semInode);
+//        fs_sem_unlock_read_inode(&semInode, shm_addr);
+//        fs_sem_close_inode(&semInode);
     }
     else if(type == IS_FILE){
         current_inode = next_inode(current_inode, sub_path[loopMax], IS_FILE, shm_addr);
