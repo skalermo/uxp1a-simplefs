@@ -455,6 +455,8 @@ int simplefs_unlink(char *name) {
     fs_sem_close_main_folder(&semMainFolder);
 
     if(ret < 0){
+        fs_sem_unlock_read_inode(&semInode, shm_addr);
+        fs_sem_unlink_inode(&semInode);
         return ret;
     }
 
@@ -467,6 +469,8 @@ int simplefs_unlink(char *name) {
     fs_sem_close_block_stat(&semBlock);
 
     if(ret < 0){
+        fs_sem_unlock_read_inode(&semInode, shm_addr);
+        fs_sem_unlink_inode(&semInode);
         return ret;
     }
 
