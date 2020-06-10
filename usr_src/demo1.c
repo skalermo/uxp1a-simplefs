@@ -1,14 +1,9 @@
 #include <stdio.h>
-#include <string.h>
-#include <libgen.h>
-#include <malloc.h>
 #include <sys/mman.h>
 #include <memory/superblock.h>
 #include <semaphore.h>
-#include "simplefs_utils.h"
 #include "simplefs_api.h"
 #include "memory/init.h"
-#include <sys/shm.h>
 
 int main(int argc, char const *argv[])
 {
@@ -16,8 +11,6 @@ int main(int argc, char const *argv[])
     shm_unlink(FS_SHM_NAME);
     char * buffer = 0;
     long length;
-
-
 
     FILE * f = fopen ("./usr_src/cloud.jpg", "rb");
 
@@ -60,6 +53,7 @@ int main(int argc, char const *argv[])
 
     simplefs_close(fd2);
     simplefs_unlink("/output.jpg");
+
     unlink_fs();
     return 0;
 }
