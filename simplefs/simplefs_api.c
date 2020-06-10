@@ -70,8 +70,11 @@ int simplefs_creat(char *name, int mode) {
     struct Semaphore semInodeStat;
     struct Semaphore semOpenFile;
 
+    puts("1");
+
     fs_sem_init_main_folder(&semMainDir);
     fs_sem_lock_write_main_folder(&semMainDir, shm_addr);
+    puts("11");
 
     // Check if exists
     int32_t inode_idx = get_inode_index(name, IS_FILE, shm_addr);
@@ -95,12 +98,12 @@ int simplefs_creat(char *name, int mode) {
         // Create inode
         struct Inode new_inode = {0};
         new_inode.mode = IS_FILE;
+        puts("2");
 
         fs_sem_init_inode_stat(&semInodeStat);
         fs_sem_lock_inode_stat(&semInodeStat);
         fs_sem_init_block_stat(&semBlock);
         fs_sem_lock_block_stat(&semBlock);
-
         new_inode.block_index = allocate_new_chain(shm_addr);
 
         if(new_inode.block_index == UINT32_MAX){
@@ -112,10 +115,11 @@ int simplefs_creat(char *name, int mode) {
             fs_sem_close_inode_stat(&semInodeStat);
             return EIO;
         }
-            
+
 
         // Save inode in FS        
         inode_idx = save_new_inode(&new_inode, shm_addr);
+        puts("3");
 
         fs_sem_unlock_inode_stat(&semInodeStat);
         fs_sem_close_inode_stat(&semInodeStat);
@@ -158,7 +162,6 @@ int simplefs_creat(char *name, int mode) {
             fs_sem_close_main_folder(&semMainDir);
             return ENOSPC;
         }
-            
 
         free(name_copy);
     }
@@ -169,11 +172,16 @@ int simplefs_creat(char *name, int mode) {
     new_open_file.inode_num = inode_idx;
     new_open_file.offset = 0;
     new_open_file.pid = getpid();
-
+    puts("4");
+    printf("index is %d\n", inode_idx);
     fs_sem_init_inode(&semInode, inode_idx);
+    puts("41");
     fs_sem_lock_write_inode(&semInode, shm_addr);
+    puts("42");
 
     fs_sem_init_open_file_stat(&semOpenFile);
+    puts("43");
+
     fs_sem_lock_open_file_stat(&semOpenFile);
 
     // I think it is safer that way
@@ -191,6 +199,7 @@ int simplefs_creat(char *name, int mode) {
 
     fs_sem_unlock_write_inode(&semInode, shm_addr);
     fs_sem_close_inode(&semInode);
+    puts("5");
 
     return fd;
 }
@@ -281,6 +290,8 @@ int simplefs_write(int fd, char *buf, int len) {
     uint32_t block_idx = get_inode_block_index(openFile.inode_num, shm_addr);
 
     if(USHRT_MAX < openFile.offset + len){
+        fs_sem_unlock_write_inode(&semInode, shm_addr);
+        fs_sem_close_inode(&semInode);
         return EFBIG;
     }
 
@@ -306,6 +317,8 @@ int simplefs_write(int fd, char *buf, int len) {
 
 
     if(len_wrote < 0){
+        fs_sem_unlock_write_inode(&semInode, shm_addr);
+        fs_sem_close_inode(&semInode);
         return EFBIG;
     }
 
@@ -410,14 +423,12 @@ int simplefs_unlink(char *name) {
         return EBUSY;
     }
         
-    fs_sem_unlock_read_inode(&semInode, shm_addr);
 
     // Get dir inode
     char* name_copy = strdup(name);
     char* dir_path = dirname(name_copy);
     int dir_inode = get_inode_index(dir_path, IS_DIR, shm_addr);
 
-    fs_sem_lock_read_inode(&semInode, shm_addr);
 
     if(dir_inode < 0){
         fs_sem_unlock_write_main_folder(&semMainFolder, shm_addr);
@@ -529,9 +540,11 @@ int simplefs_mkdir(char *name) {
 
     fs_sem_init_main_folder(&semMainFolder);
     fs_sem_lock_write_main_folder(&semMainFolder, shm_addr);
+    puts("aaa");
 
     // Get Inode idx for dir
     int dir_inode = get_inode_index(dir_path, IS_DIR, shm_addr);
+    puts("bbb");
 
     // if path is wrong
     // or if the last inode should not be dir / file
