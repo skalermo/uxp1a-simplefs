@@ -408,11 +408,14 @@ int simplefs_unlink(char *name) {
         return EBUSY;
     }
         
+    fs_sem_unlock_read_inode(&semInode, shm_addr);
 
     // Get dir inode
     char* name_copy = strdup(name);
     char* dir_path = dirname(name_copy);
     int dir_inode = get_inode_index(dir_path, IS_DIR, shm_addr);
+
+    fs_sem_lock_read_inode(&semInode, shm_addr);
 
     if(dir_inode < 0){
         fs_sem_unlock_write_main_folder(&semMainFolder, shm_addr);
