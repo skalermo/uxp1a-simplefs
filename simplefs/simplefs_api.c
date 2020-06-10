@@ -1,13 +1,9 @@
-#ifndef SIMPLEFS_API_C
-#define SIMPLEFS_API_C
-
 #include "simplefs_api.h"
 #include "simplefs_utils.h"
 #include "simplefs_synchronization.h"
 #include "memory/init.h"
 #include <libgen.h>
 #include <string.h>
-#include <sys/types.h>
 #include <unistd.h>
 
 
@@ -70,11 +66,8 @@ int simplefs_creat(char *name, int mode) {
     struct Semaphore semInodeStat;
     struct Semaphore semOpenFile;
 
-    puts("1");
-
     fs_sem_init_main_folder(&semMainDir);
     fs_sem_lock_write_main_folder(&semMainDir, shm_addr);
-    puts("11");
 
     // Check if exists
     int32_t inode_idx = get_inode_index(name, IS_FILE, shm_addr);
@@ -98,7 +91,6 @@ int simplefs_creat(char *name, int mode) {
         // Create inode
         struct Inode new_inode = {0};
         new_inode.mode = IS_FILE;
-        puts("2");
 
         fs_sem_init_inode_stat(&semInodeStat);
         fs_sem_lock_inode_stat(&semInodeStat);
@@ -119,7 +111,6 @@ int simplefs_creat(char *name, int mode) {
 
         // Save inode in FS        
         inode_idx = save_new_inode(&new_inode, shm_addr);
-        puts("3");
 
         fs_sem_unlock_inode_stat(&semInodeStat);
         fs_sem_close_inode_stat(&semInodeStat);
@@ -172,19 +163,13 @@ int simplefs_creat(char *name, int mode) {
     new_open_file.inode_num = inode_idx;
     new_open_file.offset = 0;
     new_open_file.pid = getpid();
-    puts("4");
-    printf("index is %d\n", inode_idx);
     fs_sem_init_inode(&semInode, inode_idx);
-    puts("41");
     fs_sem_lock_write_inode(&semInode, shm_addr);
-    puts("42");
 
     fs_sem_init_open_file_stat(&semOpenFile);
-    puts("43");
 
     fs_sem_lock_open_file_stat(&semOpenFile);
 
-    // I think it is safer that way
     fs_sem_unlock_write_main_folder(&semMainDir, shm_addr);
     fs_sem_close_main_folder(&semMainDir);
     
@@ -199,7 +184,6 @@ int simplefs_creat(char *name, int mode) {
 
     fs_sem_unlock_write_inode(&semInode, shm_addr);
     fs_sem_close_inode(&semInode);
-    puts("5");
 
     return fd;
 }
@@ -254,10 +238,6 @@ int simplefs_read(int fd, char *buf, int len) {
     openFile.offset += len;
     set_offset(fd, openFile.offset, shm_addr);
 
-    // Set inode mode to 0
-    // not neccesary
-    //set_inode_mode(openFile.inode_num, 0, shm_addr);
-
     return len_read;
 }
 
@@ -277,10 +257,6 @@ int simplefs_write(int fd, char *buf, int len) {
     if((openFile.pid != getpid()) || (openFile.mode != WRONLY && openFile.mode != RDWR)){
         return EBADF;
     }
-
-    // Set inode mode to WRITE
-    // not needed
-    //set_inode_mode(openFile.inode_num, openFile.mode, shm_addr);
 
     struct ReadWriteSem semInode;
     fs_sem_init_inode(&semInode, openFile.inode_num);
@@ -335,10 +311,6 @@ int simplefs_write(int fd, char *buf, int len) {
     // Update offset
 
     set_offset(fd, openFile.offset, shm_addr);
-
-    // Set inode mode to 0
-    // not needed
-    //set_inode_mode(openFile.inode_num, 0, shm_addr);
 
     return len_wrote;
 }
@@ -422,7 +394,6 @@ int simplefs_unlink(char *name) {
         fs_sem_close_inode(&semInode);
         return EBUSY;
     }
-        
 
     // Get dir inode
     char* name_copy = strdup(name);
@@ -447,8 +418,6 @@ int simplefs_unlink(char *name) {
         fs_sem_close_inode(&semInode);
         return ENOENT;
     }
-
-        
 
     // Remove dir entry from dir file
     int ret = free_dir_entry(dir_block, file_inode, shm_addr);
@@ -540,11 +509,9 @@ int simplefs_mkdir(char *name) {
 
     fs_sem_init_main_folder(&semMainFolder);
     fs_sem_lock_write_main_folder(&semMainFolder, shm_addr);
-    puts("aaa");
 
     // Get Inode idx for dir
     int dir_inode = get_inode_index(dir_path, IS_DIR, shm_addr);
-    puts("bbb");
 
     // if path is wrong
     // or if the last inode should not be dir / file
@@ -590,7 +557,6 @@ int simplefs_mkdir(char *name) {
         free(name_copy);
         return ENOSPC;
     }
-   
 
     structHelp.prevoiusDirInode = dir_inode;
     structHelp.prevoiusDirInodeName = filenamePrev;
@@ -613,8 +579,7 @@ int simplefs_mkdir(char *name) {
         free(name_copy);
         return ENOSPC;
     }
-        
-        
+
     fs_save_data_to_inode_uint32(inode_idx, 0, new_inode.block_index, shm_addr);
 
     // Create Dir Entry
@@ -824,7 +789,3 @@ int simplefs_close(int fd) {
 
     return 0;
 }
-
-
-
-#endif

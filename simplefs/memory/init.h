@@ -3,7 +3,6 @@
 
 #include <stdint.h>
 
-#define FS_NAME "simplefs_shm"
 #define FS_SIZE 268435456 // 256 MiB
 #define MAX_INODES 65535 // 2^16-1
 #define MAX_OPEN_FILES 1024
@@ -58,9 +57,6 @@ uint32_t get_InodeStat_size(uint32_t inode_count);
 uint32_t get_BlockStat_size(uint32_t block_count);
 
 uint32_t get_block_links_size(uint32_t block_count);
-
-
-
 
 
 # endif // SIMPLEFS_INIT_H
