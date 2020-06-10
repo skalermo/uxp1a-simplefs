@@ -11,7 +11,7 @@
 // Hidden functions
 //////////////////////////////////////
 
-#define NO_SYNC 1
+#define NO_SYNC 0
 
 int8_t inner_fs_increment_inode(uint16_t inodeIndex, uint16_t index, uint16_t *data, void *addr){
     if (NO_SYNC)

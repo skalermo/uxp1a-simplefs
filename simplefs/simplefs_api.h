@@ -1,5 +1,6 @@
 #ifndef SIMPLEFS_API_H
 #define SIMPLEFS_API_H
+#include "inode.h"
 
 // Defines of API errors
 
@@ -20,9 +21,6 @@
 #define EMFILE -16
 
 #define ENOTIMPLEMENTED -100
-
-#define FS_READ 1
-#define FS_WRITE 2
 
 // Prototypes of API functions
 

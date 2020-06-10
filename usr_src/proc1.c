@@ -10,41 +10,65 @@
 #include "memory/init.h"
 #include <sys/shm.h>
 
-#define BYTE_TO_BINARY_PATTERN "%c%c%c%c%c%c%c%c\n"
-#define BYTE_TO_BINARY(byte)  \
-  (byte & 0x80 ? '1' : '0'), \
-  (byte & 0x40 ? '1' : '0'), \
-  (byte & 0x20 ? '1' : '0'), \
-  (byte & 0x10 ? '1' : '0'), \
-  (byte & 0x08 ? '1' : '0'), \
-  (byte & 0x04 ? '1' : '0'), \
-  (byte & 0x02 ? '1' : '0'), \
-  (byte & 0x01 ? '1' : '0')
 
 int main(int argc, char const *argv[])
 {
-    sem_unlink(CREATE_FS_GUARD);
-    shm_unlink(FS_SHM_NAME);
-//    create_fs();
-//    int a = get_inode_index("/file", shm_addr);
-    int fd1 = simplefs_creat("/file.txt", FS_WRITE);
-    void* shm_addr = get_ptr_to_fs();
+    // Dir creation
+    simplefs_mkdir("/dir1");
+    simplefs_mkdir("/dir2");
+    simplefs_mkdir("/dir1/dir3");
+    puts("Created dirs");
 
+    // File creation
+    puts("Created /dir2/file2.txt");
+    int fd = simplefs_creat("/dir2/file2.txt", WRONLY);
+    simplefs_close(fd);
 
+    // Write
+    puts("Created /dir1/dir3/file.txt");
+    fd = simplefs_creat("/dir1/dir3/file.txt", WRONLY);
+    char text[] = "Hello world";
+    puts("Writing to file");
+    simplefs_write(fd, text, sizeof(text));
+    simplefs_close(fd);
 
-    char buf[] = "Hello world";
+    // Read
+    puts("Reading file");
+    fd = simplefs_open("/dir1/dir3/file.txt", RDONLY);
+    char buf[20];
+    simplefs_read(fd, buf, sizeof(buf));
 
-    simplefs_write(fd1, buf, sizeof(buf));
+    if(!strcmp(buf, text)){
+        puts("Correct Read");
+    } else {
+        puts("Incorrect Read");
+    }
+    simplefs_close(fd);
 
-    int fd2 = simplefs_open("/file.txt", FS_READ);
+    puts("Writing and reading from same file");
+    fd = simplefs_open("/dir2/file2.txt", RDWR);
+    char text2[] = "New text";
+    simplefs_write(fd, text2, sizeof(text2));
 
-    char read[12] = {0};
+    // lseek
+    simplefs_lseek(fd, SEEK_SET, 0);
 
-    simplefs_read(fd2, read, 12);
+    char buf2[20];
+    simplefs_read(fd, buf2, sizeof(buf2));
 
-    printf("%s\n", read);
+    if(!strcmp(buf2, text2)){
+        puts("Correct Read");
+    } else {
+        puts("Incorrect Read");
+    }
+    simplefs_close(fd);
 
-    int a = simplefs_unlink("/file.txt");
-    unlink_fs();
+    simplefs_rmdir("/dir2");
+
+    fd = simplefs_creat("/file.bin", RDWR);
+    simplefs_close(fd);
+
+    simplefs_unlink("/file.bin");
+
     return 0;
 }
