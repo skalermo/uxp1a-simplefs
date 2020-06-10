@@ -26,7 +26,6 @@ int main(int argc, char** argv) {
         exit(1);
 
     printf("\033[32m [Writer %d] opened file%d with fd=%d\n", pid, file_no, fd);
-    int to_sleep;
 
     srand(time(NULL) - getpid());
 

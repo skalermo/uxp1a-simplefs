@@ -174,7 +174,6 @@ void create_fs_custom(const char *path, const unsigned fs_size) {
 	// because fs was created
 	// no more need in this semaphore
 	sem_unlink(CREATE_FS_GUARD);
-	// PTR_TO_FS = addr;
 }
 
 void unlink_fs() {
@@ -186,6 +185,7 @@ void unlink_fs_custom(const char *path) {
 		perror("shm_unlink");
 		exit(EXIT_FAILURE);
 	};
+
 	PTR_TO_FS = NULL;
 }
 

@@ -1,15 +1,7 @@
 #include <stdio.h>
 #include <string.h>
-#include <libgen.h>
-#include <malloc.h>
-#include <sys/mman.h>
 #include <memory/superblock.h>
-#include <semaphore.h>
-#include "simplefs_utils.h"
 #include "simplefs_api.h"
-#include "memory/init.h"
-#include <sys/shm.h>
-
 
 int main(int argc, char const *argv[])
 {
@@ -18,7 +10,7 @@ int main(int argc, char const *argv[])
     simplefs_mkdir("/dir2");
     simplefs_mkdir("/dir1/dir3");
     puts("Created dirs");
-
+  
     // File creation
     puts("Created /dir2/file2.txt");
     int fd = simplefs_creat("/dir2/file2.txt", WRONLY);

@@ -126,6 +126,8 @@ int8_t fs_sem_close_open_file_stat(struct Semaphore* openFileStat);
 
 int8_t fs_sem_unlink_open_file_stat();
 
+char* inner_fs_generate_inode_name(uint16_t inodeIndex, char* suffix);
+
 /////////////////////////////
 // Defined errors
 /////////////////////////////
